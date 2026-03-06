@@ -1,0 +1,1001 @@
+full_name,academic_id,email,password,gender,birthdate,status,grade,class_section_id,address_governorate,address_city,address_street,guardian_name,guardian_relation,guardian_phone
+Hassan Mansour,STU20240001,student1@edulearn.com,password123,male,2005-07-21,active,11th Grade,4,Giza,Mansoura,Street 91,Ali Mansour,Grandfather,01217337560
+Ahmed Saeed,STU20240002,student2@edulearn.com,password123,male,2010-05-11,active,11th Grade,1,Alexandria,Nasr City,Street 56,Youssef Saeed,Uncle,01242589010
+Mariam Rahman,STU20240003,student3@edulearn.com,password123,female,2005-07-21,active,12th Grade,5,Red Sea,Dokki,Street 9,Youssef Rahman,Uncle,01024027663
+Kareem Gaber,STU20240004,student4@edulearn.com,password123,male,2010-09-20,inactive,11th Grade,4,Red Sea,Mohandeseen,Street 86,Ahmed Gaber,Father,01045821453
+Tariq Khalil,STU20240005,student5@edulearn.com,password123,male,2006-01-09,active,11th Grade,1,Cairo,Mohandeseen,Street 97,Kareem Khalil,Father,01295401258
+Ahmed Abdullah,STU20240006,student6@edulearn.com,password123,male,2008-12-09,active,11th Grade,4,Red Sea,Mohandeseen,Street 57,Kareem Abdullah,Father,01280881315
+Nour Abdullah,STU20240007,student7@edulearn.com,password123,female,2010-01-06,inactive,11th Grade,3,Giza,Hurghada,Street 63,Tariq Abdullah,Brother,01043191124
+Ali Abdullah,STU20240008,student8@edulearn.com,password123,male,2008-08-07,active,12th Grade,1,Alexandria,Mohandeseen,Street 32,Youssef Abdullah,Mother,01027817660
+Omar Saeed,STU20240009,student9@edulearn.com,password123,male,2009-01-29,active,12th Grade,1,Red Sea,Mansoura,Street 35,Mahmoud Saeed,Mother,01294872282
+Salma Ibrahim,STU20240010,student10@edulearn.com,password123,female,2009-05-08,active,12th Grade,1,Red Sea,Maadi,Street 58,Youssef Ibrahim,Uncle,01175793891
+Ahmed Khalil,STU20240011,student11@edulearn.com,password123,male,2008-02-15,active,12th Grade,1,Red Sea,Dokki,Street 98,Hassan Khalil,Uncle,01155369501
+Sara Saeed,STU20240012,student12@edulearn.com,password123,female,2005-06-07,active,12th Grade,2,Dakahlia,Smouha,Street 7,Ali Saeed,Uncle,01259655546
+Omar Ibrahim,STU20240013,student13@edulearn.com,password123,male,2009-07-21,active,10th Grade,1,Alexandria,Nasr City,Street 92,Omar Ibrahim,Uncle,01297446735
+Omar Abdullah,STU20240014,student14@edulearn.com,password123,male,2010-10-03,active,11th Grade,1,Giza,Hurghada,Street 50,Kareem Abdullah,Mother,01263187020
+Mariam Rahman,STU20240015,student15@edulearn.com,password123,female,2008-11-07,active,12th Grade,4,Red Sea,Maadi,Street 4,Omar Rahman,Father,01141039725
+Ahmed Fawzi,STU20240016,student16@edulearn.com,password123,male,2005-08-28,active,12th Grade,3,Dakahlia,Maadi,Street 10,Kareem Fawzi,Mother,01239921655
+Ali Mansour,STU20240017,student17@edulearn.com,password123,male,2009-12-28,active,11th Grade,3,Cairo,Mansoura,Street 95,Tariq Mansour,Brother,01220095993
+Sara Rahman,STU20240018,student18@edulearn.com,password123,female,2005-06-15,active,10th Grade,5,Cairo,Smouha,Street 5,Omar Rahman,Mother,01060350720
+Youssef Husseini,STU20240019,student19@edulearn.com,password123,male,2009-01-29,active,10th Grade,1,Red Sea,Mohandeseen,Street 11,Tariq Husseini,Father,01140090119
+Mahmoud Abdullah,STU20240020,student20@edulearn.com,password123,male,2009-04-20,active,12th Grade,3,Cairo,Smouha,Street 69,Tariq Abdullah,Uncle,01010762327
+Mona Farouk,STU20240021,student21@edulearn.com,password123,female,2008-06-17,active,12th Grade,3,Dakahlia,Mohandeseen,Street 29,Youssef Farouk,Uncle,01015035072
+Salma Rahman,STU20240022,student22@edulearn.com,password123,female,2009-12-26,active,10th Grade,1,Giza,Hurghada,Street 84,Ali Rahman,Father,01136656677
+Nour Ibrahim,STU20240023,student23@edulearn.com,password123,female,2009-07-16,active,11th Grade,5,Giza,Nasr City,Street 84,Ahmed Ibrahim,Father,01042860768
+Ahmed Mansour,STU20240024,student24@edulearn.com,password123,male,2007-12-18,active,12th Grade,2,Giza,Mansoura,Street 94,Youssef Mansour,Mother,01180294846
+Omar Farouk,STU20240025,student25@edulearn.com,password123,male,2010-10-30,inactive,10th Grade,1,Alexandria,Nasr City,Street 86,Youssef Farouk,Uncle,01040588695
+Laila Ibrahim,STU20240026,student26@edulearn.com,password123,female,2010-10-18,active,11th Grade,1,Giza,Mansoura,Street 54,Mahmoud Ibrahim,Brother,01175599263
+Ali Mansour,STU20240027,student27@edulearn.com,password123,male,2005-03-04,inactive,11th Grade,1,Giza,Smouha,Street 55,Mahmoud Mansour,Brother,01271254003
+Omar Rahman,STU20240028,student28@edulearn.com,password123,male,2008-08-11,inactive,12th Grade,1,Giza,Maadi,Street 62,Ali Rahman,Grandfather,01056293174
+Fatima Mansour,STU20240029,student29@edulearn.com,password123,female,2008-05-27,active,11th Grade,4,Red Sea,Mohandeseen,Street 92,Omar Mansour,Brother,01265251935
+Aisha Rahman,STU20240030,student30@edulearn.com,password123,female,2008-11-26,active,10th Grade,1,Giza,Hurghada,Street 38,Hassan Rahman,Grandfather,01034161944
+Aisha Husseini,STU20240031,student31@edulearn.com,password123,female,2005-10-10,inactive,10th Grade,1,Dakahlia,Mohandeseen,Street 32,Youssef Husseini,Grandfather,01161903549
+Mona Abdullah,STU20240032,student32@edulearn.com,password123,female,2009-12-12,active,10th Grade,5,Alexandria,Maadi,Street 35,Kareem Abdullah,Uncle,01192186634
+Ali Farouk,STU20240033,student33@edulearn.com,password123,male,2005-04-13,inactive,12th Grade,4,Dakahlia,Smouha,Street 69,Kareem Farouk,Uncle,01197087297
+Kareem Mansour,STU20240034,student34@edulearn.com,password123,male,2007-04-10,active,12th Grade,2,Cairo,Mohandeseen,Street 70,Ahmed Mansour,Father,01120341916
+Mariam Rahman,STU20240035,student35@edulearn.com,password123,female,2005-03-24,inactive,11th Grade,2,Dakahlia,Nasr City,Street 29,Tariq Rahman,Uncle,01114852028
+Hassan Saeed,STU20240036,student36@edulearn.com,password123,male,2009-06-27,active,11th Grade,3,Cairo,Mohandeseen,Street 39,Mahmoud Saeed,Uncle,01041502940
+Laila Farouk,STU20240037,student37@edulearn.com,password123,female,2010-04-23,inactive,11th Grade,3,Dakahlia,Maadi,Street 76,Tariq Farouk,Uncle,01034021690
+Hassan Ibrahim,STU20240038,student38@edulearn.com,password123,male,2006-05-14,inactive,10th Grade,4,Giza,Maadi,Street 18,Hassan Ibrahim,Father,01092414521
+Mona Khalil,STU20240039,student39@edulearn.com,password123,female,2005-02-04,active,11th Grade,4,Dakahlia,Dokki,Street 68,Mahmoud Khalil,Uncle,01095489241
+Youssef Gaber,STU20240040,student40@edulearn.com,password123,male,2005-10-01,inactive,10th Grade,1,Dakahlia,Dokki,Street 85,Ali Gaber,Grandfather,01267978102
+Youssef Abdullah,STU20240041,student41@edulearn.com,password123,male,2010-02-24,active,11th Grade,5,Dakahlia,Nasr City,Street 94,Mahmoud Abdullah,Father,01254416651
+Mona Saeed,STU20240042,student42@edulearn.com,password123,female,2006-03-07,active,12th Grade,4,Red Sea,Nasr City,Street 53,Ali Saeed,Father,01018400139
+Tariq Saeed,STU20240043,student43@edulearn.com,password123,male,2006-09-20,inactive,12th Grade,4,Red Sea,Maadi,Street 40,Tariq Saeed,Mother,01083541646
+Mahmoud Mansour,STU20240044,student44@edulearn.com,password123,male,2005-11-11,inactive,10th Grade,1,Dakahlia,Maadi,Street 37,Hassan Mansour,Father,01179753789
+Kareem Husseini,STU20240045,student45@edulearn.com,password123,male,2006-09-12,active,10th Grade,5,Alexandria,Nasr City,Street 59,Ali Husseini,Father,01048849049
+Nour Abdullah,STU20240046,student46@edulearn.com,password123,female,2008-11-29,active,10th Grade,4,Cairo,Mansoura,Street 77,Kareem Abdullah,Brother,01283673808
+Mariam Mansour,STU20240047,student47@edulearn.com,password123,female,2007-11-14,inactive,12th Grade,2,Dakahlia,Nasr City,Street 37,Ahmed Mansour,Father,01010058894
+Aisha Husseini,STU20240048,student48@edulearn.com,password123,female,2010-03-02,active,11th Grade,4,Red Sea,Nasr City,Street 62,Kareem Husseini,Uncle,01273339764
+Salma Gaber,STU20240049,student49@edulearn.com,password123,female,2009-05-01,active,11th Grade,3,Cairo,Maadi,Street 98,Ali Gaber,Father,01181873327
+Kareem Fawzi,STU20240050,student50@edulearn.com,password123,male,2010-04-28,active,11th Grade,4,Giza,Mansoura,Street 28,Youssef Fawzi,Uncle,01235769935
+Salma Fawzi,STU20240051,student51@edulearn.com,password123,female,2009-07-03,active,11th Grade,2,Giza,Maadi,Street 61,Kareem Fawzi,Uncle,01167426529
+Salma Farouk,STU20240052,student52@edulearn.com,password123,female,2009-07-17,active,10th Grade,4,Red Sea,Maadi,Street 60,Youssef Farouk,Mother,01221589326
+Mahmoud Rahman,STU20240053,student53@edulearn.com,password123,male,2008-08-14,active,11th Grade,2,Red Sea,Maadi,Street 89,Ahmed Rahman,Father,01270011719
+Tariq Farouk,STU20240054,student54@edulearn.com,password123,male,2009-01-16,active,12th Grade,1,Giza,Hurghada,Street 69,Youssef Farouk,Grandfather,01062070907
+Mahmoud Saeed,STU20240055,student55@edulearn.com,password123,male,2010-08-01,inactive,12th Grade,2,Cairo,Maadi,Street 12,Ahmed Saeed,Mother,01150646123
+Ahmed Khalil,STU20240056,student56@edulearn.com,password123,male,2005-09-22,active,11th Grade,2,Dakahlia,Smouha,Street 44,Tariq Khalil,Uncle,01287401040
+Omar Abdullah,STU20240057,student57@edulearn.com,password123,male,2006-08-28,active,12th Grade,2,Dakahlia,Smouha,Street 86,Ahmed Abdullah,Grandfather,01277786910
+Laila Saeed,STU20240058,student58@edulearn.com,password123,female,2005-02-25,active,10th Grade,5,Alexandria,Mansoura,Street 35,Hassan Saeed,Grandfather,01093509805
+Fatima Khalil,STU20240059,student59@edulearn.com,password123,female,2008-06-27,active,11th Grade,2,Red Sea,Mansoura,Street 1,Ali Khalil,Brother,01141576475
+Tariq Farouk,STU20240060,student60@edulearn.com,password123,male,2008-06-25,inactive,10th Grade,5,Red Sea,Mohandeseen,Street 44,Tariq Farouk,Father,01137690996
+Omar Mansour,STU20240061,student61@edulearn.com,password123,male,2010-05-16,active,10th Grade,5,Red Sea,Maadi,Street 73,Ahmed Mansour,Grandfather,01010672654
+Aisha Abdullah,STU20240062,student62@edulearn.com,password123,female,2006-06-21,inactive,11th Grade,3,Giza,Dokki,Street 47,Kareem Abdullah,Mother,01072744552
+Aisha Husseini,STU20240063,student63@edulearn.com,password123,female,2007-01-19,active,10th Grade,1,Red Sea,Mansoura,Street 58,Kareem Husseini,Father,01290750347
+Salma Fawzi,STU20240064,student64@edulearn.com,password123,female,2010-05-19,active,12th Grade,4,Giza,Mohandeseen,Street 56,Ahmed Fawzi,Brother,01234619686
+Kareem Gaber,STU20240065,student65@edulearn.com,password123,male,2005-05-31,active,10th Grade,5,Giza,Maadi,Street 5,Tariq Gaber,Grandfather,01292652504
+Hassan Ibrahim,STU20240066,student66@edulearn.com,password123,male,2009-06-02,active,11th Grade,1,Giza,Hurghada,Street 76,Tariq Ibrahim,Father,01023046916
+Tariq Mansour,STU20240067,student67@edulearn.com,password123,male,2010-07-18,active,12th Grade,4,Red Sea,Hurghada,Street 100,Kareem Mansour,Father,01052635203
+Nour Khalil,STU20240068,student68@edulearn.com,password123,female,2010-03-13,active,11th Grade,3,Dakahlia,Smouha,Street 80,Kareem Khalil,Uncle,01072422446
+Salma Abdullah,STU20240069,student69@edulearn.com,password123,female,2010-09-24,active,10th Grade,1,Dakahlia,Mohandeseen,Street 100,Youssef Abdullah,Grandfather,01021360374
+Ali Husseini,STU20240070,student70@edulearn.com,password123,male,2005-07-30,active,10th Grade,2,Alexandria,Mansoura,Street 4,Ali Husseini,Grandfather,01139914735
+Laila Mansour,STU20240071,student71@edulearn.com,password123,female,2010-09-10,inactive,12th Grade,1,Alexandria,Dokki,Street 13,Tariq Mansour,Brother,01198076119
+Mariam Fawzi,STU20240072,student72@edulearn.com,password123,female,2005-04-28,active,10th Grade,3,Giza,Mansoura,Street 98,Mahmoud Fawzi,Mother,01127848525
+Kareem Mansour,STU20240073,student73@edulearn.com,password123,male,2009-01-21,active,10th Grade,1,Giza,Smouha,Street 82,Ahmed Mansour,Grandfather,01127866223
+Sara Rahman,STU20240074,student74@edulearn.com,password123,female,2006-08-10,active,12th Grade,4,Dakahlia,Maadi,Street 91,Kareem Rahman,Brother,01239620543
+Youssef Husseini,STU20240075,student75@edulearn.com,password123,male,2010-03-24,active,10th Grade,4,Alexandria,Mansoura,Street 60,Mahmoud Husseini,Grandfather,01212447377
+Youssef Fawzi,STU20240076,student76@edulearn.com,password123,male,2010-01-17,active,12th Grade,5,Dakahlia,Mohandeseen,Street 8,Mahmoud Fawzi,Uncle,01078085161
+Mariam Mansour,STU20240077,student77@edulearn.com,password123,female,2009-10-06,active,11th Grade,1,Cairo,Smouha,Street 56,Omar Mansour,Brother,01132487359
+Salma Farouk,STU20240078,student78@edulearn.com,password123,female,2009-09-10,inactive,12th Grade,2,Cairo,Hurghada,Street 89,Tariq Farouk,Mother,01172093880
+Youssef Fawzi,STU20240079,student79@edulearn.com,password123,male,2010-04-26,inactive,11th Grade,4,Red Sea,Hurghada,Street 55,Mahmoud Fawzi,Brother,01139013108
+Fatima Mansour,STU20240080,student80@edulearn.com,password123,female,2007-08-05,active,12th Grade,1,Cairo,Mansoura,Street 95,Tariq Mansour,Mother,01114627788
+Youssef Fawzi,STU20240081,student81@edulearn.com,password123,male,2009-07-17,active,10th Grade,3,Dakahlia,Maadi,Street 5,Ali Fawzi,Uncle,01158833211
+Tariq Husseini,STU20240082,student82@edulearn.com,password123,male,2010-03-10,active,12th Grade,3,Giza,Mansoura,Street 95,Ahmed Husseini,Father,01186989945
+Hassan Farouk,STU20240083,student83@edulearn.com,password123,male,2006-01-29,active,11th Grade,2,Red Sea,Dokki,Street 26,Kareem Farouk,Mother,01242065914
+Ali Mansour,STU20240084,student84@edulearn.com,password123,male,2008-09-25,active,12th Grade,2,Cairo,Dokki,Street 65,Kareem Mansour,Uncle,01181785060
+Mahmoud Gaber,STU20240085,student85@edulearn.com,password123,male,2007-12-20,active,12th Grade,3,Red Sea,Hurghada,Street 11,Youssef Gaber,Brother,01049139399
+Aisha Gaber,STU20240086,student86@edulearn.com,password123,female,2007-11-02,active,12th Grade,4,Dakahlia,Mansoura,Street 21,Omar Gaber,Grandfather,01191967387
+Hassan Mansour,STU20240087,student87@edulearn.com,password123,male,2007-11-09,inactive,10th Grade,2,Cairo,Mansoura,Street 94,Ali Mansour,Uncle,01215607654
+Laila Khalil,STU20240088,student88@edulearn.com,password123,female,2005-07-31,active,10th Grade,3,Cairo,Mansoura,Street 89,Ahmed Khalil,Father,01223271672
+Aisha Khalil,STU20240089,student89@edulearn.com,password123,female,2010-12-22,active,11th Grade,2,Cairo,Hurghada,Street 26,Youssef Khalil,Mother,01182250834
+Laila Husseini,STU20240090,student90@edulearn.com,password123,female,2006-12-17,active,12th Grade,2,Cairo,Maadi,Street 31,Kareem Husseini,Grandfather,01285327948
+Mahmoud Farouk,STU20240091,student91@edulearn.com,password123,male,2008-09-25,inactive,11th Grade,1,Red Sea,Maadi,Street 35,Kareem Farouk,Mother,01024346803
+Kareem Rahman,STU20240092,student92@edulearn.com,password123,male,2008-11-29,active,12th Grade,4,Cairo,Smouha,Street 29,Ahmed Rahman,Brother,01054788384
+Tariq Ibrahim,STU20240093,student93@edulearn.com,password123,male,2005-03-23,active,10th Grade,4,Cairo,Mohandeseen,Street 44,Hassan Ibrahim,Mother,01247204862
+Salma Mansour,STU20240094,student94@edulearn.com,password123,female,2007-01-07,active,12th Grade,2,Giza,Maadi,Street 35,Tariq Mansour,Uncle,01143578395
+Mona Gaber,STU20240095,student95@edulearn.com,password123,female,2006-09-30,active,10th Grade,4,Alexandria,Smouha,Street 40,Hassan Gaber,Brother,01188246857
+Mona Gaber,STU20240096,student96@edulearn.com,password123,female,2007-09-04,inactive,10th Grade,3,Cairo,Dokki,Street 24,Omar Gaber,Grandfather,01097897794
+Tariq Saeed,STU20240097,student97@edulearn.com,password123,male,2005-01-31,inactive,12th Grade,1,Red Sea,Mansoura,Street 84,Mahmoud Saeed,Brother,01249521495
+Tariq Fawzi,STU20240098,student98@edulearn.com,password123,male,2005-12-03,inactive,12th Grade,4,Red Sea,Mohandeseen,Street 3,Hassan Fawzi,Father,01070993327
+Youssef Ibrahim,STU20240099,student99@edulearn.com,password123,male,2006-10-01,inactive,11th Grade,2,Dakahlia,Dokki,Street 64,Tariq Ibrahim,Grandfather,01043171849
+Omar Husseini,STU20240100,student100@edulearn.com,password123,male,2008-01-27,active,11th Grade,2,Red Sea,Dokki,Street 37,Youssef Husseini,Brother,01299226268
+Nour Rahman,STU20240101,student101@edulearn.com,password123,female,2010-03-07,active,12th Grade,1,Cairo,Mansoura,Street 46,Ali Rahman,Brother,01062083864
+Salma Mansour,STU20240102,student102@edulearn.com,password123,female,2008-03-23,active,10th Grade,1,Giza,Dokki,Street 16,Hassan Mansour,Grandfather,01126606939
+Omar Ibrahim,STU20240103,student103@edulearn.com,password123,male,2010-04-03,active,12th Grade,3,Red Sea,Dokki,Street 35,Youssef Ibrahim,Uncle,01248877592
+Ali Fawzi,STU20240104,student104@edulearn.com,password123,male,2010-11-19,active,12th Grade,1,Alexandria,Nasr City,Street 84,Tariq Fawzi,Uncle,01073538982
+Kareem Abdullah,STU20240105,student105@edulearn.com,password123,male,2006-03-22,active,11th Grade,5,Giza,Dokki,Street 62,Omar Abdullah,Uncle,01023318580
+Aisha Mansour,STU20240106,student106@edulearn.com,password123,female,2005-04-14,inactive,10th Grade,5,Dakahlia,Dokki,Street 43,Youssef Mansour,Mother,01157998454
+Mariam Fawzi,STU20240107,student107@edulearn.com,password123,female,2005-02-12,active,11th Grade,5,Alexandria,Mansoura,Street 6,Youssef Fawzi,Grandfather,01173889702
+Ahmed Ibrahim,STU20240108,student108@edulearn.com,password123,male,2008-06-12,active,11th Grade,5,Red Sea,Smouha,Street 50,Mahmoud Ibrahim,Uncle,01190181274
+Fatima Saeed,STU20240109,student109@edulearn.com,password123,female,2008-12-24,inactive,11th Grade,5,Dakahlia,Smouha,Street 57,Mahmoud Saeed,Mother,01238298094
+Mahmoud Rahman,STU20240110,student110@edulearn.com,password123,male,2005-03-12,active,11th Grade,5,Alexandria,Nasr City,Street 93,Ali Rahman,Brother,01178623908
+Youssef Saeed,STU20240111,student111@edulearn.com,password123,male,2005-08-25,inactive,12th Grade,3,Dakahlia,Mohandeseen,Street 38,Youssef Saeed,Grandfather,01125521282
+Kareem Gaber,STU20240112,student112@edulearn.com,password123,male,2005-09-03,active,12th Grade,3,Giza,Mansoura,Street 72,Youssef Gaber,Father,01260013502
+Ahmed Saeed,STU20240113,student113@edulearn.com,password123,male,2010-10-27,active,11th Grade,5,Giza,Maadi,Street 63,Mahmoud Saeed,Mother,01284081669
+Tariq Saeed,STU20240114,student114@edulearn.com,password123,male,2007-10-31,inactive,11th Grade,4,Red Sea,Nasr City,Street 33,Kareem Saeed,Father,01032907864
+Salma Abdullah,STU20240115,student115@edulearn.com,password123,female,2007-07-11,active,12th Grade,4,Dakahlia,Dokki,Street 64,Ahmed Abdullah,Uncle,01082639095
+Mona Khalil,STU20240116,student116@edulearn.com,password123,female,2007-11-20,inactive,10th Grade,3,Dakahlia,Dokki,Street 68,Kareem Khalil,Grandfather,01289688509
+Kareem Saeed,STU20240117,student117@edulearn.com,password123,male,2009-08-17,inactive,10th Grade,3,Giza,Dokki,Street 76,Omar Saeed,Mother,01037184276
+Aisha Rahman,STU20240118,student118@edulearn.com,password123,female,2009-05-12,active,12th Grade,3,Alexandria,Smouha,Street 90,Hassan Rahman,Father,01057270769
+Fatima Khalil,STU20240119,student119@edulearn.com,password123,female,2009-06-30,active,10th Grade,1,Alexandria,Nasr City,Street 53,Mahmoud Khalil,Brother,01135166282
+Ahmed Husseini,STU20240120,student120@edulearn.com,password123,male,2005-10-23,active,10th Grade,3,Cairo,Dokki,Street 85,Mahmoud Husseini,Mother,01027877158
+Laila Khalil,STU20240121,student121@edulearn.com,password123,female,2009-03-13,active,10th Grade,5,Alexandria,Nasr City,Street 50,Tariq Khalil,Brother,01010359243
+Fatima Mansour,STU20240122,student122@edulearn.com,password123,female,2005-05-06,inactive,10th Grade,5,Dakahlia,Maadi,Street 64,Omar Mansour,Father,01218263971
+Salma Husseini,STU20240123,student123@edulearn.com,password123,female,2006-06-09,inactive,12th Grade,3,Alexandria,Mansoura,Street 13,Ahmed Husseini,Brother,01195866985
+Fatima Gaber,STU20240124,student124@edulearn.com,password123,female,2007-03-28,active,10th Grade,3,Dakahlia,Dokki,Street 94,Mahmoud Gaber,Brother,01227340854
+Mona Saeed,STU20240125,student125@edulearn.com,password123,female,2007-08-14,active,12th Grade,2,Dakahlia,Mansoura,Street 13,Youssef Saeed,Uncle,01290067317
+Fatima Mansour,STU20240126,student126@edulearn.com,password123,female,2005-08-11,inactive,10th Grade,2,Cairo,Hurghada,Street 83,Hassan Mansour,Mother,01096953166
+Nour Fawzi,STU20240127,student127@edulearn.com,password123,female,2006-09-23,active,11th Grade,1,Alexandria,Hurghada,Street 16,Tariq Fawzi,Grandfather,01287501135
+Ahmed Abdullah,STU20240128,student128@edulearn.com,password123,male,2005-09-23,active,12th Grade,5,Cairo,Hurghada,Street 72,Omar Abdullah,Father,01142505435
+Mahmoud Fawzi,STU20240129,student129@edulearn.com,password123,male,2007-05-21,active,11th Grade,4,Giza,Dokki,Street 50,Hassan Fawzi,Mother,01287377350
+Salma Saeed,STU20240130,student130@edulearn.com,password123,female,2009-08-23,active,10th Grade,1,Giza,Hurghada,Street 54,Hassan Saeed,Mother,01127189296
+Fatima Abdullah,STU20240131,student131@edulearn.com,password123,female,2008-01-28,active,10th Grade,3,Giza,Smouha,Street 13,Ahmed Abdullah,Brother,01221182952
+Youssef Khalil,STU20240132,student132@edulearn.com,password123,male,2005-04-19,active,11th Grade,5,Alexandria,Maadi,Street 81,Ahmed Khalil,Mother,01015693824
+Aisha Abdullah,STU20240133,student133@edulearn.com,password123,female,2006-02-25,active,11th Grade,5,Giza,Hurghada,Street 15,Kareem Abdullah,Grandfather,01261791094
+Salma Saeed,STU20240134,student134@edulearn.com,password123,female,2005-03-26,inactive,12th Grade,5,Dakahlia,Maadi,Street 53,Omar Saeed,Mother,01159749712
+Tariq Abdullah,STU20240135,student135@edulearn.com,password123,male,2007-03-13,inactive,10th Grade,3,Alexandria,Hurghada,Street 99,Youssef Abdullah,Mother,01065164036
+Hassan Abdullah,STU20240136,student136@edulearn.com,password123,male,2010-05-19,active,12th Grade,3,Red Sea,Nasr City,Street 11,Omar Abdullah,Brother,01077584202
+Sara Gaber,STU20240137,student137@edulearn.com,password123,female,2008-02-05,active,11th Grade,2,Dakahlia,Dokki,Street 87,Ahmed Gaber,Brother,01088951428
+Tariq Abdullah,STU20240138,student138@edulearn.com,password123,male,2008-12-22,inactive,10th Grade,4,Dakahlia,Maadi,Street 57,Hassan Abdullah,Mother,01139018965
+Aisha Saeed,STU20240139,student139@edulearn.com,password123,female,2007-05-05,inactive,10th Grade,4,Cairo,Mansoura,Street 54,Hassan Saeed,Uncle,01125561470
+Nour Ibrahim,STU20240140,student140@edulearn.com,password123,female,2006-01-01,inactive,11th Grade,2,Alexandria,Maadi,Street 75,Hassan Ibrahim,Uncle,01015729455
+Ahmed Abdullah,STU20240141,student141@edulearn.com,password123,male,2010-10-05,active,11th Grade,5,Cairo,Mohandeseen,Street 84,Omar Abdullah,Father,01170029471
+Tariq Abdullah,STU20240142,student142@edulearn.com,password123,male,2009-06-18,active,11th Grade,4,Giza,Maadi,Street 23,Kareem Abdullah,Grandfather,01163212999
+Aisha Gaber,STU20240143,student143@edulearn.com,password123,female,2008-08-07,active,11th Grade,3,Giza,Nasr City,Street 26,Hassan Gaber,Grandfather,01213349853
+Youssef Husseini,STU20240144,student144@edulearn.com,password123,male,2008-02-02,active,12th Grade,2,Red Sea,Dokki,Street 62,Ahmed Husseini,Brother,01025474354
+Kareem Gaber,STU20240145,student145@edulearn.com,password123,male,2005-08-31,active,12th Grade,1,Cairo,Smouha,Street 30,Kareem Gaber,Mother,01269999149
+Mona Fawzi,STU20240146,student146@edulearn.com,password123,female,2006-06-26,active,11th Grade,4,Alexandria,Mohandeseen,Street 94,Youssef Fawzi,Brother,01197684978
+Salma Fawzi,STU20240147,student147@edulearn.com,password123,female,2005-03-15,inactive,11th Grade,4,Alexandria,Smouha,Street 36,Kareem Fawzi,Uncle,01170462923
+Kareem Saeed,STU20240148,student148@edulearn.com,password123,male,2008-05-13,active,11th Grade,3,Alexandria,Mansoura,Street 85,Omar Saeed,Mother,01019106873
+Youssef Abdullah,STU20240149,student149@edulearn.com,password123,male,2008-07-13,active,12th Grade,2,Alexandria,Mansoura,Street 50,Kareem Abdullah,Mother,01218945026
+Aisha Husseini,STU20240150,student150@edulearn.com,password123,female,2009-07-28,active,12th Grade,1,Red Sea,Dokki,Street 22,Omar Husseini,Uncle,01283119467
+Mariam Husseini,STU20240151,student151@edulearn.com,password123,female,2005-06-06,inactive,12th Grade,3,Cairo,Nasr City,Street 42,Youssef Husseini,Brother,01243921921
+Ali Abdullah,STU20240152,student152@edulearn.com,password123,male,2009-03-03,active,11th Grade,5,Giza,Mohandeseen,Street 60,Mahmoud Abdullah,Grandfather,01068194030
+Mahmoud Husseini,STU20240153,student153@edulearn.com,password123,male,2010-12-08,active,12th Grade,5,Dakahlia,Maadi,Street 81,Hassan Husseini,Mother,01159246039
+Tariq Gaber,STU20240154,student154@edulearn.com,password123,male,2009-10-30,active,12th Grade,3,Red Sea,Mohandeseen,Street 63,Mahmoud Gaber,Brother,01290553423
+Omar Ibrahim,STU20240155,student155@edulearn.com,password123,male,2005-10-15,active,12th Grade,1,Cairo,Maadi,Street 5,Omar Ibrahim,Grandfather,01069704833
+Mariam Husseini,STU20240156,student156@edulearn.com,password123,female,2009-09-19,inactive,12th Grade,2,Giza,Mansoura,Street 18,Mahmoud Husseini,Mother,01084159721
+Sara Rahman,STU20240157,student157@edulearn.com,password123,female,2007-12-27,active,12th Grade,4,Giza,Maadi,Street 30,Mahmoud Rahman,Grandfather,01056383496
+Laila Mansour,STU20240158,student158@edulearn.com,password123,female,2010-08-17,active,11th Grade,4,Alexandria,Hurghada,Street 95,Tariq Mansour,Uncle,01221481328
+Ali Rahman,STU20240159,student159@edulearn.com,password123,male,2005-09-22,active,11th Grade,3,Giza,Smouha,Street 76,Ahmed Rahman,Mother,01039080627
+Ahmed Gaber,STU20240160,student160@edulearn.com,password123,male,2010-10-06,active,10th Grade,4,Dakahlia,Smouha,Street 54,Ali Gaber,Uncle,01246849508
+Laila Fawzi,STU20240161,student161@edulearn.com,password123,female,2006-03-26,inactive,11th Grade,4,Cairo,Nasr City,Street 44,Ali Fawzi,Brother,01035534410
+Tariq Saeed,STU20240162,student162@edulearn.com,password123,male,2008-04-14,active,11th Grade,5,Cairo,Maadi,Street 67,Mahmoud Saeed,Mother,01250025600
+Aisha Gaber,STU20240163,student163@edulearn.com,password123,female,2005-02-20,active,10th Grade,4,Alexandria,Mansoura,Street 15,Kareem Gaber,Father,01027726033
+Hassan Ibrahim,STU20240164,student164@edulearn.com,password123,male,2005-12-17,inactive,11th Grade,4,Cairo,Mohandeseen,Street 2,Youssef Ibrahim,Uncle,01219383813
+Salma Rahman,STU20240165,student165@edulearn.com,password123,female,2005-04-18,inactive,10th Grade,3,Dakahlia,Nasr City,Street 53,Ali Rahman,Mother,01218678849
+Youssef Farouk,STU20240166,student166@edulearn.com,password123,male,2006-07-04,inactive,11th Grade,5,Giza,Hurghada,Street 63,Tariq Farouk,Brother,01058087029
+Fatima Khalil,STU20240167,student167@edulearn.com,password123,female,2006-08-25,active,11th Grade,2,Giza,Mansoura,Street 87,Ali Khalil,Mother,01127323154
+Sara Mansour,STU20240168,student168@edulearn.com,password123,female,2010-04-24,inactive,12th Grade,4,Alexandria,Mansoura,Street 7,Ali Mansour,Father,01090538284
+Hassan Khalil,STU20240169,student169@edulearn.com,password123,male,2009-07-10,active,10th Grade,3,Alexandria,Mansoura,Street 72,Tariq Khalil,Father,01196693437
+Mahmoud Mansour,STU20240170,student170@edulearn.com,password123,male,2007-11-06,inactive,12th Grade,1,Alexandria,Smouha,Street 12,Youssef Mansour,Father,01212355123
+Fatima Abdullah,STU20240171,student171@edulearn.com,password123,female,2005-06-21,inactive,10th Grade,2,Dakahlia,Smouha,Street 85,Mahmoud Abdullah,Father,01233572399
+Nour Mansour,STU20240172,student172@edulearn.com,password123,female,2006-08-08,active,12th Grade,5,Giza,Mohandeseen,Street 2,Ahmed Mansour,Uncle,01017902825
+Mahmoud Fawzi,STU20240173,student173@edulearn.com,password123,male,2007-06-04,active,10th Grade,5,Giza,Mohandeseen,Street 95,Mahmoud Fawzi,Uncle,01132342407
+Hassan Husseini,STU20240174,student174@edulearn.com,password123,male,2005-09-23,active,12th Grade,4,Dakahlia,Maadi,Street 94,Mahmoud Husseini,Mother,01296987329
+Ali Abdullah,STU20240175,student175@edulearn.com,password123,male,2008-06-10,active,11th Grade,2,Giza,Maadi,Street 26,Tariq Abdullah,Grandfather,01078350573
+Sara Farouk,STU20240176,student176@edulearn.com,password123,female,2010-03-26,active,12th Grade,1,Red Sea,Mansoura,Street 92,Tariq Farouk,Grandfather,01267646715
+Youssef Farouk,STU20240177,student177@edulearn.com,password123,male,2009-01-16,inactive,10th Grade,5,Red Sea,Nasr City,Street 42,Omar Farouk,Brother,01231901559
+Ahmed Farouk,STU20240178,student178@edulearn.com,password123,male,2006-07-09,active,10th Grade,5,Dakahlia,Hurghada,Street 30,Youssef Farouk,Father,01128289339
+Omar Khalil,STU20240179,student179@edulearn.com,password123,male,2008-08-22,active,10th Grade,1,Giza,Mohandeseen,Street 28,Omar Khalil,Mother,01271991070
+Kareem Saeed,STU20240180,student180@edulearn.com,password123,male,2009-10-23,active,12th Grade,3,Alexandria,Mohandeseen,Street 37,Hassan Saeed,Grandfather,01233831365
+Ahmed Ibrahim,STU20240181,student181@edulearn.com,password123,male,2009-12-10,active,11th Grade,4,Giza,Nasr City,Street 92,Mahmoud Ibrahim,Brother,01256870126
+Aisha Mansour,STU20240182,student182@edulearn.com,password123,female,2006-06-13,inactive,10th Grade,4,Red Sea,Nasr City,Street 79,Mahmoud Mansour,Father,01021053852
+Laila Khalil,STU20240183,student183@edulearn.com,password123,female,2005-06-26,inactive,10th Grade,2,Giza,Smouha,Street 49,Tariq Khalil,Mother,01194481616
+Tariq Gaber,STU20240184,student184@edulearn.com,password123,male,2005-08-11,active,12th Grade,4,Alexandria,Mansoura,Street 89,Youssef Gaber,Father,01222911452
+Aisha Ibrahim,STU20240185,student185@edulearn.com,password123,female,2010-08-16,active,12th Grade,2,Red Sea,Hurghada,Street 75,Mahmoud Ibrahim,Father,01270490789
+Youssef Rahman,STU20240186,student186@edulearn.com,password123,male,2007-10-24,active,11th Grade,4,Alexandria,Smouha,Street 11,Ali Rahman,Brother,01224208612
+Youssef Husseini,STU20240187,student187@edulearn.com,password123,male,2010-05-17,inactive,11th Grade,1,Alexandria,Maadi,Street 34,Tariq Husseini,Grandfather,01210760825
+Tariq Ibrahim,STU20240188,student188@edulearn.com,password123,male,2006-06-10,active,11th Grade,3,Cairo,Nasr City,Street 4,Youssef Ibrahim,Father,01146768824
+Mariam Abdullah,STU20240189,student189@edulearn.com,password123,female,2009-03-26,active,10th Grade,5,Red Sea,Maadi,Street 81,Omar Abdullah,Father,01283655570
+Mona Fawzi,STU20240190,student190@edulearn.com,password123,female,2009-07-11,active,11th Grade,4,Giza,Nasr City,Street 43,Tariq Fawzi,Father,01074742320
+Sara Mansour,STU20240191,student191@edulearn.com,password123,female,2009-01-28,active,10th Grade,3,Giza,Mohandeseen,Street 12,Hassan Mansour,Mother,01028637014
+Mariam Farouk,STU20240192,student192@edulearn.com,password123,female,2008-04-04,active,12th Grade,3,Alexandria,Hurghada,Street 81,Hassan Farouk,Mother,01295352959
+Kareem Fawzi,STU20240193,student193@edulearn.com,password123,male,2010-11-16,active,12th Grade,4,Dakahlia,Hurghada,Street 71,Ahmed Fawzi,Uncle,01254239456
+Salma Husseini,STU20240194,student194@edulearn.com,password123,female,2009-10-13,active,11th Grade,1,Dakahlia,Dokki,Street 93,Youssef Husseini,Father,01295638753
+Sara Husseini,STU20240195,student195@edulearn.com,password123,female,2006-07-05,inactive,11th Grade,4,Dakahlia,Maadi,Street 46,Ahmed Husseini,Brother,01033890292
+Ali Khalil,STU20240196,student196@edulearn.com,password123,male,2009-09-23,inactive,10th Grade,3,Giza,Maadi,Street 39,Kareem Khalil,Uncle,01234001908
+Salma Abdullah,STU20240197,student197@edulearn.com,password123,female,2007-07-22,active,12th Grade,1,Cairo,Mansoura,Street 93,Youssef Abdullah,Brother,01251764357
+Mariam Farouk,STU20240198,student198@edulearn.com,password123,female,2010-08-25,inactive,11th Grade,4,Cairo,Mohandeseen,Street 33,Mahmoud Farouk,Father,01182434067
+Tariq Farouk,STU20240199,student199@edulearn.com,password123,male,2007-02-18,active,11th Grade,4,Cairo,Dokki,Street 80,Kareem Farouk,Grandfather,01074182762
+Mahmoud Saeed,STU20240200,student200@edulearn.com,password123,male,2010-05-09,active,11th Grade,4,Cairo,Mansoura,Street 61,Mahmoud Saeed,Grandfather,01130957375
+Kareem Husseini,STU20240201,student201@edulearn.com,password123,male,2006-11-14,active,10th Grade,4,Alexandria,Maadi,Street 54,Ali Husseini,Uncle,01150933115
+Mariam Mansour,STU20240202,student202@edulearn.com,password123,female,2008-02-08,active,12th Grade,5,Giza,Mohandeseen,Street 30,Omar Mansour,Mother,01228026623
+Tariq Gaber,STU20240203,student203@edulearn.com,password123,male,2005-10-26,active,12th Grade,1,Giza,Nasr City,Street 82,Ali Gaber,Father,01237009074
+Sara Abdullah,STU20240204,student204@edulearn.com,password123,female,2010-12-13,active,10th Grade,2,Dakahlia,Mohandeseen,Street 95,Mahmoud Abdullah,Father,01236738448
+Kareem Fawzi,STU20240205,student205@edulearn.com,password123,male,2006-09-09,active,11th Grade,2,Cairo,Mansoura,Street 70,Tariq Fawzi,Mother,01290866004
+Omar Fawzi,STU20240206,student206@edulearn.com,password123,male,2009-04-24,active,12th Grade,1,Cairo,Mohandeseen,Street 85,Mahmoud Fawzi,Uncle,01080601294
+Laila Rahman,STU20240207,student207@edulearn.com,password123,female,2006-10-31,active,10th Grade,2,Alexandria,Smouha,Street 70,Tariq Rahman,Grandfather,01167655375
+Omar Fawzi,STU20240208,student208@edulearn.com,password123,male,2008-05-20,inactive,10th Grade,1,Red Sea,Hurghada,Street 39,Youssef Fawzi,Mother,01161624684
+Ali Rahman,STU20240209,student209@edulearn.com,password123,male,2005-05-23,active,11th Grade,3,Dakahlia,Nasr City,Street 29,Mahmoud Rahman,Father,01172425038
+Kareem Saeed,STU20240210,student210@edulearn.com,password123,male,2007-10-20,inactive,11th Grade,1,Giza,Mansoura,Street 74,Kareem Saeed,Father,01234778666
+Aisha Gaber,STU20240211,student211@edulearn.com,password123,female,2009-08-26,active,12th Grade,4,Red Sea,Nasr City,Street 60,Mahmoud Gaber,Mother,01188846883
+Fatima Abdullah,STU20240212,student212@edulearn.com,password123,female,2005-05-24,active,10th Grade,5,Alexandria,Mohandeseen,Street 6,Ali Abdullah,Brother,01122280890
+Tariq Gaber,STU20240213,student213@edulearn.com,password123,male,2010-08-02,inactive,11th Grade,2,Cairo,Hurghada,Street 84,Youssef Gaber,Father,01037979508
+Kareem Khalil,STU20240214,student214@edulearn.com,password123,male,2010-06-19,inactive,10th Grade,3,Giza,Hurghada,Street 28,Mahmoud Khalil,Brother,01168842945
+Tariq Abdullah,STU20240215,student215@edulearn.com,password123,male,2009-10-02,active,12th Grade,1,Dakahlia,Dokki,Street 9,Ali Abdullah,Uncle,01192339079
+Ahmed Abdullah,STU20240216,student216@edulearn.com,password123,male,2008-05-11,active,11th Grade,4,Alexandria,Smouha,Street 16,Ahmed Abdullah,Mother,01295947996
+Youssef Abdullah,STU20240217,student217@edulearn.com,password123,male,2006-04-30,active,10th Grade,5,Giza,Mohandeseen,Street 93,Tariq Abdullah,Father,01258515065
+Sara Khalil,STU20240218,student218@edulearn.com,password123,female,2005-01-04,active,10th Grade,2,Dakahlia,Dokki,Street 78,Tariq Khalil,Mother,01134995113
+Ahmed Rahman,STU20240219,student219@edulearn.com,password123,male,2007-02-14,active,11th Grade,2,Alexandria,Mansoura,Street 77,Ali Rahman,Brother,01043060339
+Tariq Husseini,STU20240220,student220@edulearn.com,password123,male,2008-10-31,active,12th Grade,2,Alexandria,Hurghada,Street 18,Tariq Husseini,Uncle,01116212539
+Ahmed Farouk,STU20240221,student221@edulearn.com,password123,male,2006-11-02,active,10th Grade,3,Red Sea,Mansoura,Street 34,Ahmed Farouk,Uncle,01049711407
+Nour Mansour,STU20240222,student222@edulearn.com,password123,female,2005-11-25,active,11th Grade,2,Alexandria,Mohandeseen,Street 96,Mahmoud Mansour,Father,01168103432
+Ali Husseini,STU20240223,student223@edulearn.com,password123,male,2007-09-22,active,11th Grade,4,Giza,Hurghada,Street 55,Tariq Husseini,Grandfather,01189111964
+Tariq Khalil,STU20240224,student224@edulearn.com,password123,male,2010-12-01,active,10th Grade,5,Giza,Mohandeseen,Street 77,Tariq Khalil,Father,01170686063
+Laila Fawzi,STU20240225,student225@edulearn.com,password123,female,2006-01-16,inactive,12th Grade,5,Dakahlia,Hurghada,Street 25,Mahmoud Fawzi,Father,01059924525
+Nour Mansour,STU20240226,student226@edulearn.com,password123,female,2006-10-01,inactive,12th Grade,5,Red Sea,Mohandeseen,Street 59,Tariq Mansour,Uncle,01072937119
+Ali Khalil,STU20240227,student227@edulearn.com,password123,male,2005-09-11,active,10th Grade,5,Red Sea,Dokki,Street 38,Kareem Khalil,Mother,01250316290
+Salma Abdullah,STU20240228,student228@edulearn.com,password123,female,2009-07-04,inactive,10th Grade,5,Alexandria,Nasr City,Street 82,Youssef Abdullah,Brother,01052524152
+Nour Abdullah,STU20240229,student229@edulearn.com,password123,female,2008-06-15,active,12th Grade,1,Alexandria,Mohandeseen,Street 64,Tariq Abdullah,Grandfather,01272055189
+Ahmed Farouk,STU20240230,student230@edulearn.com,password123,male,2005-12-23,active,12th Grade,2,Giza,Maadi,Street 77,Tariq Farouk,Mother,01175193832
+Ali Abdullah,STU20240231,student231@edulearn.com,password123,male,2010-06-28,inactive,11th Grade,4,Giza,Dokki,Street 15,Ali Abdullah,Uncle,01025425220
+Laila Rahman,STU20240232,student232@edulearn.com,password123,female,2007-12-13,active,11th Grade,4,Dakahlia,Nasr City,Street 63,Ahmed Rahman,Father,01059090208
+Fatima Khalil,STU20240233,student233@edulearn.com,password123,female,2007-07-14,inactive,10th Grade,2,Dakahlia,Smouha,Street 69,Ali Khalil,Father,01279375545
+Mariam Ibrahim,STU20240234,student234@edulearn.com,password123,female,2005-11-06,active,10th Grade,2,Dakahlia,Mohandeseen,Street 86,Ahmed Ibrahim,Brother,01254095662
+Fatima Gaber,STU20240235,student235@edulearn.com,password123,female,2006-04-05,inactive,10th Grade,2,Dakahlia,Dokki,Street 74,Youssef Gaber,Mother,01224908864
+Youssef Husseini,STU20240236,student236@edulearn.com,password123,male,2008-11-03,active,12th Grade,5,Red Sea,Dokki,Street 20,Ahmed Husseini,Brother,01048757819
+Omar Farouk,STU20240237,student237@edulearn.com,password123,male,2007-06-20,inactive,10th Grade,4,Red Sea,Mansoura,Street 54,Omar Farouk,Father,01024378618
+Mariam Khalil,STU20240238,student238@edulearn.com,password123,female,2009-02-19,active,10th Grade,3,Giza,Mohandeseen,Street 16,Ahmed Khalil,Grandfather,01097767690
+Kareem Rahman,STU20240239,student239@edulearn.com,password123,male,2010-04-06,active,10th Grade,2,Alexandria,Maadi,Street 91,Hassan Rahman,Brother,01189147912
+Ahmed Fawzi,STU20240240,student240@edulearn.com,password123,male,2005-12-30,active,12th Grade,5,Dakahlia,Dokki,Street 69,Mahmoud Fawzi,Uncle,01029026304
+Tariq Mansour,STU20240241,student241@edulearn.com,password123,male,2010-09-04,inactive,12th Grade,4,Dakahlia,Smouha,Street 9,Ali Mansour,Grandfather,01286035154
+Hassan Abdullah,STU20240242,student242@edulearn.com,password123,male,2007-06-05,inactive,10th Grade,2,Red Sea,Mohandeseen,Street 75,Youssef Abdullah,Father,01243767980
+Ali Saeed,STU20240243,student243@edulearn.com,password123,male,2007-12-08,inactive,10th Grade,2,Alexandria,Mohandeseen,Street 14,Omar Saeed,Brother,01129109471
+Nour Khalil,STU20240244,student244@edulearn.com,password123,female,2006-07-14,active,10th Grade,1,Giza,Mohandeseen,Street 67,Mahmoud Khalil,Grandfather,01044021581
+Youssef Rahman,STU20240245,student245@edulearn.com,password123,male,2005-12-25,active,10th Grade,1,Alexandria,Mohandeseen,Street 2,Ahmed Rahman,Brother,01289177979
+Kareem Abdullah,STU20240246,student246@edulearn.com,password123,male,2010-04-20,active,10th Grade,4,Dakahlia,Maadi,Street 20,Ahmed Abdullah,Mother,01268731923
+Sara Abdullah,STU20240247,student247@edulearn.com,password123,female,2008-06-23,active,11th Grade,2,Red Sea,Hurghada,Street 94,Hassan Abdullah,Mother,01068286658
+Sara Gaber,STU20240248,student248@edulearn.com,password123,female,2008-05-22,active,12th Grade,2,Alexandria,Dokki,Street 58,Omar Gaber,Father,01131890541
+Nour Gaber,STU20240249,student249@edulearn.com,password123,female,2005-08-17,active,12th Grade,3,Alexandria,Nasr City,Street 26,Youssef Gaber,Grandfather,01290571447
+Hassan Farouk,STU20240250,student250@edulearn.com,password123,male,2006-02-02,active,10th Grade,5,Alexandria,Smouha,Street 80,Hassan Farouk,Uncle,01158630765
+Salma Abdullah,STU20240251,student251@edulearn.com,password123,female,2010-03-21,active,12th Grade,2,Giza,Hurghada,Street 62,Kareem Abdullah,Grandfather,01213005626
+Mariam Mansour,STU20240252,student252@edulearn.com,password123,female,2007-12-24,inactive,11th Grade,3,Red Sea,Mansoura,Street 84,Kareem Mansour,Uncle,01115535651
+Mona Gaber,STU20240253,student253@edulearn.com,password123,female,2006-04-21,inactive,12th Grade,1,Dakahlia,Maadi,Street 76,Ali Gaber,Mother,01150705236
+Laila Fawzi,STU20240254,student254@edulearn.com,password123,female,2009-02-13,active,10th Grade,3,Giza,Hurghada,Street 3,Tariq Fawzi,Father,01057071098
+Hassan Abdullah,STU20240255,student255@edulearn.com,password123,male,2008-11-14,active,12th Grade,5,Alexandria,Dokki,Street 15,Mahmoud Abdullah,Uncle,01029920488
+Kareem Farouk,STU20240256,student256@edulearn.com,password123,male,2010-04-19,active,11th Grade,2,Cairo,Hurghada,Street 88,Tariq Farouk,Brother,01172883412
+Mariam Rahman,STU20240257,student257@edulearn.com,password123,female,2008-05-12,active,12th Grade,2,Dakahlia,Smouha,Street 100,Ali Rahman,Grandfather,01099060396
+Mariam Mansour,STU20240258,student258@edulearn.com,password123,female,2010-12-28,active,11th Grade,3,Alexandria,Dokki,Street 88,Omar Mansour,Grandfather,01175320155
+Omar Mansour,STU20240259,student259@edulearn.com,password123,male,2007-07-11,active,12th Grade,5,Red Sea,Mansoura,Street 66,Youssef Mansour,Father,01222784162
+Kareem Khalil,STU20240260,student260@edulearn.com,password123,male,2007-04-11,active,11th Grade,1,Alexandria,Dokki,Street 81,Omar Khalil,Uncle,01199516460
+Sara Fawzi,STU20240261,student261@edulearn.com,password123,female,2005-06-04,inactive,10th Grade,3,Alexandria,Mohandeseen,Street 29,Omar Fawzi,Mother,01199253548
+Ali Rahman,STU20240262,student262@edulearn.com,password123,male,2005-01-26,active,10th Grade,1,Giza,Nasr City,Street 48,Ali Rahman,Father,01258638912
+Aisha Abdullah,STU20240263,student263@edulearn.com,password123,female,2009-09-16,active,10th Grade,5,Alexandria,Smouha,Street 4,Ali Abdullah,Father,01133993493
+Sara Rahman,STU20240264,student264@edulearn.com,password123,female,2006-01-01,inactive,10th Grade,4,Dakahlia,Mohandeseen,Street 97,Ali Rahman,Brother,01299550558
+Laila Khalil,STU20240265,student265@edulearn.com,password123,female,2005-09-20,active,12th Grade,2,Dakahlia,Smouha,Street 96,Ahmed Khalil,Brother,01077482751
+Salma Khalil,STU20240266,student266@edulearn.com,password123,female,2007-08-09,active,10th Grade,4,Giza,Mansoura,Street 82,Omar Khalil,Uncle,01163437692
+Mahmoud Husseini,STU20240267,student267@edulearn.com,password123,male,2007-03-26,inactive,10th Grade,3,Red Sea,Hurghada,Street 50,Ali Husseini,Uncle,01077117759
+Mona Saeed,STU20240268,student268@edulearn.com,password123,female,2006-03-30,active,10th Grade,1,Alexandria,Maadi,Street 26,Mahmoud Saeed,Grandfather,01066264120
+Fatima Khalil,STU20240269,student269@edulearn.com,password123,female,2008-11-16,active,12th Grade,2,Dakahlia,Mohandeseen,Street 60,Kareem Khalil,Grandfather,01281684966
+Mariam Rahman,STU20240270,student270@edulearn.com,password123,female,2010-05-25,active,11th Grade,3,Alexandria,Mansoura,Street 75,Mahmoud Rahman,Uncle,01171664638
+Laila Mansour,STU20240271,student271@edulearn.com,password123,female,2005-08-12,active,10th Grade,4,Giza,Maadi,Street 47,Ali Mansour,Grandfather,01157148094
+Ahmed Farouk,STU20240272,student272@edulearn.com,password123,male,2008-02-18,active,10th Grade,1,Red Sea,Dokki,Street 8,Ali Farouk,Mother,01241838153
+Omar Rahman,STU20240273,student273@edulearn.com,password123,male,2010-02-18,active,12th Grade,3,Red Sea,Smouha,Street 27,Omar Rahman,Grandfather,01136270222
+Aisha Rahman,STU20240274,student274@edulearn.com,password123,female,2007-07-10,inactive,12th Grade,4,Cairo,Maadi,Street 38,Mahmoud Rahman,Grandfather,01081561409
+Mona Farouk,STU20240275,student275@edulearn.com,password123,female,2010-07-03,active,10th Grade,1,Alexandria,Mohandeseen,Street 40,Ali Farouk,Brother,01217972333
+Tariq Rahman,STU20240276,student276@edulearn.com,password123,male,2009-02-09,inactive,12th Grade,1,Giza,Nasr City,Street 4,Ahmed Rahman,Brother,01146919788
+Mariam Mansour,STU20240277,student277@edulearn.com,password123,female,2007-09-04,active,10th Grade,1,Giza,Mansoura,Street 12,Tariq Mansour,Mother,01029011328
+Hassan Husseini,STU20240278,student278@edulearn.com,password123,male,2009-01-12,active,11th Grade,2,Red Sea,Maadi,Street 6,Kareem Husseini,Brother,01164740878
+Mona Mansour,STU20240279,student279@edulearn.com,password123,female,2008-12-04,active,10th Grade,1,Cairo,Nasr City,Street 76,Hassan Mansour,Uncle,01030845591
+Mahmoud Abdullah,STU20240280,student280@edulearn.com,password123,male,2010-09-14,active,12th Grade,2,Alexandria,Maadi,Street 40,Hassan Abdullah,Father,01243479382
+Youssef Saeed,STU20240281,student281@edulearn.com,password123,male,2010-11-08,active,10th Grade,1,Dakahlia,Smouha,Street 20,Omar Saeed,Father,01228955562
+Nour Saeed,STU20240282,student282@edulearn.com,password123,female,2008-02-27,inactive,10th Grade,4,Red Sea,Mansoura,Street 69,Ahmed Saeed,Mother,01199317262
+Mahmoud Khalil,STU20240283,student283@edulearn.com,password123,male,2006-05-20,active,10th Grade,2,Red Sea,Nasr City,Street 32,Youssef Khalil,Uncle,01297490271
+Laila Rahman,STU20240284,student284@edulearn.com,password123,female,2005-01-20,inactive,11th Grade,2,Giza,Mohandeseen,Street 73,Tariq Rahman,Grandfather,01093321292
+Salma Ibrahim,STU20240285,student285@edulearn.com,password123,female,2008-01-27,active,11th Grade,5,Alexandria,Nasr City,Street 17,Ali Ibrahim,Brother,01087587637
+Ahmed Abdullah,STU20240286,student286@edulearn.com,password123,male,2005-12-14,active,11th Grade,4,Alexandria,Dokki,Street 70,Omar Abdullah,Mother,01016528005
+Hassan Rahman,STU20240287,student287@edulearn.com,password123,male,2007-01-17,active,11th Grade,5,Cairo,Mohandeseen,Street 82,Tariq Rahman,Mother,01175949421
+Mona Gaber,STU20240288,student288@edulearn.com,password123,female,2010-07-07,active,11th Grade,5,Red Sea,Smouha,Street 65,Ahmed Gaber,Father,01142215260
+Kareem Rahman,STU20240289,student289@edulearn.com,password123,male,2007-02-26,active,11th Grade,1,Alexandria,Mansoura,Street 25,Ali Rahman,Father,01118576443
+Kareem Khalil,STU20240290,student290@edulearn.com,password123,male,2007-09-21,inactive,10th Grade,4,Giza,Dokki,Street 23,Youssef Khalil,Grandfather,01222160693
+Laila Fawzi,STU20240291,student291@edulearn.com,password123,female,2007-10-06,active,10th Grade,3,Red Sea,Dokki,Street 87,Omar Fawzi,Uncle,01094065110
+Fatima Farouk,STU20240292,student292@edulearn.com,password123,female,2010-08-25,active,12th Grade,3,Dakahlia,Maadi,Street 76,Mahmoud Farouk,Father,01087477583
+Ali Husseini,STU20240293,student293@edulearn.com,password123,male,2008-10-27,active,10th Grade,4,Cairo,Mansoura,Street 83,Kareem Husseini,Grandfather,01190585922
+Ahmed Fawzi,STU20240294,student294@edulearn.com,password123,male,2005-10-27,active,12th Grade,5,Dakahlia,Nasr City,Street 77,Kareem Fawzi,Uncle,01160734574
+Nour Abdullah,STU20240295,student295@edulearn.com,password123,female,2006-09-11,active,12th Grade,3,Alexandria,Mansoura,Street 14,Kareem Abdullah,Mother,01143827873
+Sara Abdullah,STU20240296,student296@edulearn.com,password123,female,2008-03-03,active,12th Grade,2,Alexandria,Smouha,Street 23,Ahmed Abdullah,Father,01140166506
+Ahmed Abdullah,STU20240297,student297@edulearn.com,password123,male,2009-07-31,active,12th Grade,3,Dakahlia,Hurghada,Street 79,Omar Abdullah,Father,01158822259
+Mahmoud Ibrahim,STU20240298,student298@edulearn.com,password123,male,2007-08-01,active,11th Grade,1,Cairo,Dokki,Street 28,Youssef Ibrahim,Father,01056803825
+Nour Farouk,STU20240299,student299@edulearn.com,password123,female,2010-06-26,active,10th Grade,1,Alexandria,Maadi,Street 77,Kareem Farouk,Father,01066048446
+Ali Rahman,STU20240300,student300@edulearn.com,password123,male,2007-05-08,active,11th Grade,5,Cairo,Maadi,Street 91,Mahmoud Rahman,Uncle,01156515031
+Omar Fawzi,STU20240301,student301@edulearn.com,password123,male,2008-12-06,active,10th Grade,1,Red Sea,Dokki,Street 44,Kareem Fawzi,Father,01218685109
+Salma Gaber,STU20240302,student302@edulearn.com,password123,female,2010-10-15,inactive,11th Grade,2,Giza,Hurghada,Street 80,Hassan Gaber,Father,01117974798
+Omar Abdullah,STU20240303,student303@edulearn.com,password123,male,2007-12-25,active,10th Grade,2,Red Sea,Dokki,Street 33,Hassan Abdullah,Grandfather,01278479240
+Mona Rahman,STU20240304,student304@edulearn.com,password123,female,2007-01-13,inactive,11th Grade,3,Red Sea,Nasr City,Street 33,Tariq Rahman,Father,01299278380
+Sara Abdullah,STU20240305,student305@edulearn.com,password123,female,2006-12-13,inactive,11th Grade,5,Cairo,Nasr City,Street 52,Hassan Abdullah,Grandfather,01158331474
+Ahmed Fawzi,STU20240306,student306@edulearn.com,password123,male,2010-04-02,active,12th Grade,2,Cairo,Nasr City,Street 2,Hassan Fawzi,Uncle,01071005194
+Nour Mansour,STU20240307,student307@edulearn.com,password123,female,2009-08-30,active,11th Grade,5,Dakahlia,Dokki,Street 16,Omar Mansour,Father,01133473198
+Mariam Saeed,STU20240308,student308@edulearn.com,password123,female,2009-08-07,active,12th Grade,3,Red Sea,Hurghada,Street 63,Youssef Saeed,Brother,01221078778
+Salma Fawzi,STU20240309,student309@edulearn.com,password123,female,2005-07-28,active,11th Grade,3,Cairo,Hurghada,Street 99,Hassan Fawzi,Mother,01083288168
+Salma Ibrahim,STU20240310,student310@edulearn.com,password123,female,2010-12-21,active,11th Grade,1,Red Sea,Nasr City,Street 65,Ahmed Ibrahim,Uncle,01262778608
+Ali Ibrahim,STU20240311,student311@edulearn.com,password123,male,2009-05-23,active,10th Grade,1,Dakahlia,Maadi,Street 63,Kareem Ibrahim,Brother,01078510638
+Nour Khalil,STU20240312,student312@edulearn.com,password123,female,2005-05-30,active,12th Grade,1,Dakahlia,Hurghada,Street 72,Ali Khalil,Grandfather,01089083858
+Laila Khalil,STU20240313,student313@edulearn.com,password123,female,2006-05-01,active,10th Grade,1,Dakahlia,Hurghada,Street 85,Tariq Khalil,Brother,01037937661
+Mariam Fawzi,STU20240314,student314@edulearn.com,password123,female,2008-08-13,active,12th Grade,1,Alexandria,Dokki,Street 36,Kareem Fawzi,Brother,01071678688
+Ali Farouk,STU20240315,student315@edulearn.com,password123,male,2007-04-01,active,11th Grade,2,Giza,Hurghada,Street 80,Tariq Farouk,Brother,01011123577
+Tariq Husseini,STU20240316,student316@edulearn.com,password123,male,2010-12-12,inactive,10th Grade,3,Giza,Dokki,Street 74,Kareem Husseini,Uncle,01190832105
+Kareem Gaber,STU20240317,student317@edulearn.com,password123,male,2007-09-03,inactive,12th Grade,2,Alexandria,Smouha,Street 9,Kareem Gaber,Uncle,01059646306
+Kareem Farouk,STU20240318,student318@edulearn.com,password123,male,2005-02-09,inactive,10th Grade,3,Giza,Smouha,Street 18,Omar Farouk,Mother,01112756716
+Youssef Husseini,STU20240319,student319@edulearn.com,password123,male,2006-10-14,inactive,11th Grade,2,Giza,Maadi,Street 64,Mahmoud Husseini,Mother,01234204003
+Ali Husseini,STU20240320,student320@edulearn.com,password123,male,2005-09-02,active,12th Grade,3,Cairo,Dokki,Street 13,Kareem Husseini,Mother,01150525396
+Laila Rahman,STU20240321,student321@edulearn.com,password123,female,2005-02-16,active,12th Grade,5,Dakahlia,Nasr City,Street 80,Hassan Rahman,Grandfather,01041833968
+Mona Saeed,STU20240322,student322@edulearn.com,password123,female,2007-12-06,active,10th Grade,3,Red Sea,Dokki,Street 71,Ali Saeed,Father,01162780550
+Laila Ibrahim,STU20240323,student323@edulearn.com,password123,female,2008-01-23,active,10th Grade,2,Dakahlia,Maadi,Street 90,Hassan Ibrahim,Mother,01067571601
+Laila Abdullah,STU20240324,student324@edulearn.com,password123,female,2009-12-12,inactive,12th Grade,1,Giza,Mansoura,Street 50,Hassan Abdullah,Brother,01124151059
+Tariq Fawzi,STU20240325,student325@edulearn.com,password123,male,2009-12-11,active,12th Grade,4,Alexandria,Mansoura,Street 100,Mahmoud Fawzi,Mother,01093899430
+Kareem Farouk,STU20240326,student326@edulearn.com,password123,male,2005-11-29,inactive,10th Grade,5,Red Sea,Hurghada,Street 81,Youssef Farouk,Uncle,01264382255
+Sara Gaber,STU20240327,student327@edulearn.com,password123,female,2008-02-20,active,10th Grade,5,Red Sea,Dokki,Street 50,Youssef Gaber,Mother,01056170264
+Omar Ibrahim,STU20240328,student328@edulearn.com,password123,male,2005-05-26,inactive,12th Grade,3,Cairo,Mohandeseen,Street 98,Mahmoud Ibrahim,Uncle,01152756174
+Mariam Ibrahim,STU20240329,student329@edulearn.com,password123,female,2005-11-17,inactive,10th Grade,3,Red Sea,Mohandeseen,Street 71,Mahmoud Ibrahim,Uncle,01118721111
+Ali Saeed,STU20240330,student330@edulearn.com,password123,male,2008-09-12,active,10th Grade,4,Dakahlia,Maadi,Street 6,Hassan Saeed,Brother,01094100075
+Omar Farouk,STU20240331,student331@edulearn.com,password123,male,2008-03-03,inactive,11th Grade,4,Alexandria,Dokki,Street 17,Youssef Farouk,Brother,01218510647
+Ahmed Abdullah,STU20240332,student332@edulearn.com,password123,male,2008-06-13,inactive,11th Grade,5,Giza,Maadi,Street 25,Youssef Abdullah,Uncle,01050519355
+Youssef Ibrahim,STU20240333,student333@edulearn.com,password123,male,2007-08-19,active,10th Grade,3,Red Sea,Smouha,Street 78,Hassan Ibrahim,Mother,01133923637
+Mona Khalil,STU20240334,student334@edulearn.com,password123,female,2005-10-18,active,12th Grade,1,Cairo,Mohandeseen,Street 73,Hassan Khalil,Mother,01193674112
+Mahmoud Gaber,STU20240335,student335@edulearn.com,password123,male,2005-06-12,active,10th Grade,4,Dakahlia,Smouha,Street 53,Omar Gaber,Father,01087665476
+Mariam Ibrahim,STU20240336,student336@edulearn.com,password123,female,2006-04-03,active,12th Grade,4,Cairo,Dokki,Street 31,Ali Ibrahim,Grandfather,01271999815
+Tariq Abdullah,STU20240337,student337@edulearn.com,password123,male,2007-09-13,inactive,10th Grade,3,Cairo,Hurghada,Street 65,Mahmoud Abdullah,Father,01031825793
+Fatima Rahman,STU20240338,student338@edulearn.com,password123,female,2007-01-11,active,10th Grade,1,Alexandria,Smouha,Street 7,Youssef Rahman,Mother,01279455779
+Aisha Rahman,STU20240339,student339@edulearn.com,password123,female,2009-03-17,active,11th Grade,2,Giza,Smouha,Street 80,Omar Rahman,Uncle,01059865231
+Aisha Saeed,STU20240340,student340@edulearn.com,password123,female,2005-10-26,active,10th Grade,2,Cairo,Maadi,Street 86,Kareem Saeed,Mother,01017578992
+Ahmed Ibrahim,STU20240341,student341@edulearn.com,password123,male,2007-02-24,active,10th Grade,5,Red Sea,Maadi,Street 27,Hassan Ibrahim,Uncle,01082203863
+Mariam Ibrahim,STU20240342,student342@edulearn.com,password123,female,2005-12-14,active,10th Grade,5,Dakahlia,Mohandeseen,Street 90,Ahmed Ibrahim,Father,01099930787
+Ahmed Khalil,STU20240343,student343@edulearn.com,password123,male,2009-12-26,inactive,10th Grade,1,Red Sea,Nasr City,Street 2,Ali Khalil,Brother,01053709898
+Mona Mansour,STU20240344,student344@edulearn.com,password123,female,2010-06-02,active,12th Grade,5,Giza,Smouha,Street 31,Youssef Mansour,Uncle,01067832598
+Mona Abdullah,STU20240345,student345@edulearn.com,password123,female,2009-02-27,active,10th Grade,5,Red Sea,Smouha,Street 57,Omar Abdullah,Father,01150443947
+Sara Khalil,STU20240346,student346@edulearn.com,password123,female,2009-01-06,active,10th Grade,1,Cairo,Hurghada,Street 87,Omar Khalil,Brother,01261810367
+Tariq Khalil,STU20240347,student347@edulearn.com,password123,male,2008-09-06,active,11th Grade,5,Alexandria,Maadi,Street 16,Kareem Khalil,Father,01275537560
+Fatima Farouk,STU20240348,student348@edulearn.com,password123,female,2006-11-06,active,10th Grade,4,Red Sea,Maadi,Street 35,Youssef Farouk,Uncle,01025657761
+Youssef Husseini,STU20240349,student349@edulearn.com,password123,male,2006-12-07,inactive,12th Grade,4,Dakahlia,Smouha,Street 49,Ahmed Husseini,Uncle,01212501957
+Kareem Saeed,STU20240350,student350@edulearn.com,password123,male,2007-06-11,active,11th Grade,1,Alexandria,Mansoura,Street 18,Kareem Saeed,Brother,01196073367
+Mariam Khalil,STU20240351,student351@edulearn.com,password123,female,2007-06-06,active,10th Grade,2,Dakahlia,Smouha,Street 34,Ali Khalil,Mother,01246402853
+Omar Abdullah,STU20240352,student352@edulearn.com,password123,male,2005-02-05,active,10th Grade,2,Giza,Smouha,Street 25,Kareem Abdullah,Mother,01135552986
+Youssef Ibrahim,STU20240353,student353@edulearn.com,password123,male,2008-11-23,active,10th Grade,1,Alexandria,Mansoura,Street 35,Kareem Ibrahim,Mother,01121304208
+Aisha Khalil,STU20240354,student354@edulearn.com,password123,female,2009-09-29,inactive,12th Grade,4,Giza,Dokki,Street 33,Ahmed Khalil,Grandfather,01130984617
+Mariam Mansour,STU20240355,student355@edulearn.com,password123,female,2009-02-07,active,10th Grade,3,Giza,Nasr City,Street 96,Youssef Mansour,Uncle,01172938381
+Fatima Abdullah,STU20240356,student356@edulearn.com,password123,female,2006-12-29,active,10th Grade,5,Dakahlia,Nasr City,Street 24,Kareem Abdullah,Grandfather,01173410356
+Omar Khalil,STU20240357,student357@edulearn.com,password123,male,2006-09-04,active,12th Grade,4,Red Sea,Mohandeseen,Street 89,Ali Khalil,Mother,01025843772
+Kareem Ibrahim,STU20240358,student358@edulearn.com,password123,male,2008-08-27,inactive,11th Grade,2,Alexandria,Mansoura,Street 68,Ahmed Ibrahim,Uncle,01286356030
+Salma Abdullah,STU20240359,student359@edulearn.com,password123,female,2007-12-27,inactive,12th Grade,4,Red Sea,Smouha,Street 26,Omar Abdullah,Brother,01082978061
+Salma Khalil,STU20240360,student360@edulearn.com,password123,female,2008-06-06,active,10th Grade,3,Giza,Dokki,Street 95,Omar Khalil,Uncle,01242007485
+Aisha Husseini,STU20240361,student361@edulearn.com,password123,female,2009-01-03,active,12th Grade,3,Red Sea,Smouha,Street 43,Kareem Husseini,Grandfather,01086143871
+Laila Khalil,STU20240362,student362@edulearn.com,password123,female,2009-10-21,active,11th Grade,1,Cairo,Nasr City,Street 79,Omar Khalil,Brother,01112922168
+Nour Rahman,STU20240363,student363@edulearn.com,password123,female,2008-05-10,inactive,10th Grade,5,Giza,Smouha,Street 99,Ahmed Rahman,Brother,01270231965
+Mahmoud Gaber,STU20240364,student364@edulearn.com,password123,male,2010-10-07,inactive,11th Grade,3,Giza,Nasr City,Street 93,Youssef Gaber,Father,01218144325
+Ahmed Ibrahim,STU20240365,student365@edulearn.com,password123,male,2005-01-29,active,10th Grade,1,Dakahlia,Mansoura,Street 8,Youssef Ibrahim,Uncle,01062061353
+Salma Farouk,STU20240366,student366@edulearn.com,password123,female,2006-09-08,active,10th Grade,3,Dakahlia,Mansoura,Street 8,Omar Farouk,Father,01128914349
+Omar Husseini,STU20240367,student367@edulearn.com,password123,male,2006-01-27,active,10th Grade,2,Dakahlia,Maadi,Street 50,Tariq Husseini,Father,01193729705
+Tariq Ibrahim,STU20240368,student368@edulearn.com,password123,male,2005-03-06,active,12th Grade,1,Red Sea,Dokki,Street 59,Hassan Ibrahim,Uncle,01097544722
+Nour Rahman,STU20240369,student369@edulearn.com,password123,female,2009-05-29,active,12th Grade,4,Red Sea,Maadi,Street 57,Tariq Rahman,Grandfather,01186833422
+Sara Farouk,STU20240370,student370@edulearn.com,password123,female,2010-05-06,active,11th Grade,4,Dakahlia,Dokki,Street 83,Omar Farouk,Brother,01014794030
+Nour Fawzi,STU20240371,student371@edulearn.com,password123,female,2008-08-09,active,10th Grade,3,Dakahlia,Mohandeseen,Street 48,Youssef Fawzi,Brother,01025303422
+Youssef Saeed,STU20240372,student372@edulearn.com,password123,male,2010-07-09,inactive,12th Grade,3,Cairo,Nasr City,Street 38,Ahmed Saeed,Uncle,01249691213
+Youssef Saeed,STU20240373,student373@edulearn.com,password123,male,2008-04-29,active,10th Grade,5,Giza,Mansoura,Street 9,Hassan Saeed,Brother,01162449348
+Ali Farouk,STU20240374,student374@edulearn.com,password123,male,2009-05-07,active,11th Grade,2,Dakahlia,Maadi,Street 47,Tariq Farouk,Mother,01136556948
+Aisha Mansour,STU20240375,student375@edulearn.com,password123,female,2009-04-23,active,10th Grade,4,Giza,Dokki,Street 39,Ahmed Mansour,Father,01271407237
+Nour Farouk,STU20240376,student376@edulearn.com,password123,female,2008-08-30,active,10th Grade,2,Dakahlia,Smouha,Street 82,Youssef Farouk,Father,01248163156
+Mahmoud Mansour,STU20240377,student377@edulearn.com,password123,male,2008-05-15,active,10th Grade,5,Dakahlia,Dokki,Street 24,Omar Mansour,Uncle,01232329939
+Youssef Rahman,STU20240378,student378@edulearn.com,password123,male,2008-03-21,active,11th Grade,5,Alexandria,Dokki,Street 39,Youssef Rahman,Uncle,01212944325
+Ahmed Husseini,STU20240379,student379@edulearn.com,password123,male,2009-04-10,inactive,12th Grade,4,Red Sea,Mansoura,Street 17,Kareem Husseini,Father,01014624505
+Laila Husseini,STU20240380,student380@edulearn.com,password123,female,2009-07-30,active,11th Grade,4,Red Sea,Dokki,Street 44,Ali Husseini,Uncle,01091265165
+Kareem Khalil,STU20240381,student381@edulearn.com,password123,male,2007-10-01,active,10th Grade,2,Alexandria,Smouha,Street 78,Tariq Khalil,Uncle,01036249213
+Laila Gaber,STU20240382,student382@edulearn.com,password123,female,2010-12-05,active,12th Grade,5,Alexandria,Nasr City,Street 76,Hassan Gaber,Grandfather,01218050057
+Mariam Fawzi,STU20240383,student383@edulearn.com,password123,female,2007-04-09,active,10th Grade,5,Alexandria,Dokki,Street 93,Omar Fawzi,Grandfather,01042967324
+Hassan Farouk,STU20240384,student384@edulearn.com,password123,male,2008-04-03,inactive,10th Grade,5,Alexandria,Smouha,Street 16,Ali Farouk,Grandfather,01199136416
+Tariq Saeed,STU20240385,student385@edulearn.com,password123,male,2006-08-24,inactive,11th Grade,3,Cairo,Dokki,Street 5,Omar Saeed,Uncle,01269224211
+Sara Mansour,STU20240386,student386@edulearn.com,password123,female,2008-01-14,active,11th Grade,2,Dakahlia,Hurghada,Street 30,Tariq Mansour,Father,01132890063
+Sara Fawzi,STU20240387,student387@edulearn.com,password123,female,2010-03-04,inactive,12th Grade,3,Dakahlia,Nasr City,Street 89,Hassan Fawzi,Uncle,01090691393
+Salma Husseini,STU20240388,student388@edulearn.com,password123,female,2009-11-01,active,12th Grade,4,Giza,Hurghada,Street 87,Ahmed Husseini,Father,01027665804
+Omar Rahman,STU20240389,student389@edulearn.com,password123,male,2006-04-12,inactive,11th Grade,5,Giza,Mohandeseen,Street 1,Tariq Rahman,Father,01129059850
+Mariam Rahman,STU20240390,student390@edulearn.com,password123,female,2009-12-20,inactive,12th Grade,3,Alexandria,Nasr City,Street 56,Mahmoud Rahman,Mother,01161967123
+Mariam Abdullah,STU20240391,student391@edulearn.com,password123,female,2008-02-26,active,12th Grade,5,Dakahlia,Nasr City,Street 38,Kareem Abdullah,Grandfather,01122302866
+Mariam Abdullah,STU20240392,student392@edulearn.com,password123,female,2009-08-20,active,12th Grade,3,Dakahlia,Mohandeseen,Street 17,Tariq Abdullah,Grandfather,01064771674
+Ali Fawzi,STU20240393,student393@edulearn.com,password123,male,2007-04-03,active,11th Grade,3,Red Sea,Hurghada,Street 94,Mahmoud Fawzi,Father,01258317531
+Sara Rahman,STU20240394,student394@edulearn.com,password123,female,2006-04-18,inactive,11th Grade,3,Cairo,Maadi,Street 62,Kareem Rahman,Father,01225465528
+Mahmoud Gaber,STU20240395,student395@edulearn.com,password123,male,2010-01-16,active,11th Grade,1,Red Sea,Mohandeseen,Street 78,Omar Gaber,Brother,01183835714
+Omar Rahman,STU20240396,student396@edulearn.com,password123,male,2008-05-04,active,11th Grade,5,Giza,Nasr City,Street 43,Kareem Rahman,Father,01150234488
+Ali Abdullah,STU20240397,student397@edulearn.com,password123,male,2010-07-18,active,11th Grade,5,Giza,Smouha,Street 20,Mahmoud Abdullah,Uncle,01224822946
+Tariq Rahman,STU20240398,student398@edulearn.com,password123,male,2009-09-21,active,11th Grade,4,Dakahlia,Hurghada,Street 63,Tariq Rahman,Grandfather,01143473310
+Mahmoud Fawzi,STU20240399,student399@edulearn.com,password123,male,2010-08-30,active,12th Grade,3,Red Sea,Mohandeseen,Street 54,Hassan Fawzi,Uncle,01194973279
+Mahmoud Saeed,STU20240400,student400@edulearn.com,password123,male,2007-11-26,active,12th Grade,4,Red Sea,Maadi,Street 90,Hassan Saeed,Uncle,01038077907
+Fatima Ibrahim,STU20240401,student401@edulearn.com,password123,female,2008-02-10,active,11th Grade,4,Dakahlia,Mohandeseen,Street 13,Ali Ibrahim,Mother,01267216267
+Hassan Fawzi,STU20240402,student402@edulearn.com,password123,male,2007-05-03,active,12th Grade,4,Red Sea,Mohandeseen,Street 29,Ahmed Fawzi,Uncle,01232198718
+Fatima Farouk,STU20240403,student403@edulearn.com,password123,female,2010-09-13,inactive,12th Grade,1,Giza,Nasr City,Street 86,Ahmed Farouk,Father,01030145266
+Laila Farouk,STU20240404,student404@edulearn.com,password123,female,2007-07-11,active,11th Grade,3,Giza,Dokki,Street 43,Tariq Farouk,Mother,01283016649
+Laila Ibrahim,STU20240405,student405@edulearn.com,password123,female,2008-01-09,active,11th Grade,1,Red Sea,Mansoura,Street 23,Youssef Ibrahim,Grandfather,01129818879
+Aisha Abdullah,STU20240406,student406@edulearn.com,password123,female,2008-01-02,active,12th Grade,4,Red Sea,Dokki,Street 36,Mahmoud Abdullah,Brother,01048417825
+Kareem Saeed,STU20240407,student407@edulearn.com,password123,male,2010-02-27,active,10th Grade,5,Dakahlia,Nasr City,Street 50,Mahmoud Saeed,Mother,01086301623
+Ali Husseini,STU20240408,student408@edulearn.com,password123,male,2010-03-08,active,12th Grade,2,Cairo,Smouha,Street 36,Kareem Husseini,Mother,01162324307
+Mahmoud Rahman,STU20240409,student409@edulearn.com,password123,male,2010-10-28,inactive,10th Grade,1,Giza,Mohandeseen,Street 52,Ali Rahman,Father,01070275593
+Omar Mansour,STU20240410,student410@edulearn.com,password123,male,2007-05-06,active,11th Grade,3,Dakahlia,Smouha,Street 94,Ahmed Mansour,Father,01011618890
+Salma Farouk,STU20240411,student411@edulearn.com,password123,female,2008-01-02,active,10th Grade,1,Cairo,Dokki,Street 66,Mahmoud Farouk,Uncle,01147441477
+Laila Husseini,STU20240412,student412@edulearn.com,password123,female,2008-08-03,active,11th Grade,3,Dakahlia,Hurghada,Street 81,Ali Husseini,Mother,01071103066
+Hassan Gaber,STU20240413,student413@edulearn.com,password123,male,2005-04-08,active,11th Grade,5,Giza,Hurghada,Street 21,Ali Gaber,Father,01222596310
+Mariam Abdullah,STU20240414,student414@edulearn.com,password123,female,2007-07-12,active,10th Grade,3,Cairo,Hurghada,Street 89,Tariq Abdullah,Uncle,01072990640
+Tariq Abdullah,STU20240415,student415@edulearn.com,password123,male,2010-11-05,active,11th Grade,2,Red Sea,Nasr City,Street 76,Ahmed Abdullah,Mother,01054714406
+Laila Gaber,STU20240416,student416@edulearn.com,password123,female,2005-03-18,active,10th Grade,3,Red Sea,Maadi,Street 31,Tariq Gaber,Father,01152509196
+Laila Gaber,STU20240417,student417@edulearn.com,password123,female,2010-09-20,inactive,12th Grade,3,Cairo,Nasr City,Street 84,Ali Gaber,Brother,01111438259
+Ali Saeed,STU20240418,student418@edulearn.com,password123,male,2008-02-26,inactive,12th Grade,2,Dakahlia,Nasr City,Street 75,Ahmed Saeed,Mother,01196783479
+Mariam Rahman,STU20240419,student419@edulearn.com,password123,female,2010-09-06,inactive,11th Grade,3,Alexandria,Mansoura,Street 87,Youssef Rahman,Mother,01275560829
+Fatima Husseini,STU20240420,student420@edulearn.com,password123,female,2006-10-20,active,10th Grade,5,Cairo,Mohandeseen,Street 99,Youssef Husseini,Grandfather,01299162163
+Tariq Khalil,STU20240421,student421@edulearn.com,password123,male,2005-12-05,active,11th Grade,5,Alexandria,Hurghada,Street 64,Tariq Khalil,Father,01093305543
+Mona Abdullah,STU20240422,student422@edulearn.com,password123,female,2010-12-22,active,10th Grade,1,Red Sea,Smouha,Street 77,Omar Abdullah,Brother,01174017007
+Omar Gaber,STU20240423,student423@edulearn.com,password123,male,2007-10-25,active,11th Grade,5,Dakahlia,Mohandeseen,Street 74,Mahmoud Gaber,Grandfather,01161341648
+Ahmed Fawzi,STU20240424,student424@edulearn.com,password123,male,2010-01-14,active,10th Grade,5,Giza,Hurghada,Street 92,Mahmoud Fawzi,Mother,01099635051
+Nour Ibrahim,STU20240425,student425@edulearn.com,password123,female,2009-04-13,active,12th Grade,5,Dakahlia,Smouha,Street 64,Omar Ibrahim,Uncle,01149805698
+Ahmed Ibrahim,STU20240426,student426@edulearn.com,password123,male,2007-11-19,active,11th Grade,5,Dakahlia,Hurghada,Street 25,Hassan Ibrahim,Brother,01185416334
+Fatima Khalil,STU20240427,student427@edulearn.com,password123,female,2005-03-07,active,12th Grade,3,Red Sea,Hurghada,Street 24,Kareem Khalil,Brother,01094180049
+Laila Husseini,STU20240428,student428@edulearn.com,password123,female,2010-07-27,inactive,12th Grade,2,Cairo,Hurghada,Street 22,Ahmed Husseini,Mother,01272372699
+Hassan Saeed,STU20240429,student429@edulearn.com,password123,male,2005-06-14,active,11th Grade,3,Cairo,Mohandeseen,Street 97,Hassan Saeed,Mother,01020284740
+Fatima Gaber,STU20240430,student430@edulearn.com,password123,female,2005-02-01,active,12th Grade,1,Giza,Mohandeseen,Street 36,Tariq Gaber,Mother,01282349880
+Fatima Saeed,STU20240431,student431@edulearn.com,password123,female,2005-09-25,active,11th Grade,2,Cairo,Smouha,Street 39,Ahmed Saeed,Brother,01186060295
+Fatima Abdullah,STU20240432,student432@edulearn.com,password123,female,2009-12-31,active,12th Grade,3,Giza,Hurghada,Street 60,Ahmed Abdullah,Mother,01042036611
+Youssef Khalil,STU20240433,student433@edulearn.com,password123,male,2005-04-22,active,12th Grade,4,Red Sea,Nasr City,Street 27,Mahmoud Khalil,Brother,01157444359
+Salma Farouk,STU20240434,student434@edulearn.com,password123,female,2005-09-15,inactive,11th Grade,3,Red Sea,Mansoura,Street 39,Hassan Farouk,Grandfather,01069758057
+Mahmoud Husseini,STU20240435,student435@edulearn.com,password123,male,2006-01-23,inactive,12th Grade,1,Giza,Mansoura,Street 88,Mahmoud Husseini,Brother,01237112759
+Youssef Gaber,STU20240436,student436@edulearn.com,password123,male,2007-12-11,active,11th Grade,1,Dakahlia,Nasr City,Street 56,Mahmoud Gaber,Grandfather,01128682622
+Hassan Farouk,STU20240437,student437@edulearn.com,password123,male,2005-03-09,active,11th Grade,2,Dakahlia,Dokki,Street 94,Omar Farouk,Father,01296294201
+Ali Mansour,STU20240438,student438@edulearn.com,password123,male,2007-08-28,active,10th Grade,2,Cairo,Hurghada,Street 64,Ahmed Mansour,Grandfather,01156548248
+Salma Fawzi,STU20240439,student439@edulearn.com,password123,female,2007-01-21,active,12th Grade,5,Giza,Mohandeseen,Street 100,Ali Fawzi,Father,01111496571
+Omar Mansour,STU20240440,student440@edulearn.com,password123,male,2005-12-23,active,10th Grade,3,Dakahlia,Mansoura,Street 8,Kareem Mansour,Father,01095457873
+Mariam Fawzi,STU20240441,student441@edulearn.com,password123,female,2005-02-21,active,12th Grade,3,Alexandria,Mansoura,Street 65,Tariq Fawzi,Grandfather,01298702622
+Mariam Husseini,STU20240442,student442@edulearn.com,password123,female,2005-04-12,active,12th Grade,1,Giza,Dokki,Street 69,Ahmed Husseini,Uncle,01140960081
+Kareem Husseini,STU20240443,student443@edulearn.com,password123,male,2010-09-01,active,12th Grade,3,Dakahlia,Mansoura,Street 36,Ahmed Husseini,Mother,01123514160
+Mariam Mansour,STU20240444,student444@edulearn.com,password123,female,2010-05-27,inactive,10th Grade,2,Dakahlia,Hurghada,Street 52,Ali Mansour,Uncle,01288081024
+Mona Rahman,STU20240445,student445@edulearn.com,password123,female,2010-10-09,active,10th Grade,3,Red Sea,Hurghada,Street 39,Mahmoud Rahman,Uncle,01038112920
+Hassan Abdullah,STU20240446,student446@edulearn.com,password123,male,2006-06-16,active,12th Grade,2,Dakahlia,Maadi,Street 41,Mahmoud Abdullah,Grandfather,01237127227
+Mona Husseini,STU20240447,student447@edulearn.com,password123,female,2009-12-09,inactive,12th Grade,4,Dakahlia,Mohandeseen,Street 37,Kareem Husseini,Brother,01186768768
+Hassan Fawzi,STU20240448,student448@edulearn.com,password123,male,2009-02-27,active,11th Grade,1,Giza,Smouha,Street 55,Youssef Fawzi,Grandfather,01181330171
+Mahmoud Khalil,STU20240449,student449@edulearn.com,password123,male,2010-02-04,active,11th Grade,5,Red Sea,Smouha,Street 87,Ahmed Khalil,Father,01116013790
+Laila Husseini,STU20240450,student450@edulearn.com,password123,female,2007-12-27,active,10th Grade,5,Dakahlia,Smouha,Street 61,Kareem Husseini,Uncle,01038026658
+Kareem Abdullah,STU20240451,student451@edulearn.com,password123,male,2008-01-12,active,12th Grade,3,Dakahlia,Maadi,Street 92,Youssef Abdullah,Grandfather,01019323253
+Aisha Saeed,STU20240452,student452@edulearn.com,password123,female,2010-02-10,active,12th Grade,3,Cairo,Hurghada,Street 68,Mahmoud Saeed,Grandfather,01190977826
+Aisha Rahman,STU20240453,student453@edulearn.com,password123,female,2006-09-09,active,11th Grade,1,Alexandria,Dokki,Street 76,Hassan Rahman,Mother,01242134287
+Aisha Fawzi,STU20240454,student454@edulearn.com,password123,female,2009-01-26,active,12th Grade,3,Giza,Mohandeseen,Street 71,Mahmoud Fawzi,Mother,01245535169
+Aisha Husseini,STU20240455,student455@edulearn.com,password123,female,2009-05-14,active,11th Grade,3,Giza,Hurghada,Street 56,Kareem Husseini,Uncle,01262931793
+Ahmed Khalil,STU20240456,student456@edulearn.com,password123,male,2008-06-30,active,11th Grade,5,Dakahlia,Dokki,Street 91,Mahmoud Khalil,Mother,01041172511
+Mariam Gaber,STU20240457,student457@edulearn.com,password123,female,2007-01-05,active,11th Grade,5,Cairo,Mansoura,Street 82,Omar Gaber,Father,01041170965
+Hassan Fawzi,STU20240458,student458@edulearn.com,password123,male,2005-12-27,active,11th Grade,2,Dakahlia,Dokki,Street 93,Youssef Fawzi,Brother,01143548829
+Mona Farouk,STU20240459,student459@edulearn.com,password123,female,2006-12-26,active,10th Grade,1,Giza,Mansoura,Street 52,Ahmed Farouk,Grandfather,01292865352
+Ali Ibrahim,STU20240460,student460@edulearn.com,password123,male,2009-09-25,active,12th Grade,3,Cairo,Smouha,Street 11,Mahmoud Ibrahim,Grandfather,01167897139
+Sara Rahman,STU20240461,student461@edulearn.com,password123,female,2006-10-30,active,12th Grade,1,Dakahlia,Nasr City,Street 27,Tariq Rahman,Father,01084682388
+Aisha Mansour,STU20240462,student462@edulearn.com,password123,female,2007-03-13,inactive,12th Grade,4,Giza,Maadi,Street 54,Youssef Mansour,Grandfather,01099657144
+Hassan Gaber,STU20240463,student463@edulearn.com,password123,male,2010-08-08,active,12th Grade,5,Giza,Smouha,Street 70,Hassan Gaber,Mother,01268790276
+Mariam Farouk,STU20240464,student464@edulearn.com,password123,female,2005-01-01,active,11th Grade,2,Cairo,Smouha,Street 89,Youssef Farouk,Grandfather,01240670369
+Laila Mansour,STU20240465,student465@edulearn.com,password123,female,2010-04-06,active,11th Grade,3,Cairo,Mohandeseen,Street 92,Omar Mansour,Grandfather,01243536838
+Mariam Khalil,STU20240466,student466@edulearn.com,password123,female,2009-08-30,active,10th Grade,5,Dakahlia,Nasr City,Street 69,Ali Khalil,Uncle,01126118023
+Youssef Mansour,STU20240467,student467@edulearn.com,password123,male,2009-09-16,active,12th Grade,3,Alexandria,Smouha,Street 63,Kareem Mansour,Grandfather,01250563880
+Youssef Farouk,STU20240468,student468@edulearn.com,password123,male,2006-11-02,active,10th Grade,4,Dakahlia,Smouha,Street 40,Tariq Farouk,Brother,01193081587
+Laila Khalil,STU20240469,student469@edulearn.com,password123,female,2006-11-27,active,12th Grade,1,Giza,Mohandeseen,Street 27,Mahmoud Khalil,Uncle,01032643232
+Nour Mansour,STU20240470,student470@edulearn.com,password123,female,2010-11-06,inactive,12th Grade,1,Giza,Dokki,Street 42,Omar Mansour,Mother,01250907710
+Mona Rahman,STU20240471,student471@edulearn.com,password123,female,2008-07-02,active,12th Grade,4,Alexandria,Nasr City,Street 25,Tariq Rahman,Grandfather,01244155040
+Ahmed Gaber,STU20240472,student472@edulearn.com,password123,male,2005-08-25,active,10th Grade,2,Cairo,Nasr City,Street 70,Kareem Gaber,Brother,01211410049
+Hassan Gaber,STU20240473,student473@edulearn.com,password123,male,2007-05-31,active,12th Grade,3,Cairo,Smouha,Street 41,Ahmed Gaber,Uncle,01021164486
+Mariam Saeed,STU20240474,student474@edulearn.com,password123,female,2009-06-29,inactive,10th Grade,5,Red Sea,Mansoura,Street 9,Kareem Saeed,Mother,01218565267
+Mariam Husseini,STU20240475,student475@edulearn.com,password123,female,2006-09-08,active,11th Grade,2,Dakahlia,Hurghada,Street 41,Ali Husseini,Grandfather,01097407215
+Mona Rahman,STU20240476,student476@edulearn.com,password123,female,2005-05-13,inactive,12th Grade,3,Giza,Mohandeseen,Street 57,Mahmoud Rahman,Father,01245023069
+Laila Rahman,STU20240477,student477@edulearn.com,password123,female,2005-07-14,active,11th Grade,4,Alexandria,Nasr City,Street 78,Ahmed Rahman,Grandfather,01273316609
+Laila Gaber,STU20240478,student478@edulearn.com,password123,female,2009-08-28,active,11th Grade,4,Red Sea,Dokki,Street 80,Ahmed Gaber,Brother,01122253288
+Sara Farouk,STU20240479,student479@edulearn.com,password123,female,2009-06-25,active,12th Grade,1,Red Sea,Maadi,Street 79,Ali Farouk,Brother,01011753833
+Youssef Abdullah,STU20240480,student480@edulearn.com,password123,male,2009-03-30,active,10th Grade,1,Alexandria,Smouha,Street 88,Youssef Abdullah,Brother,01119599608
+Mahmoud Gaber,STU20240481,student481@edulearn.com,password123,male,2010-12-15,active,11th Grade,4,Alexandria,Mohandeseen,Street 96,Ali Gaber,Grandfather,01165487100
+Sara Abdullah,STU20240482,student482@edulearn.com,password123,female,2007-01-01,active,10th Grade,1,Cairo,Smouha,Street 84,Hassan Abdullah,Mother,01284784271
+Nour Ibrahim,STU20240483,student483@edulearn.com,password123,female,2010-06-22,inactive,10th Grade,5,Red Sea,Mohandeseen,Street 55,Tariq Ibrahim,Mother,01176168225
+Mahmoud Mansour,STU20240484,student484@edulearn.com,password123,male,2006-11-16,active,12th Grade,2,Red Sea,Dokki,Street 91,Ahmed Mansour,Mother,01183043709
+Sara Saeed,STU20240485,student485@edulearn.com,password123,female,2009-05-03,active,11th Grade,4,Red Sea,Mansoura,Street 40,Mahmoud Saeed,Brother,01273500158
+Laila Gaber,STU20240486,student486@edulearn.com,password123,female,2008-04-01,inactive,10th Grade,3,Red Sea,Dokki,Street 84,Hassan Gaber,Brother,01028094489
+Hassan Ibrahim,STU20240487,student487@edulearn.com,password123,male,2007-02-17,active,11th Grade,5,Alexandria,Mansoura,Street 18,Kareem Ibrahim,Uncle,01247183802
+Tariq Khalil,STU20240488,student488@edulearn.com,password123,male,2005-02-17,inactive,10th Grade,5,Cairo,Hurghada,Street 55,Tariq Khalil,Mother,01082410649
+Salma Farouk,STU20240489,student489@edulearn.com,password123,female,2005-01-03,inactive,12th Grade,5,Dakahlia,Mansoura,Street 100,Kareem Farouk,Father,01231265663
+Aisha Saeed,STU20240490,student490@edulearn.com,password123,female,2006-06-07,active,10th Grade,3,Giza,Maadi,Street 28,Hassan Saeed,Uncle,01121075556
+Salma Husseini,STU20240491,student491@edulearn.com,password123,female,2006-04-01,active,10th Grade,4,Red Sea,Mansoura,Street 7,Omar Husseini,Uncle,01154886848
+Mona Khalil,STU20240492,student492@edulearn.com,password123,female,2008-07-11,active,10th Grade,2,Alexandria,Hurghada,Street 69,Youssef Khalil,Uncle,01053702252
+Omar Khalil,STU20240493,student493@edulearn.com,password123,male,2006-08-22,active,10th Grade,5,Giza,Nasr City,Street 40,Mahmoud Khalil,Mother,01285877547
+Aisha Fawzi,STU20240494,student494@edulearn.com,password123,female,2007-02-12,inactive,12th Grade,1,Dakahlia,Mansoura,Street 24,Hassan Fawzi,Mother,01147615534
+Kareem Farouk,STU20240495,student495@edulearn.com,password123,male,2006-10-19,active,10th Grade,2,Dakahlia,Smouha,Street 15,Omar Farouk,Brother,01038367820
+Laila Rahman,STU20240496,student496@edulearn.com,password123,female,2007-02-24,active,12th Grade,4,Dakahlia,Mansoura,Street 35,Tariq Rahman,Grandfather,01067725136
+Ali Mansour,STU20240497,student497@edulearn.com,password123,male,2008-11-26,active,12th Grade,5,Alexandria,Nasr City,Street 34,Hassan Mansour,Grandfather,01069705138
+Ahmed Mansour,STU20240498,student498@edulearn.com,password123,male,2006-07-16,active,11th Grade,2,Dakahlia,Hurghada,Street 34,Ali Mansour,Brother,01045553742
+Tariq Fawzi,STU20240499,student499@edulearn.com,password123,male,2007-11-02,active,12th Grade,5,Dakahlia,Nasr City,Street 49,Tariq Fawzi,Brother,01076384608
+Mahmoud Gaber,STU20240500,student500@edulearn.com,password123,male,2006-01-12,active,11th Grade,5,Red Sea,Mansoura,Street 87,Hassan Gaber,Brother,01026002876
+Tariq Husseini,STU20240501,student501@edulearn.com,password123,male,2008-05-11,inactive,11th Grade,4,Dakahlia,Mohandeseen,Street 45,Mahmoud Husseini,Grandfather,01140545147
+Aisha Farouk,STU20240502,student502@edulearn.com,password123,female,2007-05-02,active,10th Grade,1,Cairo,Maadi,Street 58,Mahmoud Farouk,Grandfather,01294004219
+Mona Mansour,STU20240503,student503@edulearn.com,password123,female,2007-08-31,active,11th Grade,4,Red Sea,Smouha,Street 27,Kareem Mansour,Uncle,01112844446
+Mona Rahman,STU20240504,student504@edulearn.com,password123,female,2009-09-14,active,11th Grade,2,Cairo,Dokki,Street 95,Ali Rahman,Mother,01153002043
+Nour Abdullah,STU20240505,student505@edulearn.com,password123,female,2005-12-03,active,12th Grade,5,Dakahlia,Nasr City,Street 55,Mahmoud Abdullah,Mother,01188859678
+Ahmed Mansour,STU20240506,student506@edulearn.com,password123,male,2009-11-18,active,11th Grade,1,Red Sea,Dokki,Street 27,Tariq Mansour,Grandfather,01093469704
+Sara Abdullah,STU20240507,student507@edulearn.com,password123,female,2006-06-21,active,12th Grade,4,Alexandria,Hurghada,Street 32,Youssef Abdullah,Uncle,01250119096
+Mahmoud Gaber,STU20240508,student508@edulearn.com,password123,male,2005-06-08,active,10th Grade,1,Cairo,Smouha,Street 58,Ali Gaber,Mother,01155533191
+Kareem Saeed,STU20240509,student509@edulearn.com,password123,male,2006-11-27,active,10th Grade,2,Alexandria,Mansoura,Street 21,Tariq Saeed,Father,01211461355
+Tariq Saeed,STU20240510,student510@edulearn.com,password123,male,2006-05-28,active,11th Grade,2,Red Sea,Mohandeseen,Street 30,Tariq Saeed,Uncle,01119291319
+Mariam Ibrahim,STU20240511,student511@edulearn.com,password123,female,2009-12-30,active,10th Grade,3,Alexandria,Hurghada,Street 18,Mahmoud Ibrahim,Mother,01225517221
+Youssef Farouk,STU20240512,student512@edulearn.com,password123,male,2009-01-05,active,12th Grade,2,Cairo,Nasr City,Street 42,Hassan Farouk,Brother,01125121351
+Sara Fawzi,STU20240513,student513@edulearn.com,password123,female,2005-12-12,active,10th Grade,5,Cairo,Mohandeseen,Street 31,Kareem Fawzi,Uncle,01239420767
+Mariam Abdullah,STU20240514,student514@edulearn.com,password123,female,2005-03-28,active,12th Grade,5,Dakahlia,Maadi,Street 41,Hassan Abdullah,Brother,01242384945
+Hassan Husseini,STU20240515,student515@edulearn.com,password123,male,2009-04-01,active,11th Grade,3,Dakahlia,Nasr City,Street 71,Omar Husseini,Mother,01064584004
+Mona Mansour,STU20240516,student516@edulearn.com,password123,female,2007-08-15,active,12th Grade,3,Dakahlia,Hurghada,Street 37,Ahmed Mansour,Brother,01085564257
+Ahmed Khalil,STU20240517,student517@edulearn.com,password123,male,2005-07-02,active,10th Grade,5,Alexandria,Maadi,Street 79,Ahmed Khalil,Uncle,01027267125
+Tariq Fawzi,STU20240518,student518@edulearn.com,password123,male,2006-03-10,active,10th Grade,5,Cairo,Dokki,Street 53,Omar Fawzi,Grandfather,01219957450
+Mona Khalil,STU20240519,student519@edulearn.com,password123,female,2006-03-04,active,10th Grade,3,Giza,Nasr City,Street 68,Mahmoud Khalil,Grandfather,01080593104
+Youssef Khalil,STU20240520,student520@edulearn.com,password123,male,2006-10-22,active,10th Grade,2,Cairo,Mansoura,Street 95,Tariq Khalil,Father,01044439482
+Hassan Saeed,STU20240521,student521@edulearn.com,password123,male,2006-08-31,active,11th Grade,1,Alexandria,Mansoura,Street 25,Ali Saeed,Uncle,01012180020
+Youssef Saeed,STU20240522,student522@edulearn.com,password123,male,2008-03-30,active,11th Grade,1,Cairo,Hurghada,Street 89,Kareem Saeed,Grandfather,01084730278
+Ahmed Khalil,STU20240523,student523@edulearn.com,password123,male,2008-02-09,active,10th Grade,3,Alexandria,Dokki,Street 87,Omar Khalil,Father,01021974239
+Aisha Abdullah,STU20240524,student524@edulearn.com,password123,female,2005-11-16,active,12th Grade,4,Alexandria,Maadi,Street 85,Ahmed Abdullah,Father,01289538180
+Salma Farouk,STU20240525,student525@edulearn.com,password123,female,2010-08-11,inactive,12th Grade,2,Cairo,Hurghada,Street 48,Tariq Farouk,Father,01036099354
+Hassan Fawzi,STU20240526,student526@edulearn.com,password123,male,2009-07-12,active,10th Grade,2,Alexandria,Hurghada,Street 70,Omar Fawzi,Uncle,01117630967
+Ahmed Saeed,STU20240527,student527@edulearn.com,password123,male,2006-01-01,active,12th Grade,4,Cairo,Maadi,Street 42,Kareem Saeed,Brother,01087741030
+Ahmed Gaber,STU20240528,student528@edulearn.com,password123,male,2009-06-23,active,10th Grade,2,Red Sea,Mohandeseen,Street 51,Youssef Gaber,Grandfather,01052814043
+Sara Husseini,STU20240529,student529@edulearn.com,password123,female,2005-03-03,inactive,12th Grade,2,Alexandria,Mohandeseen,Street 92,Mahmoud Husseini,Brother,01298575387
+Sara Farouk,STU20240530,student530@edulearn.com,password123,female,2010-01-13,active,12th Grade,2,Dakahlia,Nasr City,Street 27,Kareem Farouk,Grandfather,01258086414
+Ahmed Saeed,STU20240531,student531@edulearn.com,password123,male,2009-04-18,active,11th Grade,2,Dakahlia,Dokki,Street 76,Kareem Saeed,Grandfather,01032406273
+Omar Abdullah,STU20240532,student532@edulearn.com,password123,male,2006-10-05,inactive,11th Grade,1,Cairo,Nasr City,Street 25,Kareem Abdullah,Father,01280354892
+Mahmoud Husseini,STU20240533,student533@edulearn.com,password123,male,2010-09-11,inactive,10th Grade,5,Red Sea,Hurghada,Street 17,Omar Husseini,Father,01111334838
+Nour Fawzi,STU20240534,student534@edulearn.com,password123,female,2010-03-07,inactive,11th Grade,4,Giza,Dokki,Street 19,Tariq Fawzi,Grandfather,01288792079
+Tariq Ibrahim,STU20240535,student535@edulearn.com,password123,male,2006-10-19,active,11th Grade,5,Cairo,Dokki,Street 99,Ali Ibrahim,Uncle,01091147558
+Kareem Rahman,STU20240536,student536@edulearn.com,password123,male,2006-09-21,active,11th Grade,1,Cairo,Dokki,Street 59,Omar Rahman,Uncle,01094176415
+Sara Abdullah,STU20240537,student537@edulearn.com,password123,female,2010-02-05,active,12th Grade,5,Cairo,Nasr City,Street 73,Omar Abdullah,Father,01193185693
+Ahmed Ibrahim,STU20240538,student538@edulearn.com,password123,male,2009-03-21,active,12th Grade,4,Alexandria,Dokki,Street 32,Mahmoud Ibrahim,Brother,01239850627
+Omar Fawzi,STU20240539,student539@edulearn.com,password123,male,2007-01-19,inactive,12th Grade,5,Alexandria,Hurghada,Street 73,Hassan Fawzi,Brother,01152574108
+Omar Khalil,STU20240540,student540@edulearn.com,password123,male,2006-02-16,active,12th Grade,4,Alexandria,Mohandeseen,Street 66,Hassan Khalil,Brother,01025025625
+Ali Gaber,STU20240541,student541@edulearn.com,password123,male,2008-07-04,inactive,11th Grade,5,Alexandria,Dokki,Street 88,Mahmoud Gaber,Grandfather,01296432544
+Hassan Farouk,STU20240542,student542@edulearn.com,password123,male,2008-07-03,active,11th Grade,2,Dakahlia,Maadi,Street 69,Hassan Farouk,Father,01081557422
+Tariq Fawzi,STU20240543,student543@edulearn.com,password123,male,2006-09-29,active,12th Grade,4,Giza,Mansoura,Street 83,Youssef Fawzi,Uncle,01137823847
+Mona Ibrahim,STU20240544,student544@edulearn.com,password123,female,2005-03-16,inactive,12th Grade,2,Giza,Maadi,Street 59,Hassan Ibrahim,Grandfather,01261566132
+Ahmed Ibrahim,STU20240545,student545@edulearn.com,password123,male,2010-11-20,inactive,10th Grade,1,Alexandria,Mohandeseen,Street 21,Kareem Ibrahim,Father,01254339657
+Fatima Ibrahim,STU20240546,student546@edulearn.com,password123,female,2008-06-22,active,11th Grade,1,Giza,Maadi,Street 75,Omar Ibrahim,Father,01138674808
+Omar Husseini,STU20240547,student547@edulearn.com,password123,male,2007-05-22,active,10th Grade,4,Giza,Mansoura,Street 92,Ali Husseini,Uncle,01210569131
+Omar Husseini,STU20240548,student548@edulearn.com,password123,male,2008-11-02,active,12th Grade,2,Alexandria,Mansoura,Street 72,Kareem Husseini,Brother,01155394611
+Hassan Ibrahim,STU20240549,student549@edulearn.com,password123,male,2005-03-03,active,10th Grade,5,Dakahlia,Maadi,Street 63,Ahmed Ibrahim,Mother,01285303544
+Salma Fawzi,STU20240550,student550@edulearn.com,password123,female,2008-04-15,active,12th Grade,2,Dakahlia,Mohandeseen,Street 15,Ali Fawzi,Grandfather,01275951813
+Mahmoud Abdullah,STU20240551,student551@edulearn.com,password123,male,2006-03-25,active,11th Grade,1,Dakahlia,Nasr City,Street 51,Hassan Abdullah,Uncle,01065238769
+Tariq Saeed,STU20240552,student552@edulearn.com,password123,male,2010-04-05,active,10th Grade,4,Cairo,Dokki,Street 89,Youssef Saeed,Uncle,01135543497
+Ali Gaber,STU20240553,student553@edulearn.com,password123,male,2006-04-02,active,11th Grade,1,Giza,Mohandeseen,Street 14,Mahmoud Gaber,Mother,01159488694
+Ahmed Husseini,STU20240554,student554@edulearn.com,password123,male,2010-06-30,active,11th Grade,4,Giza,Dokki,Street 85,Ali Husseini,Mother,01268032246
+Hassan Khalil,STU20240555,student555@edulearn.com,password123,male,2005-04-22,active,12th Grade,2,Cairo,Mansoura,Street 88,Tariq Khalil,Mother,01110824997
+Kareem Farouk,STU20240556,student556@edulearn.com,password123,male,2010-02-20,active,11th Grade,2,Dakahlia,Smouha,Street 3,Omar Farouk,Father,01066552540
+Omar Husseini,STU20240557,student557@edulearn.com,password123,male,2005-04-21,inactive,11th Grade,2,Giza,Maadi,Street 56,Hassan Husseini,Uncle,01016482553
+Omar Fawzi,STU20240558,student558@edulearn.com,password123,male,2007-12-13,inactive,10th Grade,4,Giza,Hurghada,Street 92,Ahmed Fawzi,Father,01289644211
+Laila Mansour,STU20240559,student559@edulearn.com,password123,female,2010-07-09,active,12th Grade,2,Giza,Nasr City,Street 97,Tariq Mansour,Mother,01264588846
+Laila Ibrahim,STU20240560,student560@edulearn.com,password123,female,2010-06-17,inactive,10th Grade,2,Dakahlia,Hurghada,Street 65,Omar Ibrahim,Uncle,01163679726
+Mona Gaber,STU20240561,student561@edulearn.com,password123,female,2005-02-02,active,10th Grade,4,Cairo,Hurghada,Street 96,Tariq Gaber,Grandfather,01045392382
+Hassan Fawzi,STU20240562,student562@edulearn.com,password123,male,2005-12-17,active,10th Grade,2,Alexandria,Maadi,Street 65,Ahmed Fawzi,Brother,01174125636
+Youssef Saeed,STU20240563,student563@edulearn.com,password123,male,2010-05-07,active,10th Grade,2,Dakahlia,Smouha,Street 12,Tariq Saeed,Grandfather,01147053635
+Aisha Mansour,STU20240564,student564@edulearn.com,password123,female,2008-03-04,active,11th Grade,4,Giza,Hurghada,Street 15,Mahmoud Mansour,Grandfather,01212419163
+Mona Fawzi,STU20240565,student565@edulearn.com,password123,female,2005-04-29,active,12th Grade,2,Dakahlia,Maadi,Street 35,Hassan Fawzi,Grandfather,01231787266
+Salma Khalil,STU20240566,student566@edulearn.com,password123,female,2005-04-15,active,10th Grade,1,Cairo,Smouha,Street 55,Omar Khalil,Mother,01286625040
+Omar Farouk,STU20240567,student567@edulearn.com,password123,male,2008-08-16,inactive,11th Grade,3,Giza,Dokki,Street 95,Hassan Farouk,Mother,01157223376
+Ali Mansour,STU20240568,student568@edulearn.com,password123,male,2007-05-11,active,12th Grade,5,Cairo,Mansoura,Street 58,Ali Mansour,Mother,01229185331
+Salma Saeed,STU20240569,student569@edulearn.com,password123,female,2006-02-22,active,12th Grade,5,Dakahlia,Mansoura,Street 19,Youssef Saeed,Mother,01042862758
+Sara Abdullah,STU20240570,student570@edulearn.com,password123,female,2010-04-05,inactive,12th Grade,1,Red Sea,Dokki,Street 6,Omar Abdullah,Uncle,01291440036
+Fatima Saeed,STU20240571,student571@edulearn.com,password123,female,2007-08-09,inactive,12th Grade,3,Dakahlia,Nasr City,Street 55,Ahmed Saeed,Uncle,01286349089
+Sara Mansour,STU20240572,student572@edulearn.com,password123,female,2006-10-27,inactive,11th Grade,5,Alexandria,Mohandeseen,Street 62,Kareem Mansour,Grandfather,01285083937
+Nour Ibrahim,STU20240573,student573@edulearn.com,password123,female,2009-05-31,active,11th Grade,3,Cairo,Nasr City,Street 48,Youssef Ibrahim,Uncle,01237066344
+Mariam Khalil,STU20240574,student574@edulearn.com,password123,female,2010-04-01,active,11th Grade,1,Alexandria,Smouha,Street 48,Tariq Khalil,Brother,01016396880
+Mona Fawzi,STU20240575,student575@edulearn.com,password123,female,2010-12-06,active,10th Grade,5,Alexandria,Mansoura,Street 29,Tariq Fawzi,Father,01288934421
+Salma Abdullah,STU20240576,student576@edulearn.com,password123,female,2010-07-18,inactive,11th Grade,3,Red Sea,Smouha,Street 2,Tariq Abdullah,Uncle,01174625344
+Hassan Fawzi,STU20240577,student577@edulearn.com,password123,male,2006-01-22,inactive,11th Grade,4,Dakahlia,Hurghada,Street 30,Hassan Fawzi,Father,01286412862
+Mariam Khalil,STU20240578,student578@edulearn.com,password123,female,2009-11-29,inactive,10th Grade,2,Red Sea,Dokki,Street 76,Youssef Khalil,Mother,01240447659
+Ali Abdullah,STU20240579,student579@edulearn.com,password123,male,2009-08-02,active,11th Grade,1,Red Sea,Mohandeseen,Street 43,Mahmoud Abdullah,Mother,01161067221
+Laila Gaber,STU20240580,student580@edulearn.com,password123,female,2007-10-30,active,11th Grade,4,Cairo,Smouha,Street 30,Kareem Gaber,Uncle,01096294928
+Kareem Saeed,STU20240581,student581@edulearn.com,password123,male,2010-10-14,active,11th Grade,5,Dakahlia,Mansoura,Street 97,Mahmoud Saeed,Father,01058868625
+Sara Farouk,STU20240582,student582@edulearn.com,password123,female,2009-07-31,active,10th Grade,1,Red Sea,Dokki,Street 85,Youssef Farouk,Mother,01249202464
+Laila Fawzi,STU20240583,student583@edulearn.com,password123,female,2008-10-03,active,12th Grade,5,Dakahlia,Dokki,Street 6,Kareem Fawzi,Uncle,01086278612
+Nour Ibrahim,STU20240584,student584@edulearn.com,password123,female,2005-06-16,active,11th Grade,2,Dakahlia,Smouha,Street 60,Omar Ibrahim,Grandfather,01156781451
+Omar Husseini,STU20240585,student585@edulearn.com,password123,male,2006-03-24,active,11th Grade,2,Giza,Maadi,Street 98,Ahmed Husseini,Uncle,01118529298
+Mahmoud Saeed,STU20240586,student586@edulearn.com,password123,male,2010-09-17,active,11th Grade,2,Giza,Hurghada,Street 11,Ali Saeed,Mother,01135893285
+Mahmoud Husseini,STU20240587,student587@edulearn.com,password123,male,2010-03-04,active,12th Grade,1,Cairo,Nasr City,Street 68,Mahmoud Husseini,Brother,01093896692
+Ahmed Khalil,STU20240588,student588@edulearn.com,password123,male,2006-11-02,active,12th Grade,3,Giza,Nasr City,Street 20,Kareem Khalil,Father,01257939531
+Kareem Ibrahim,STU20240589,student589@edulearn.com,password123,male,2007-06-11,active,10th Grade,2,Red Sea,Mohandeseen,Street 17,Ali Ibrahim,Father,01135775296
+Ahmed Mansour,STU20240590,student590@edulearn.com,password123,male,2009-12-17,inactive,11th Grade,4,Giza,Maadi,Street 27,Kareem Mansour,Father,01274183307
+Mahmoud Mansour,STU20240591,student591@edulearn.com,password123,male,2007-07-30,active,11th Grade,2,Cairo,Nasr City,Street 54,Omar Mansour,Grandfather,01187987819
+Tariq Farouk,STU20240592,student592@edulearn.com,password123,male,2009-07-23,active,10th Grade,2,Giza,Mansoura,Street 56,Youssef Farouk,Grandfather,01285302771
+Aisha Mansour,STU20240593,student593@edulearn.com,password123,female,2008-03-27,active,11th Grade,2,Dakahlia,Maadi,Street 73,Mahmoud Mansour,Uncle,01238160209
+Tariq Abdullah,STU20240594,student594@edulearn.com,password123,male,2008-10-14,active,11th Grade,3,Alexandria,Mohandeseen,Street 37,Ahmed Abdullah,Father,01298200981
+Fatima Fawzi,STU20240595,student595@edulearn.com,password123,female,2009-06-11,active,10th Grade,1,Red Sea,Nasr City,Street 51,Hassan Fawzi,Father,01077621109
+Ahmed Abdullah,STU20240596,student596@edulearn.com,password123,male,2006-04-24,active,10th Grade,4,Red Sea,Maadi,Street 77,Omar Abdullah,Father,01091153377
+Aisha Fawzi,STU20240597,student597@edulearn.com,password123,female,2009-02-16,active,10th Grade,2,Cairo,Smouha,Street 14,Ali Fawzi,Uncle,01046235934
+Laila Fawzi,STU20240598,student598@edulearn.com,password123,female,2008-09-15,active,12th Grade,4,Red Sea,Maadi,Street 46,Tariq Fawzi,Brother,01173452958
+Mahmoud Saeed,STU20240599,student599@edulearn.com,password123,male,2009-10-17,inactive,12th Grade,3,Giza,Smouha,Street 23,Ahmed Saeed,Brother,01053675689
+Tariq Ibrahim,STU20240600,student600@edulearn.com,password123,male,2010-11-11,active,11th Grade,5,Dakahlia,Mansoura,Street 68,Mahmoud Ibrahim,Mother,01276581799
+Mahmoud Gaber,STU20240601,student601@edulearn.com,password123,male,2005-04-11,active,11th Grade,3,Giza,Mansoura,Street 54,Kareem Gaber,Uncle,01292596395
+Fatima Gaber,STU20240602,student602@edulearn.com,password123,female,2006-12-20,inactive,12th Grade,4,Giza,Dokki,Street 85,Ali Gaber,Uncle,01262700817
+Salma Husseini,STU20240603,student603@edulearn.com,password123,female,2009-05-27,active,12th Grade,4,Alexandria,Nasr City,Street 40,Kareem Husseini,Mother,01181191630
+Laila Husseini,STU20240604,student604@edulearn.com,password123,female,2007-03-12,inactive,11th Grade,5,Cairo,Nasr City,Street 72,Kareem Husseini,Brother,01157019899
+Salma Khalil,STU20240605,student605@edulearn.com,password123,female,2009-10-23,active,11th Grade,5,Dakahlia,Hurghada,Street 47,Youssef Khalil,Uncle,01297637009
+Mariam Ibrahim,STU20240606,student606@edulearn.com,password123,female,2009-05-31,active,10th Grade,4,Giza,Mohandeseen,Street 68,Mahmoud Ibrahim,Grandfather,01035091985
+Mariam Ibrahim,STU20240607,student607@edulearn.com,password123,female,2007-09-02,inactive,10th Grade,3,Red Sea,Nasr City,Street 34,Kareem Ibrahim,Father,01140300859
+Mahmoud Farouk,STU20240608,student608@edulearn.com,password123,male,2010-07-21,active,12th Grade,3,Alexandria,Nasr City,Street 64,Ahmed Farouk,Brother,01011727292
+Nour Saeed,STU20240609,student609@edulearn.com,password123,female,2006-05-17,active,12th Grade,2,Alexandria,Mansoura,Street 28,Hassan Saeed,Brother,01244476565
+Mona Mansour,STU20240610,student610@edulearn.com,password123,female,2010-11-24,active,12th Grade,1,Giza,Nasr City,Street 88,Hassan Mansour,Father,01031388394
+Fatima Fawzi,STU20240611,student611@edulearn.com,password123,female,2005-12-07,inactive,12th Grade,4,Cairo,Mansoura,Street 15,Ali Fawzi,Brother,01069359049
+Omar Rahman,STU20240612,student612@edulearn.com,password123,male,2007-07-31,active,11th Grade,2,Red Sea,Nasr City,Street 28,Tariq Rahman,Uncle,01186569898
+Nour Gaber,STU20240613,student613@edulearn.com,password123,female,2005-09-22,inactive,10th Grade,3,Giza,Mansoura,Street 37,Omar Gaber,Brother,01174642588
+Fatima Saeed,STU20240614,student614@edulearn.com,password123,female,2006-09-07,active,12th Grade,5,Dakahlia,Mohandeseen,Street 99,Ahmed Saeed,Grandfather,01111648306
+Salma Mansour,STU20240615,student615@edulearn.com,password123,female,2007-02-03,active,10th Grade,3,Red Sea,Maadi,Street 55,Mahmoud Mansour,Mother,01061290583
+Tariq Husseini,STU20240616,student616@edulearn.com,password123,male,2010-02-03,active,10th Grade,3,Red Sea,Mohandeseen,Street 22,Omar Husseini,Brother,01224277080
+Omar Rahman,STU20240617,student617@edulearn.com,password123,male,2009-12-05,inactive,12th Grade,3,Red Sea,Mansoura,Street 37,Omar Rahman,Brother,01184663945
+Hassan Fawzi,STU20240618,student618@edulearn.com,password123,male,2005-11-18,active,10th Grade,2,Giza,Dokki,Street 83,Youssef Fawzi,Grandfather,01279235739
+Kareem Gaber,STU20240619,student619@edulearn.com,password123,male,2005-02-24,active,12th Grade,1,Giza,Maadi,Street 77,Hassan Gaber,Father,01042282466
+Hassan Ibrahim,STU20240620,student620@edulearn.com,password123,male,2010-05-02,active,10th Grade,2,Giza,Hurghada,Street 66,Hassan Ibrahim,Uncle,01193733908
+Aisha Rahman,STU20240621,student621@edulearn.com,password123,female,2008-04-20,active,12th Grade,5,Red Sea,Mansoura,Street 22,Ali Rahman,Uncle,01067012861
+Kareem Fawzi,STU20240622,student622@edulearn.com,password123,male,2009-12-13,active,10th Grade,4,Dakahlia,Dokki,Street 91,Kareem Fawzi,Father,01219921647
+Salma Ibrahim,STU20240623,student623@edulearn.com,password123,female,2006-12-09,active,12th Grade,1,Alexandria,Nasr City,Street 72,Mahmoud Ibrahim,Father,01089311905
+Hassan Husseini,STU20240624,student624@edulearn.com,password123,male,2006-07-13,inactive,12th Grade,3,Cairo,Hurghada,Street 56,Youssef Husseini,Uncle,01099168656
+Hassan Rahman,STU20240625,student625@edulearn.com,password123,male,2007-04-15,inactive,10th Grade,4,Giza,Nasr City,Street 85,Mahmoud Rahman,Grandfather,01117689316
+Ali Fawzi,STU20240626,student626@edulearn.com,password123,male,2007-07-09,active,12th Grade,2,Dakahlia,Smouha,Street 4,Omar Fawzi,Grandfather,01228305272
+Youssef Abdullah,STU20240627,student627@edulearn.com,password123,male,2007-08-13,active,10th Grade,5,Dakahlia,Nasr City,Street 87,Kareem Abdullah,Grandfather,01032366538
+Laila Gaber,STU20240628,student628@edulearn.com,password123,female,2010-01-28,active,10th Grade,2,Red Sea,Nasr City,Street 97,Omar Gaber,Grandfather,01159746354
+Laila Mansour,STU20240629,student629@edulearn.com,password123,female,2006-05-08,active,10th Grade,2,Cairo,Mohandeseen,Street 100,Ali Mansour,Uncle,01147823406
+Mariam Mansour,STU20240630,student630@edulearn.com,password123,female,2009-01-07,active,11th Grade,2,Dakahlia,Mohandeseen,Street 97,Mahmoud Mansour,Uncle,01274528523
+Sara Fawzi,STU20240631,student631@edulearn.com,password123,female,2009-09-24,inactive,10th Grade,5,Cairo,Mansoura,Street 87,Ali Fawzi,Grandfather,01037392037
+Kareem Abdullah,STU20240632,student632@edulearn.com,password123,male,2006-02-12,active,11th Grade,4,Red Sea,Mohandeseen,Street 92,Kareem Abdullah,Father,01010916413
+Laila Fawzi,STU20240633,student633@edulearn.com,password123,female,2006-05-31,inactive,11th Grade,1,Giza,Mohandeseen,Street 39,Hassan Fawzi,Grandfather,01212885172
+Sara Farouk,STU20240634,student634@edulearn.com,password123,female,2010-02-20,inactive,10th Grade,2,Red Sea,Nasr City,Street 35,Kareem Farouk,Father,01031667812
+Salma Ibrahim,STU20240635,student635@edulearn.com,password123,female,2005-10-27,active,10th Grade,2,Cairo,Smouha,Street 48,Youssef Ibrahim,Brother,01296382728
+Sara Fawzi,STU20240636,student636@edulearn.com,password123,female,2008-05-03,active,11th Grade,5,Cairo,Dokki,Street 74,Kareem Fawzi,Grandfather,01299214098
+Hassan Saeed,STU20240637,student637@edulearn.com,password123,male,2005-04-24,active,10th Grade,3,Giza,Hurghada,Street 9,Kareem Saeed,Father,01195801591
+Sara Khalil,STU20240638,student638@edulearn.com,password123,female,2005-02-03,inactive,12th Grade,2,Dakahlia,Hurghada,Street 28,Mahmoud Khalil,Mother,01042988269
+Aisha Saeed,STU20240639,student639@edulearn.com,password123,female,2007-10-11,inactive,11th Grade,4,Giza,Maadi,Street 73,Omar Saeed,Grandfather,01238582893
+Salma Ibrahim,STU20240640,student640@edulearn.com,password123,female,2009-01-23,active,10th Grade,5,Giza,Hurghada,Street 4,Tariq Ibrahim,Mother,01213901021
+Omar Fawzi,STU20240641,student641@edulearn.com,password123,male,2010-08-10,active,11th Grade,3,Dakahlia,Mansoura,Street 55,Omar Fawzi,Father,01122440474
+Hassan Gaber,STU20240642,student642@edulearn.com,password123,male,2007-05-12,active,11th Grade,1,Giza,Dokki,Street 46,Kareem Gaber,Grandfather,01039581067
+Aisha Fawzi,STU20240643,student643@edulearn.com,password123,female,2007-11-03,active,11th Grade,4,Red Sea,Mohandeseen,Street 60,Omar Fawzi,Brother,01072290650
+Kareem Khalil,STU20240644,student644@edulearn.com,password123,male,2005-05-31,active,10th Grade,4,Alexandria,Dokki,Street 61,Youssef Khalil,Brother,01210983923
+Ali Saeed,STU20240645,student645@edulearn.com,password123,male,2007-01-16,active,10th Grade,2,Alexandria,Dokki,Street 24,Youssef Saeed,Brother,01199536520
+Salma Farouk,STU20240646,student646@edulearn.com,password123,female,2008-11-10,active,11th Grade,3,Cairo,Hurghada,Street 83,Hassan Farouk,Grandfather,01229947727
+Youssef Gaber,STU20240647,student647@edulearn.com,password123,male,2007-06-14,inactive,11th Grade,1,Red Sea,Mansoura,Street 84,Hassan Gaber,Brother,01038653632
+Fatima Husseini,STU20240648,student648@edulearn.com,password123,female,2006-08-29,active,10th Grade,4,Alexandria,Nasr City,Street 96,Omar Husseini,Uncle,01182543320
+Mona Mansour,STU20240649,student649@edulearn.com,password123,female,2009-02-16,active,12th Grade,1,Giza,Mansoura,Street 73,Omar Mansour,Father,01293422495
+Nour Rahman,STU20240650,student650@edulearn.com,password123,female,2005-06-20,active,10th Grade,3,Alexandria,Mansoura,Street 100,Tariq Rahman,Brother,01057802770
+Mahmoud Fawzi,STU20240651,student651@edulearn.com,password123,male,2006-10-30,active,12th Grade,1,Red Sea,Smouha,Street 41,Ali Fawzi,Uncle,01019642910
+Ali Khalil,STU20240652,student652@edulearn.com,password123,male,2009-06-17,active,11th Grade,4,Red Sea,Hurghada,Street 2,Tariq Khalil,Brother,01162520665
+Ali Rahman,STU20240653,student653@edulearn.com,password123,male,2006-04-20,active,11th Grade,3,Cairo,Maadi,Street 23,Kareem Rahman,Uncle,01188397187
+Kareem Rahman,STU20240654,student654@edulearn.com,password123,male,2005-07-13,active,11th Grade,3,Cairo,Maadi,Street 9,Mahmoud Rahman,Father,01072712759
+Youssef Abdullah,STU20240655,student655@edulearn.com,password123,male,2005-07-21,active,11th Grade,3,Alexandria,Hurghada,Street 31,Omar Abdullah,Uncle,01267376302
+Youssef Fawzi,STU20240656,student656@edulearn.com,password123,male,2007-06-10,inactive,10th Grade,4,Cairo,Mansoura,Street 27,Ahmed Fawzi,Mother,01151587898
+Salma Khalil,STU20240657,student657@edulearn.com,password123,female,2005-03-06,inactive,12th Grade,5,Cairo,Dokki,Street 80,Tariq Khalil,Father,01018071004
+Laila Husseini,STU20240658,student658@edulearn.com,password123,female,2006-04-27,active,11th Grade,3,Giza,Maadi,Street 40,Tariq Husseini,Grandfather,01135647292
+Fatima Farouk,STU20240659,student659@edulearn.com,password123,female,2007-12-10,inactive,12th Grade,4,Cairo,Nasr City,Street 24,Ali Farouk,Father,01053519157
+Aisha Farouk,STU20240660,student660@edulearn.com,password123,female,2005-10-07,active,12th Grade,2,Dakahlia,Mohandeseen,Street 86,Mahmoud Farouk,Grandfather,01171626406
+Youssef Mansour,STU20240661,student661@edulearn.com,password123,male,2010-08-24,active,11th Grade,3,Alexandria,Hurghada,Street 93,Kareem Mansour,Grandfather,01232203429
+Youssef Fawzi,STU20240662,student662@edulearn.com,password123,male,2006-05-07,inactive,12th Grade,4,Dakahlia,Mansoura,Street 15,Ali Fawzi,Uncle,01054321562
+Aisha Gaber,STU20240663,student663@edulearn.com,password123,female,2007-02-27,active,12th Grade,4,Red Sea,Smouha,Street 9,Ahmed Gaber,Father,01239216213
+Nour Saeed,STU20240664,student664@edulearn.com,password123,female,2008-01-20,inactive,11th Grade,5,Red Sea,Dokki,Street 9,Omar Saeed,Uncle,01085808653
+Salma Abdullah,STU20240665,student665@edulearn.com,password123,female,2010-11-25,active,11th Grade,5,Cairo,Mansoura,Street 49,Mahmoud Abdullah,Brother,01110766243
+Nour Farouk,STU20240666,student666@edulearn.com,password123,female,2007-10-20,active,10th Grade,3,Alexandria,Dokki,Street 89,Omar Farouk,Uncle,01130385594
+Hassan Rahman,STU20240667,student667@edulearn.com,password123,male,2005-07-16,active,11th Grade,5,Red Sea,Smouha,Street 58,Kareem Rahman,Uncle,01062756386
+Sara Saeed,STU20240668,student668@edulearn.com,password123,female,2008-11-10,active,10th Grade,4,Red Sea,Nasr City,Street 57,Kareem Saeed,Grandfather,01233713323
+Fatima Mansour,STU20240669,student669@edulearn.com,password123,female,2009-11-21,inactive,12th Grade,4,Giza,Mohandeseen,Street 2,Ahmed Mansour,Uncle,01173594874
+Laila Fawzi,STU20240670,student670@edulearn.com,password123,female,2009-12-11,active,11th Grade,1,Giza,Smouha,Street 17,Kareem Fawzi,Grandfather,01199315804
+Mahmoud Mansour,STU20240671,student671@edulearn.com,password123,male,2009-12-11,inactive,12th Grade,5,Giza,Mansoura,Street 61,Hassan Mansour,Father,01253162497
+Sara Farouk,STU20240672,student672@edulearn.com,password123,female,2005-06-02,active,11th Grade,2,Alexandria,Nasr City,Street 10,Tariq Farouk,Uncle,01272441775
+Kareem Rahman,STU20240673,student673@edulearn.com,password123,male,2006-05-05,active,12th Grade,1,Giza,Mohandeseen,Street 27,Ali Rahman,Grandfather,01020835098
+Laila Khalil,STU20240674,student674@edulearn.com,password123,female,2006-04-04,active,10th Grade,3,Alexandria,Hurghada,Street 73,Omar Khalil,Mother,01135928436
+Mahmoud Khalil,STU20240675,student675@edulearn.com,password123,male,2009-08-02,active,10th Grade,2,Giza,Smouha,Street 61,Ali Khalil,Father,01024184493
+Laila Saeed,STU20240676,student676@edulearn.com,password123,female,2006-01-17,active,11th Grade,1,Red Sea,Nasr City,Street 86,Mahmoud Saeed,Mother,01058319868
+Ahmed Saeed,STU20240677,student677@edulearn.com,password123,male,2006-10-31,active,11th Grade,3,Giza,Hurghada,Street 45,Ali Saeed,Brother,01267442742
+Laila Mansour,STU20240678,student678@edulearn.com,password123,female,2009-08-22,active,11th Grade,5,Giza,Mohandeseen,Street 86,Omar Mansour,Grandfather,01061047350
+Aisha Rahman,STU20240679,student679@edulearn.com,password123,female,2010-08-11,inactive,11th Grade,4,Red Sea,Smouha,Street 74,Youssef Rahman,Grandfather,01273774785
+Hassan Farouk,STU20240680,student680@edulearn.com,password123,male,2010-07-22,active,10th Grade,4,Dakahlia,Mohandeseen,Street 91,Kareem Farouk,Mother,01020291866
+Youssef Khalil,STU20240681,student681@edulearn.com,password123,male,2010-12-25,active,10th Grade,5,Dakahlia,Mohandeseen,Street 91,Hassan Khalil,Brother,01297320269
+Mariam Ibrahim,STU20240682,student682@edulearn.com,password123,female,2009-12-18,active,12th Grade,1,Cairo,Hurghada,Street 68,Tariq Ibrahim,Brother,01087092735
+Fatima Mansour,STU20240683,student683@edulearn.com,password123,female,2008-02-13,active,11th Grade,5,Giza,Dokki,Street 29,Hassan Mansour,Brother,01193492889
+Salma Abdullah,STU20240684,student684@edulearn.com,password123,female,2006-09-03,active,10th Grade,4,Cairo,Nasr City,Street 49,Ahmed Abdullah,Uncle,01216445868
+Aisha Husseini,STU20240685,student685@edulearn.com,password123,female,2009-10-31,active,12th Grade,5,Giza,Hurghada,Street 60,Ali Husseini,Father,01271850851
+Mariam Mansour,STU20240686,student686@edulearn.com,password123,female,2006-02-27,active,10th Grade,4,Dakahlia,Hurghada,Street 84,Hassan Mansour,Father,01151468915
+Laila Ibrahim,STU20240687,student687@edulearn.com,password123,female,2007-10-13,inactive,12th Grade,2,Giza,Mansoura,Street 95,Omar Ibrahim,Grandfather,01063217677
+Mona Farouk,STU20240688,student688@edulearn.com,password123,female,2005-11-03,active,10th Grade,1,Alexandria,Maadi,Street 47,Hassan Farouk,Father,01177792308
+Ahmed Fawzi,STU20240689,student689@edulearn.com,password123,male,2009-02-27,active,12th Grade,1,Red Sea,Dokki,Street 21,Hassan Fawzi,Father,01073263537
+Mariam Khalil,STU20240690,student690@edulearn.com,password123,female,2006-01-28,active,10th Grade,3,Red Sea,Dokki,Street 66,Ahmed Khalil,Uncle,01080431852
+Youssef Abdullah,STU20240691,student691@edulearn.com,password123,male,2010-03-25,active,11th Grade,1,Red Sea,Nasr City,Street 29,Youssef Abdullah,Father,01071776162
+Kareem Mansour,STU20240692,student692@edulearn.com,password123,male,2010-03-15,active,11th Grade,1,Dakahlia,Hurghada,Street 63,Youssef Mansour,Mother,01163407702
+Mona Khalil,STU20240693,student693@edulearn.com,password123,female,2007-10-11,inactive,11th Grade,5,Cairo,Smouha,Street 80,Youssef Khalil,Father,01026061238
+Ali Abdullah,STU20240694,student694@edulearn.com,password123,male,2008-08-18,inactive,10th Grade,4,Cairo,Mansoura,Street 21,Ahmed Abdullah,Mother,01193397376
+Fatima Ibrahim,STU20240695,student695@edulearn.com,password123,female,2010-01-23,active,12th Grade,5,Cairo,Nasr City,Street 85,Ahmed Ibrahim,Uncle,01032517918
+Fatima Saeed,STU20240696,student696@edulearn.com,password123,female,2005-05-30,active,11th Grade,5,Alexandria,Hurghada,Street 52,Kareem Saeed,Mother,01097008218
+Kareem Ibrahim,STU20240697,student697@edulearn.com,password123,male,2008-07-03,active,12th Grade,4,Alexandria,Smouha,Street 24,Omar Ibrahim,Brother,01291502178
+Laila Ibrahim,STU20240698,student698@edulearn.com,password123,female,2006-12-03,active,12th Grade,1,Giza,Hurghada,Street 95,Tariq Ibrahim,Mother,01022018861
+Nour Mansour,STU20240699,student699@edulearn.com,password123,female,2005-09-05,active,12th Grade,5,Cairo,Smouha,Street 53,Ahmed Mansour,Mother,01156834254
+Hassan Husseini,STU20240700,student700@edulearn.com,password123,male,2007-03-28,active,11th Grade,2,Alexandria,Smouha,Street 65,Tariq Husseini,Brother,01290541691
+Mahmoud Mansour,STU20240701,student701@edulearn.com,password123,male,2006-09-13,active,11th Grade,3,Dakahlia,Smouha,Street 67,Omar Mansour,Uncle,01186221929
+Omar Gaber,STU20240702,student702@edulearn.com,password123,male,2009-05-15,active,12th Grade,4,Cairo,Mansoura,Street 3,Tariq Gaber,Mother,01053455982
+Hassan Mansour,STU20240703,student703@edulearn.com,password123,male,2009-01-14,inactive,12th Grade,4,Cairo,Maadi,Street 69,Ali Mansour,Brother,01057056686
+Ahmed Rahman,STU20240704,student704@edulearn.com,password123,male,2006-06-03,active,12th Grade,1,Dakahlia,Dokki,Street 62,Omar Rahman,Uncle,01057307806
+Mona Husseini,STU20240705,student705@edulearn.com,password123,female,2007-03-12,active,11th Grade,5,Dakahlia,Nasr City,Street 24,Ali Husseini,Brother,01067876044
+Ali Farouk,STU20240706,student706@edulearn.com,password123,male,2008-01-24,active,12th Grade,3,Alexandria,Maadi,Street 57,Omar Farouk,Brother,01020451726
+Aisha Husseini,STU20240707,student707@edulearn.com,password123,female,2008-07-31,active,11th Grade,1,Alexandria,Dokki,Street 33,Kareem Husseini,Father,01225012867
+Tariq Ibrahim,STU20240708,student708@edulearn.com,password123,male,2005-01-05,active,11th Grade,2,Dakahlia,Mansoura,Street 73,Kareem Ibrahim,Grandfather,01138759900
+Nour Gaber,STU20240709,student709@edulearn.com,password123,female,2009-10-02,active,12th Grade,2,Giza,Maadi,Street 20,Ahmed Gaber,Uncle,01047183508
+Ahmed Farouk,STU20240710,student710@edulearn.com,password123,male,2005-10-17,active,12th Grade,5,Alexandria,Mansoura,Street 4,Kareem Farouk,Uncle,01221456933
+Sara Rahman,STU20240711,student711@edulearn.com,password123,female,2006-02-18,inactive,11th Grade,4,Dakahlia,Smouha,Street 76,Ali Rahman,Grandfather,01277132970
+Sara Saeed,STU20240712,student712@edulearn.com,password123,female,2009-07-27,inactive,11th Grade,1,Cairo,Nasr City,Street 90,Tariq Saeed,Grandfather,01241845516
+Ahmed Farouk,STU20240713,student713@edulearn.com,password123,male,2010-08-29,inactive,11th Grade,4,Giza,Maadi,Street 40,Hassan Farouk,Mother,01048384317
+Mariam Fawzi,STU20240714,student714@edulearn.com,password123,female,2007-08-18,active,10th Grade,3,Dakahlia,Nasr City,Street 65,Omar Fawzi,Grandfather,01238890613
+Sara Khalil,STU20240715,student715@edulearn.com,password123,female,2007-05-26,active,10th Grade,4,Cairo,Mansoura,Street 57,Kareem Khalil,Brother,01140738948
+Youssef Mansour,STU20240716,student716@edulearn.com,password123,male,2005-12-07,active,12th Grade,3,Alexandria,Dokki,Street 26,Ali Mansour,Grandfather,01187121440
+Omar Husseini,STU20240717,student717@edulearn.com,password123,male,2007-04-02,active,12th Grade,1,Cairo,Maadi,Street 28,Mahmoud Husseini,Grandfather,01023613913
+Mona Rahman,STU20240718,student718@edulearn.com,password123,female,2007-11-09,active,11th Grade,3,Alexandria,Mansoura,Street 3,Kareem Rahman,Brother,01186216767
+Fatima Abdullah,STU20240719,student719@edulearn.com,password123,female,2009-01-23,active,12th Grade,1,Red Sea,Nasr City,Street 12,Youssef Abdullah,Brother,01194666968
+Omar Ibrahim,STU20240720,student720@edulearn.com,password123,male,2007-12-16,inactive,10th Grade,1,Giza,Maadi,Street 21,Hassan Ibrahim,Grandfather,01013581097
+Salma Husseini,STU20240721,student721@edulearn.com,password123,female,2010-04-14,active,12th Grade,2,Red Sea,Maadi,Street 80,Tariq Husseini,Brother,01063169706
+Tariq Saeed,STU20240722,student722@edulearn.com,password123,male,2008-06-29,active,12th Grade,3,Alexandria,Mansoura,Street 49,Mahmoud Saeed,Uncle,01053295353
+Fatima Saeed,STU20240723,student723@edulearn.com,password123,female,2008-08-24,active,10th Grade,5,Red Sea,Maadi,Street 97,Hassan Saeed,Father,01157373594
+Ali Abdullah,STU20240724,student724@edulearn.com,password123,male,2010-10-29,active,11th Grade,3,Alexandria,Nasr City,Street 27,Hassan Abdullah,Mother,01241173847
+Aisha Ibrahim,STU20240725,student725@edulearn.com,password123,female,2007-10-30,active,10th Grade,3,Dakahlia,Mansoura,Street 57,Hassan Ibrahim,Uncle,01192223516
+Youssef Khalil,STU20240726,student726@edulearn.com,password123,male,2010-09-16,active,12th Grade,2,Cairo,Hurghada,Street 6,Kareem Khalil,Mother,01188868683
+Mona Fawzi,STU20240727,student727@edulearn.com,password123,female,2010-11-11,active,12th Grade,1,Red Sea,Hurghada,Street 4,Hassan Fawzi,Mother,01245437632
+Aisha Rahman,STU20240728,student728@edulearn.com,password123,female,2010-08-21,active,12th Grade,5,Cairo,Nasr City,Street 28,Hassan Rahman,Mother,01198334782
+Youssef Rahman,STU20240729,student729@edulearn.com,password123,male,2006-08-31,active,12th Grade,5,Alexandria,Mansoura,Street 91,Ahmed Rahman,Father,01248951354
+Mahmoud Rahman,STU20240730,student730@edulearn.com,password123,male,2008-12-03,active,10th Grade,1,Red Sea,Smouha,Street 99,Mahmoud Rahman,Father,01214444599
+Ahmed Mansour,STU20240731,student731@edulearn.com,password123,male,2009-01-31,active,12th Grade,5,Alexandria,Hurghada,Street 84,Youssef Mansour,Uncle,01217193791
+Youssef Fawzi,STU20240732,student732@edulearn.com,password123,male,2009-08-14,active,11th Grade,1,Red Sea,Mohandeseen,Street 57,Ali Fawzi,Mother,01031001800
+Aisha Khalil,STU20240733,student733@edulearn.com,password123,female,2008-08-17,active,12th Grade,3,Red Sea,Nasr City,Street 90,Mahmoud Khalil,Grandfather,01132635266
+Salma Husseini,STU20240734,student734@edulearn.com,password123,female,2010-06-29,active,12th Grade,5,Dakahlia,Smouha,Street 27,Ahmed Husseini,Grandfather,01232361582
+Nour Khalil,STU20240735,student735@edulearn.com,password123,female,2009-05-05,active,12th Grade,5,Giza,Mohandeseen,Street 19,Omar Khalil,Mother,01168187876
+Salma Saeed,STU20240736,student736@edulearn.com,password123,female,2009-09-17,active,11th Grade,3,Alexandria,Dokki,Street 15,Kareem Saeed,Uncle,01228381961
+Tariq Rahman,STU20240737,student737@edulearn.com,password123,male,2009-05-07,inactive,11th Grade,4,Dakahlia,Mansoura,Street 39,Ali Rahman,Mother,01068699544
+Nour Farouk,STU20240738,student738@edulearn.com,password123,female,2005-02-10,inactive,10th Grade,1,Cairo,Mansoura,Street 92,Tariq Farouk,Father,01081734237
+Kareem Husseini,STU20240739,student739@edulearn.com,password123,male,2005-06-21,active,11th Grade,4,Red Sea,Hurghada,Street 10,Ali Husseini,Mother,01049225513
+Omar Rahman,STU20240740,student740@edulearn.com,password123,male,2005-02-10,active,12th Grade,3,Alexandria,Maadi,Street 23,Tariq Rahman,Father,01066009386
+Mariam Abdullah,STU20240741,student741@edulearn.com,password123,female,2007-08-29,active,11th Grade,2,Alexandria,Smouha,Street 25,Tariq Abdullah,Grandfather,01127362007
+Mahmoud Fawzi,STU20240742,student742@edulearn.com,password123,male,2007-09-15,inactive,11th Grade,2,Cairo,Nasr City,Street 18,Kareem Fawzi,Mother,01149748518
+Fatima Khalil,STU20240743,student743@edulearn.com,password123,female,2006-09-25,active,11th Grade,1,Cairo,Maadi,Street 71,Ahmed Khalil,Brother,01115401255
+Ahmed Khalil,STU20240744,student744@edulearn.com,password123,male,2006-10-02,active,10th Grade,1,Cairo,Hurghada,Street 11,Mahmoud Khalil,Brother,01146031828
+Mahmoud Husseini,STU20240745,student745@edulearn.com,password123,male,2010-08-01,inactive,10th Grade,3,Cairo,Mohandeseen,Street 36,Youssef Husseini,Father,01162659791
+Laila Ibrahim,STU20240746,student746@edulearn.com,password123,female,2008-07-05,active,11th Grade,1,Giza,Dokki,Street 1,Ali Ibrahim,Brother,01133859235
+Ahmed Gaber,STU20240747,student747@edulearn.com,password123,male,2010-12-29,active,12th Grade,5,Dakahlia,Mohandeseen,Street 26,Omar Gaber,Brother,01165816901
+Tariq Abdullah,STU20240748,student748@edulearn.com,password123,male,2010-12-23,active,11th Grade,2,Dakahlia,Mohandeseen,Street 64,Mahmoud Abdullah,Father,01224833316
+Mariam Gaber,STU20240749,student749@edulearn.com,password123,female,2008-09-16,active,11th Grade,2,Cairo,Smouha,Street 13,Kareem Gaber,Mother,01227265431
+Kareem Husseini,STU20240750,student750@edulearn.com,password123,male,2005-09-09,active,11th Grade,4,Giza,Mansoura,Street 69,Youssef Husseini,Mother,01298619949
+Kareem Husseini,STU20240751,student751@edulearn.com,password123,male,2006-10-14,active,10th Grade,5,Alexandria,Mansoura,Street 17,Mahmoud Husseini,Uncle,01120966746
+Youssef Husseini,STU20240752,student752@edulearn.com,password123,male,2005-05-25,active,11th Grade,4,Red Sea,Mansoura,Street 87,Ali Husseini,Mother,01181755564
+Mariam Farouk,STU20240753,student753@edulearn.com,password123,female,2008-03-12,active,12th Grade,3,Alexandria,Smouha,Street 38,Kareem Farouk,Brother,01291442892
+Ahmed Gaber,STU20240754,student754@edulearn.com,password123,male,2007-09-03,active,10th Grade,1,Dakahlia,Maadi,Street 37,Ahmed Gaber,Father,01091460514
+Youssef Ibrahim,STU20240755,student755@edulearn.com,password123,male,2005-02-09,active,11th Grade,2,Cairo,Nasr City,Street 70,Tariq Ibrahim,Mother,01053199209
+Kareem Abdullah,STU20240756,student756@edulearn.com,password123,male,2008-10-09,active,10th Grade,3,Red Sea,Smouha,Street 14,Tariq Abdullah,Brother,01170291929
+Salma Saeed,STU20240757,student757@edulearn.com,password123,female,2010-02-25,active,11th Grade,2,Giza,Mohandeseen,Street 9,Hassan Saeed,Mother,01287260299
+Omar Rahman,STU20240758,student758@edulearn.com,password123,male,2010-07-02,active,11th Grade,1,Red Sea,Hurghada,Street 33,Ali Rahman,Father,01028877866
+Salma Fawzi,STU20240759,student759@edulearn.com,password123,female,2008-12-02,active,12th Grade,3,Cairo,Smouha,Street 32,Kareem Fawzi,Brother,01255393856
+Sara Farouk,STU20240760,student760@edulearn.com,password123,female,2005-08-23,inactive,10th Grade,5,Cairo,Hurghada,Street 79,Ahmed Farouk,Father,01129931019
+Laila Mansour,STU20240761,student761@edulearn.com,password123,female,2006-02-16,active,12th Grade,3,Red Sea,Hurghada,Street 82,Ali Mansour,Grandfather,01290040060
+Mona Khalil,STU20240762,student762@edulearn.com,password123,female,2009-05-17,inactive,10th Grade,4,Alexandria,Hurghada,Street 24,Mahmoud Khalil,Uncle,01050134600
+Nour Khalil,STU20240763,student763@edulearn.com,password123,female,2009-12-25,active,11th Grade,1,Cairo,Hurghada,Street 75,Ali Khalil,Grandfather,01024418054
+Tariq Husseini,STU20240764,student764@edulearn.com,password123,male,2006-05-17,active,12th Grade,5,Alexandria,Maadi,Street 42,Kareem Husseini,Father,01191407653
+Tariq Khalil,STU20240765,student765@edulearn.com,password123,male,2008-04-18,active,11th Grade,2,Alexandria,Mansoura,Street 14,Hassan Khalil,Brother,01242950124
+Salma Khalil,STU20240766,student766@edulearn.com,password123,female,2010-11-12,active,12th Grade,3,Dakahlia,Nasr City,Street 36,Tariq Khalil,Mother,01018641756
+Mahmoud Khalil,STU20240767,student767@edulearn.com,password123,male,2005-04-25,inactive,10th Grade,2,Red Sea,Nasr City,Street 61,Youssef Khalil,Uncle,01059244952
+Mahmoud Saeed,STU20240768,student768@edulearn.com,password123,male,2007-11-15,active,10th Grade,4,Red Sea,Nasr City,Street 50,Kareem Saeed,Grandfather,01233451586
+Mariam Fawzi,STU20240769,student769@edulearn.com,password123,female,2005-03-30,inactive,11th Grade,1,Dakahlia,Mansoura,Street 20,Hassan Fawzi,Brother,01039509968
+Ahmed Husseini,STU20240770,student770@edulearn.com,password123,male,2009-09-19,active,12th Grade,3,Red Sea,Nasr City,Street 48,Youssef Husseini,Father,01022290966
+Nour Rahman,STU20240771,student771@edulearn.com,password123,female,2007-09-20,active,10th Grade,2,Alexandria,Dokki,Street 10,Tariq Rahman,Grandfather,01165710092
+Laila Husseini,STU20240772,student772@edulearn.com,password123,female,2008-04-26,active,12th Grade,3,Dakahlia,Nasr City,Street 42,Ali Husseini,Grandfather,01059720846
+Nour Husseini,STU20240773,student773@edulearn.com,password123,female,2007-09-22,active,12th Grade,2,Cairo,Hurghada,Street 53,Youssef Husseini,Brother,01087307584
+Hassan Rahman,STU20240774,student774@edulearn.com,password123,male,2006-03-06,active,12th Grade,4,Red Sea,Mohandeseen,Street 51,Ahmed Rahman,Uncle,01161316193
+Omar Khalil,STU20240775,student775@edulearn.com,password123,male,2008-05-23,active,10th Grade,2,Giza,Mohandeseen,Street 64,Youssef Khalil,Mother,01254585062
+Kareem Khalil,STU20240776,student776@edulearn.com,password123,male,2006-08-08,active,10th Grade,5,Dakahlia,Nasr City,Street 59,Omar Khalil,Brother,01199443318
+Omar Rahman,STU20240777,student777@edulearn.com,password123,male,2006-12-20,active,12th Grade,4,Alexandria,Hurghada,Street 23,Ahmed Rahman,Father,01031618347
+Ali Saeed,STU20240778,student778@edulearn.com,password123,male,2005-08-27,active,11th Grade,3,Dakahlia,Hurghada,Street 51,Ahmed Saeed,Uncle,01185065175
+Aisha Gaber,STU20240779,student779@edulearn.com,password123,female,2010-12-22,active,11th Grade,4,Alexandria,Smouha,Street 55,Ali Gaber,Uncle,01254145239
+Tariq Farouk,STU20240780,student780@edulearn.com,password123,male,2006-09-24,active,11th Grade,5,Cairo,Nasr City,Street 36,Mahmoud Farouk,Uncle,01114677325
+Salma Farouk,STU20240781,student781@edulearn.com,password123,female,2006-04-08,inactive,11th Grade,5,Alexandria,Smouha,Street 4,Ahmed Farouk,Mother,01245628888
+Kareem Rahman,STU20240782,student782@edulearn.com,password123,male,2007-11-02,active,10th Grade,3,Giza,Hurghada,Street 91,Ali Rahman,Uncle,01243199617
+Aisha Fawzi,STU20240783,student783@edulearn.com,password123,female,2006-09-02,active,11th Grade,2,Alexandria,Maadi,Street 7,Omar Fawzi,Mother,01139015917
+Mona Fawzi,STU20240784,student784@edulearn.com,password123,female,2009-08-12,inactive,10th Grade,4,Giza,Mohandeseen,Street 40,Youssef Fawzi,Grandfather,01066061957
+Youssef Abdullah,STU20240785,student785@edulearn.com,password123,male,2007-12-09,active,10th Grade,3,Giza,Hurghada,Street 90,Kareem Abdullah,Grandfather,01185468157
+Mariam Gaber,STU20240786,student786@edulearn.com,password123,female,2009-02-26,active,10th Grade,2,Cairo,Nasr City,Street 30,Omar Gaber,Grandfather,01070938896
+Omar Fawzi,STU20240787,student787@edulearn.com,password123,male,2005-10-16,active,12th Grade,3,Red Sea,Maadi,Street 46,Youssef Fawzi,Father,01013501328
+Sara Husseini,STU20240788,student788@edulearn.com,password123,female,2010-10-25,active,12th Grade,4,Giza,Mansoura,Street 54,Ali Husseini,Brother,01199247972
+Mona Farouk,STU20240789,student789@edulearn.com,password123,female,2009-10-05,active,12th Grade,2,Alexandria,Dokki,Street 3,Omar Farouk,Uncle,01174013193
+Ahmed Saeed,STU20240790,student790@edulearn.com,password123,male,2005-09-28,inactive,12th Grade,2,Giza,Mohandeseen,Street 49,Mahmoud Saeed,Brother,01252829923
+Salma Rahman,STU20240791,student791@edulearn.com,password123,female,2008-06-12,active,11th Grade,5,Giza,Mohandeseen,Street 15,Ali Rahman,Uncle,01134270045
+Tariq Abdullah,STU20240792,student792@edulearn.com,password123,male,2008-08-19,inactive,11th Grade,1,Alexandria,Maadi,Street 51,Youssef Abdullah,Uncle,01137802249
+Kareem Ibrahim,STU20240793,student793@edulearn.com,password123,male,2010-06-29,active,11th Grade,2,Dakahlia,Mansoura,Street 94,Kareem Ibrahim,Grandfather,01197571077
+Nour Saeed,STU20240794,student794@edulearn.com,password123,female,2010-04-22,active,12th Grade,2,Alexandria,Maadi,Street 8,Ali Saeed,Father,01043718143
+Mahmoud Husseini,STU20240795,student795@edulearn.com,password123,male,2006-03-07,active,10th Grade,1,Alexandria,Maadi,Street 70,Kareem Husseini,Grandfather,01197412788
+Hassan Abdullah,STU20240796,student796@edulearn.com,password123,male,2008-09-24,inactive,12th Grade,4,Giza,Mansoura,Street 70,Youssef Abdullah,Father,01190145373
+Sara Husseini,STU20240797,student797@edulearn.com,password123,female,2007-11-20,inactive,10th Grade,2,Dakahlia,Nasr City,Street 87,Tariq Husseini,Father,01017537866
+Mona Husseini,STU20240798,student798@edulearn.com,password123,female,2005-12-10,active,11th Grade,4,Giza,Maadi,Street 93,Omar Husseini,Uncle,01212552600
+Nour Rahman,STU20240799,student799@edulearn.com,password123,female,2009-05-08,active,12th Grade,4,Dakahlia,Mansoura,Street 76,Tariq Rahman,Grandfather,01075259970
+Omar Saeed,STU20240800,student800@edulearn.com,password123,male,2007-12-18,active,11th Grade,4,Dakahlia,Smouha,Street 62,Tariq Saeed,Brother,01161201338
+Tariq Ibrahim,STU20240801,student801@edulearn.com,password123,male,2008-02-10,inactive,10th Grade,5,Dakahlia,Nasr City,Street 57,Ahmed Ibrahim,Brother,01075702648
+Ahmed Ibrahim,STU20240802,student802@edulearn.com,password123,male,2006-12-08,active,11th Grade,1,Dakahlia,Dokki,Street 67,Tariq Ibrahim,Grandfather,01253057795
+Aisha Husseini,STU20240803,student803@edulearn.com,password123,female,2007-03-11,active,12th Grade,1,Red Sea,Nasr City,Street 50,Youssef Husseini,Brother,01230233225
+Ali Mansour,STU20240804,student804@edulearn.com,password123,male,2008-10-26,active,11th Grade,2,Alexandria,Dokki,Street 52,Mahmoud Mansour,Uncle,01269594462
+Omar Saeed,STU20240805,student805@edulearn.com,password123,male,2005-10-31,active,10th Grade,1,Giza,Smouha,Street 78,Hassan Saeed,Grandfather,01095851477
+Nour Abdullah,STU20240806,student806@edulearn.com,password123,female,2007-12-02,active,10th Grade,4,Dakahlia,Hurghada,Street 47,Tariq Abdullah,Brother,01270593855
+Salma Mansour,STU20240807,student807@edulearn.com,password123,female,2007-03-14,active,11th Grade,2,Giza,Nasr City,Street 42,Tariq Mansour,Father,01158553610
+Ali Farouk,STU20240808,student808@edulearn.com,password123,male,2007-12-01,active,12th Grade,4,Alexandria,Smouha,Street 28,Hassan Farouk,Grandfather,01030011007
+Omar Fawzi,STU20240809,student809@edulearn.com,password123,male,2008-02-11,active,11th Grade,4,Red Sea,Hurghada,Street 67,Tariq Fawzi,Father,01123487525
+Mariam Rahman,STU20240810,student810@edulearn.com,password123,female,2006-11-18,inactive,10th Grade,2,Cairo,Mohandeseen,Street 17,Omar Rahman,Mother,01147441894
+Aisha Gaber,STU20240811,student811@edulearn.com,password123,female,2009-09-28,active,11th Grade,3,Alexandria,Mohandeseen,Street 80,Youssef Gaber,Mother,01028683619
+Hassan Farouk,STU20240812,student812@edulearn.com,password123,male,2010-10-05,active,12th Grade,2,Dakahlia,Smouha,Street 11,Hassan Farouk,Brother,01134207689
+Ali Rahman,STU20240813,student813@edulearn.com,password123,male,2010-07-24,active,10th Grade,2,Dakahlia,Hurghada,Street 8,Ali Rahman,Uncle,01270764977
+Laila Gaber,STU20240814,student814@edulearn.com,password123,female,2009-09-18,inactive,12th Grade,4,Giza,Mansoura,Street 3,Ali Gaber,Grandfather,01098470639
+Tariq Khalil,STU20240815,student815@edulearn.com,password123,male,2006-03-16,active,11th Grade,3,Cairo,Nasr City,Street 50,Mahmoud Khalil,Grandfather,01271022346
+Salma Mansour,STU20240816,student816@edulearn.com,password123,female,2007-08-10,active,11th Grade,1,Cairo,Mansoura,Street 17,Ali Mansour,Father,01219068632
+Ahmed Farouk,STU20240817,student817@edulearn.com,password123,male,2008-06-19,inactive,11th Grade,4,Red Sea,Mansoura,Street 49,Mahmoud Farouk,Father,01230962095
+Sara Ibrahim,STU20240818,student818@edulearn.com,password123,female,2010-11-13,active,11th Grade,2,Alexandria,Mansoura,Street 12,Omar Ibrahim,Uncle,01136798414
+Salma Rahman,STU20240819,student819@edulearn.com,password123,female,2007-10-30,inactive,11th Grade,4,Red Sea,Dokki,Street 72,Mahmoud Rahman,Father,01124071053
+Fatima Rahman,STU20240820,student820@edulearn.com,password123,female,2010-07-16,active,12th Grade,5,Alexandria,Hurghada,Street 49,Ahmed Rahman,Brother,01158850380
+Mahmoud Abdullah,STU20240821,student821@edulearn.com,password123,male,2009-04-01,active,10th Grade,3,Dakahlia,Hurghada,Street 95,Hassan Abdullah,Brother,01194086888
+Mariam Gaber,STU20240822,student822@edulearn.com,password123,female,2010-09-02,active,11th Grade,3,Giza,Smouha,Street 2,Tariq Gaber,Father,01130422980
+Tariq Abdullah,STU20240823,student823@edulearn.com,password123,male,2008-11-12,active,11th Grade,5,Giza,Maadi,Street 85,Ali Abdullah,Uncle,01190765162
+Fatima Abdullah,STU20240824,student824@edulearn.com,password123,female,2006-02-09,inactive,10th Grade,2,Cairo,Hurghada,Street 24,Tariq Abdullah,Father,01040144721
+Nour Khalil,STU20240825,student825@edulearn.com,password123,female,2008-12-12,active,10th Grade,3,Red Sea,Hurghada,Street 75,Ahmed Khalil,Father,01288144848
+Ali Saeed,STU20240826,student826@edulearn.com,password123,male,2007-07-26,active,12th Grade,5,Red Sea,Hurghada,Street 51,Tariq Saeed,Uncle,01037529366
+Salma Gaber,STU20240827,student827@edulearn.com,password123,female,2006-11-16,active,10th Grade,1,Giza,Hurghada,Street 27,Omar Gaber,Uncle,01079153455
+Omar Gaber,STU20240828,student828@edulearn.com,password123,male,2007-03-24,active,10th Grade,4,Dakahlia,Mansoura,Street 78,Mahmoud Gaber,Uncle,01092050610
+Sara Abdullah,STU20240829,student829@edulearn.com,password123,female,2006-04-27,active,10th Grade,4,Alexandria,Nasr City,Street 80,Kareem Abdullah,Father,01236916670
+Fatima Khalil,STU20240830,student830@edulearn.com,password123,female,2009-05-22,inactive,11th Grade,3,Giza,Mansoura,Street 25,Mahmoud Khalil,Father,01166950685
+Nour Gaber,STU20240831,student831@edulearn.com,password123,female,2009-05-16,active,11th Grade,2,Cairo,Mansoura,Street 73,Ahmed Gaber,Mother,01019909921
+Salma Mansour,STU20240832,student832@edulearn.com,password123,female,2005-02-06,inactive,10th Grade,1,Giza,Hurghada,Street 94,Youssef Mansour,Uncle,01156673341
+Ali Farouk,STU20240833,student833@edulearn.com,password123,male,2008-10-26,active,11th Grade,3,Cairo,Maadi,Street 73,Youssef Farouk,Grandfather,01255215774
+Hassan Fawzi,STU20240834,student834@edulearn.com,password123,male,2006-05-09,active,12th Grade,3,Dakahlia,Dokki,Street 32,Ali Fawzi,Mother,01035254714
+Aisha Mansour,STU20240835,student835@edulearn.com,password123,female,2008-04-09,active,11th Grade,4,Cairo,Nasr City,Street 50,Kareem Mansour,Father,01197451922
+Tariq Abdullah,STU20240836,student836@edulearn.com,password123,male,2005-12-29,active,12th Grade,1,Dakahlia,Maadi,Street 88,Ali Abdullah,Father,01265050175
+Laila Khalil,STU20240837,student837@edulearn.com,password123,female,2009-09-04,active,10th Grade,2,Dakahlia,Mansoura,Street 19,Ali Khalil,Father,01113414883
+Ali Mansour,STU20240838,student838@edulearn.com,password123,male,2009-02-25,active,12th Grade,5,Giza,Mohandeseen,Street 67,Youssef Mansour,Uncle,01258294742
+Salma Saeed,STU20240839,student839@edulearn.com,password123,female,2009-01-28,active,12th Grade,2,Red Sea,Mohandeseen,Street 72,Ali Saeed,Brother,01272764991
+Fatima Mansour,STU20240840,student840@edulearn.com,password123,female,2009-04-04,active,11th Grade,1,Red Sea,Hurghada,Street 46,Ali Mansour,Grandfather,01193452461
+Tariq Khalil,STU20240841,student841@edulearn.com,password123,male,2005-06-24,inactive,10th Grade,2,Dakahlia,Smouha,Street 29,Ahmed Khalil,Father,01211962827
+Kareem Saeed,STU20240842,student842@edulearn.com,password123,male,2007-05-06,active,12th Grade,3,Giza,Dokki,Street 65,Mahmoud Saeed,Mother,01027744673
+Salma Rahman,STU20240843,student843@edulearn.com,password123,female,2009-08-23,active,12th Grade,4,Giza,Dokki,Street 51,Ali Rahman,Mother,01080598528
+Salma Fawzi,STU20240844,student844@edulearn.com,password123,female,2009-12-10,active,12th Grade,2,Cairo,Smouha,Street 16,Omar Fawzi,Mother,01168679718
+Salma Husseini,STU20240845,student845@edulearn.com,password123,female,2009-04-16,inactive,11th Grade,3,Dakahlia,Maadi,Street 50,Tariq Husseini,Brother,01192214056
+Fatima Ibrahim,STU20240846,student846@edulearn.com,password123,female,2008-07-07,active,11th Grade,3,Giza,Dokki,Street 23,Hassan Ibrahim,Father,01250210935
+Fatima Ibrahim,STU20240847,student847@edulearn.com,password123,female,2005-10-28,active,10th Grade,4,Red Sea,Mansoura,Street 34,Kareem Ibrahim,Grandfather,01143186641
+Hassan Husseini,STU20240848,student848@edulearn.com,password123,male,2005-04-28,inactive,10th Grade,3,Alexandria,Hurghada,Street 51,Mahmoud Husseini,Mother,01179136317
+Mahmoud Ibrahim,STU20240849,student849@edulearn.com,password123,male,2007-12-15,active,11th Grade,5,Cairo,Dokki,Street 62,Omar Ibrahim,Brother,01174178353
+Salma Farouk,STU20240850,student850@edulearn.com,password123,female,2008-05-07,active,10th Grade,3,Dakahlia,Mohandeseen,Street 16,Mahmoud Farouk,Mother,01289197401
+Nour Farouk,STU20240851,student851@edulearn.com,password123,female,2007-06-08,inactive,11th Grade,1,Giza,Mansoura,Street 56,Hassan Farouk,Uncle,01016920880
+Ahmed Ibrahim,STU20240852,student852@edulearn.com,password123,male,2008-07-02,active,10th Grade,5,Dakahlia,Hurghada,Street 30,Omar Ibrahim,Uncle,01055106760
+Fatima Fawzi,STU20240853,student853@edulearn.com,password123,female,2005-09-05,active,11th Grade,3,Red Sea,Maadi,Street 30,Mahmoud Fawzi,Brother,01056989543
+Laila Saeed,STU20240854,student854@edulearn.com,password123,female,2008-11-26,active,11th Grade,3,Red Sea,Smouha,Street 15,Kareem Saeed,Mother,01248682823
+Mahmoud Khalil,STU20240855,student855@edulearn.com,password123,male,2006-03-12,inactive,10th Grade,5,Dakahlia,Maadi,Street 81,Youssef Khalil,Father,01012314476
+Aisha Husseini,STU20240856,student856@edulearn.com,password123,female,2007-03-31,active,12th Grade,5,Dakahlia,Smouha,Street 71,Tariq Husseini,Uncle,01293639874
+Mahmoud Ibrahim,STU20240857,student857@edulearn.com,password123,male,2009-12-04,inactive,11th Grade,3,Dakahlia,Hurghada,Street 22,Ahmed Ibrahim,Father,01213277104
+Kareem Farouk,STU20240858,student858@edulearn.com,password123,male,2008-12-12,inactive,10th Grade,5,Red Sea,Mohandeseen,Street 23,Ali Farouk,Uncle,01022659867
+Fatima Farouk,STU20240859,student859@edulearn.com,password123,female,2009-10-28,active,11th Grade,4,Dakahlia,Mansoura,Street 32,Hassan Farouk,Mother,01098122658
+Nour Ibrahim,STU20240860,student860@edulearn.com,password123,female,2007-02-26,active,11th Grade,1,Dakahlia,Maadi,Street 18,Ali Ibrahim,Grandfather,01152454739
+Mona Saeed,STU20240861,student861@edulearn.com,password123,female,2010-11-30,active,10th Grade,3,Alexandria,Smouha,Street 94,Ahmed Saeed,Uncle,01066423303
+Ahmed Ibrahim,STU20240862,student862@edulearn.com,password123,male,2006-09-19,active,12th Grade,3,Giza,Smouha,Street 21,Tariq Ibrahim,Mother,01213143154
+Laila Abdullah,STU20240863,student863@edulearn.com,password123,female,2008-08-21,active,11th Grade,4,Red Sea,Mansoura,Street 27,Tariq Abdullah,Father,01284714414
+Mona Mansour,STU20240864,student864@edulearn.com,password123,female,2009-07-30,active,11th Grade,4,Cairo,Smouha,Street 45,Tariq Mansour,Father,01159271561
+Aisha Mansour,STU20240865,student865@edulearn.com,password123,female,2005-05-21,inactive,10th Grade,1,Giza,Dokki,Street 18,Ahmed Mansour,Uncle,01293225825
+Nour Rahman,STU20240866,student866@edulearn.com,password123,female,2010-11-21,active,10th Grade,5,Red Sea,Hurghada,Street 2,Omar Rahman,Mother,01168255598
+Ahmed Saeed,STU20240867,student867@edulearn.com,password123,male,2008-12-30,active,10th Grade,4,Cairo,Dokki,Street 33,Tariq Saeed,Uncle,01017889454
+Aisha Abdullah,STU20240868,student868@edulearn.com,password123,female,2007-07-27,active,11th Grade,1,Cairo,Maadi,Street 28,Mahmoud Abdullah,Brother,01121953923
+Youssef Khalil,STU20240869,student869@edulearn.com,password123,male,2008-06-14,active,11th Grade,2,Alexandria,Dokki,Street 33,Hassan Khalil,Brother,01229394775
+Youssef Khalil,STU20240870,student870@edulearn.com,password123,male,2009-02-13,inactive,11th Grade,1,Dakahlia,Mansoura,Street 94,Omar Khalil,Brother,01258328532
+Nour Farouk,STU20240871,student871@edulearn.com,password123,female,2008-10-22,inactive,10th Grade,5,Red Sea,Mohandeseen,Street 14,Ali Farouk,Brother,01166756480
+Sara Gaber,STU20240872,student872@edulearn.com,password123,female,2010-07-16,inactive,11th Grade,5,Cairo,Maadi,Street 49,Mahmoud Gaber,Grandfather,01086916492
+Nour Husseini,STU20240873,student873@edulearn.com,password123,female,2009-02-18,active,11th Grade,4,Red Sea,Mohandeseen,Street 33,Kareem Husseini,Mother,01268070509
+Omar Khalil,STU20240874,student874@edulearn.com,password123,male,2007-05-02,active,10th Grade,4,Cairo,Hurghada,Street 31,Youssef Khalil,Brother,01242846541
+Youssef Husseini,STU20240875,student875@edulearn.com,password123,male,2010-02-02,active,11th Grade,2,Alexandria,Mansoura,Street 24,Ahmed Husseini,Uncle,01152948074
+Sara Khalil,STU20240876,student876@edulearn.com,password123,female,2009-11-10,inactive,12th Grade,1,Giza,Mohandeseen,Street 57,Ahmed Khalil,Mother,01252786723
+Nour Fawzi,STU20240877,student877@edulearn.com,password123,female,2008-05-24,active,10th Grade,5,Cairo,Hurghada,Street 40,Omar Fawzi,Grandfather,01283394589
+Omar Saeed,STU20240878,student878@edulearn.com,password123,male,2008-04-13,inactive,12th Grade,4,Giza,Nasr City,Street 19,Kareem Saeed,Brother,01174547977
+Mahmoud Saeed,STU20240879,student879@edulearn.com,password123,male,2007-03-26,active,12th Grade,2,Giza,Nasr City,Street 15,Ali Saeed,Brother,01176154432
+Mona Farouk,STU20240880,student880@edulearn.com,password123,female,2006-02-07,inactive,11th Grade,1,Red Sea,Mansoura,Street 22,Tariq Farouk,Grandfather,01190474922
+Ahmed Saeed,STU20240881,student881@edulearn.com,password123,male,2005-06-22,active,11th Grade,1,Dakahlia,Mohandeseen,Street 11,Ali Saeed,Mother,01123175246
+Tariq Gaber,STU20240882,student882@edulearn.com,password123,male,2009-08-12,active,10th Grade,2,Giza,Maadi,Street 45,Tariq Gaber,Grandfather,01256467836
+Tariq Abdullah,STU20240883,student883@edulearn.com,password123,male,2010-06-13,active,12th Grade,3,Alexandria,Hurghada,Street 41,Tariq Abdullah,Grandfather,01097159433
+Mahmoud Fawzi,STU20240884,student884@edulearn.com,password123,male,2007-09-26,inactive,11th Grade,4,Cairo,Maadi,Street 46,Tariq Fawzi,Uncle,01185524859
+Salma Husseini,STU20240885,student885@edulearn.com,password123,female,2005-06-23,active,10th Grade,1,Red Sea,Dokki,Street 84,Ali Husseini,Brother,01095477995
+Mariam Gaber,STU20240886,student886@edulearn.com,password123,female,2005-09-21,active,11th Grade,4,Dakahlia,Mansoura,Street 18,Kareem Gaber,Father,01255019641
+Laila Farouk,STU20240887,student887@edulearn.com,password123,female,2007-03-09,active,12th Grade,5,Cairo,Nasr City,Street 52,Tariq Farouk,Mother,01237514508
+Ali Fawzi,STU20240888,student888@edulearn.com,password123,male,2010-08-14,active,10th Grade,3,Red Sea,Dokki,Street 47,Hassan Fawzi,Uncle,01183439970
+Salma Gaber,STU20240889,student889@edulearn.com,password123,female,2005-11-22,active,10th Grade,5,Cairo,Hurghada,Street 89,Omar Gaber,Mother,01275927540
+Salma Farouk,STU20240890,student890@edulearn.com,password123,female,2008-07-06,active,11th Grade,4,Red Sea,Mansoura,Street 72,Mahmoud Farouk,Brother,01032585237
+Mariam Rahman,STU20240891,student891@edulearn.com,password123,female,2005-11-26,inactive,12th Grade,4,Cairo,Nasr City,Street 34,Omar Rahman,Uncle,01153536071
+Fatima Khalil,STU20240892,student892@edulearn.com,password123,female,2006-10-15,active,12th Grade,5,Red Sea,Nasr City,Street 99,Ali Khalil,Father,01158230040
+Aisha Ibrahim,STU20240893,student893@edulearn.com,password123,female,2005-10-14,active,10th Grade,2,Giza,Mohandeseen,Street 47,Hassan Ibrahim,Grandfather,01267703892
+Mona Gaber,STU20240894,student894@edulearn.com,password123,female,2009-12-20,active,12th Grade,4,Cairo,Dokki,Street 42,Kareem Gaber,Mother,01057789556
+Nour Fawzi,STU20240895,student895@edulearn.com,password123,female,2010-12-22,inactive,12th Grade,2,Cairo,Mohandeseen,Street 100,Ahmed Fawzi,Grandfather,01164019554
+Kareem Mansour,STU20240896,student896@edulearn.com,password123,male,2008-01-21,active,10th Grade,2,Alexandria,Nasr City,Street 19,Omar Mansour,Uncle,01217819773
+Laila Fawzi,STU20240897,student897@edulearn.com,password123,female,2009-07-15,active,12th Grade,3,Dakahlia,Maadi,Street 41,Kareem Fawzi,Father,01140693969
+Mariam Farouk,STU20240898,student898@edulearn.com,password123,female,2006-08-04,active,10th Grade,1,Red Sea,Maadi,Street 71,Youssef Farouk,Mother,01128448640
+Sara Rahman,STU20240899,student899@edulearn.com,password123,female,2009-03-25,active,12th Grade,5,Cairo,Mohandeseen,Street 47,Youssef Rahman,Mother,01181936324
+Omar Farouk,STU20240900,student900@edulearn.com,password123,male,2005-04-30,active,11th Grade,5,Giza,Mansoura,Street 98,Ali Farouk,Mother,01283563908
+Fatima Farouk,STU20240901,student901@edulearn.com,password123,female,2007-03-25,active,11th Grade,2,Red Sea,Dokki,Street 20,Mahmoud Farouk,Grandfather,01029255413
+Mahmoud Mansour,STU20240902,student902@edulearn.com,password123,male,2009-10-14,inactive,11th Grade,4,Alexandria,Nasr City,Street 72,Mahmoud Mansour,Uncle,01158541672
+Omar Khalil,STU20240903,student903@edulearn.com,password123,male,2007-03-05,active,10th Grade,1,Red Sea,Smouha,Street 80,Hassan Khalil,Mother,01071738320
+Aisha Fawzi,STU20240904,student904@edulearn.com,password123,female,2005-12-07,active,11th Grade,5,Cairo,Dokki,Street 30,Hassan Fawzi,Father,01059041687
+Salma Husseini,STU20240905,student905@edulearn.com,password123,female,2007-12-17,active,12th Grade,4,Alexandria,Mohandeseen,Street 36,Mahmoud Husseini,Father,01050581320
+Sara Abdullah,STU20240906,student906@edulearn.com,password123,female,2010-11-23,active,12th Grade,3,Dakahlia,Dokki,Street 95,Ali Abdullah,Brother,01112533417
+Tariq Saeed,STU20240907,student907@edulearn.com,password123,male,2007-04-30,active,11th Grade,1,Dakahlia,Mohandeseen,Street 51,Mahmoud Saeed,Brother,01268786986
+Salma Khalil,STU20240908,student908@edulearn.com,password123,female,2006-08-28,inactive,10th Grade,4,Red Sea,Hurghada,Street 49,Tariq Khalil,Mother,01064958778
+Youssef Fawzi,STU20240909,student909@edulearn.com,password123,male,2006-01-21,inactive,10th Grade,5,Red Sea,Dokki,Street 7,Ahmed Fawzi,Mother,01240545574
+Laila Saeed,STU20240910,student910@edulearn.com,password123,female,2009-12-08,active,11th Grade,2,Alexandria,Hurghada,Street 5,Mahmoud Saeed,Uncle,01161671644
+Ahmed Abdullah,STU20240911,student911@edulearn.com,password123,male,2007-10-16,active,10th Grade,4,Alexandria,Dokki,Street 48,Mahmoud Abdullah,Brother,01067823191
+Ahmed Rahman,STU20240912,student912@edulearn.com,password123,male,2008-01-05,active,10th Grade,4,Red Sea,Maadi,Street 59,Omar Rahman,Grandfather,01145011690
+Aisha Abdullah,STU20240913,student913@edulearn.com,password123,female,2009-08-22,active,12th Grade,1,Red Sea,Smouha,Street 85,Youssef Abdullah,Father,01040133594
+Mahmoud Mansour,STU20240914,student914@edulearn.com,password123,male,2006-09-11,inactive,12th Grade,5,Dakahlia,Smouha,Street 31,Youssef Mansour,Mother,01287973536
+Ahmed Gaber,STU20240915,student915@edulearn.com,password123,male,2005-01-17,active,12th Grade,5,Giza,Hurghada,Street 41,Omar Gaber,Uncle,01126736119
+Mahmoud Farouk,STU20240916,student916@edulearn.com,password123,male,2008-01-28,active,11th Grade,3,Dakahlia,Smouha,Street 26,Omar Farouk,Uncle,01258544927
+Kareem Ibrahim,STU20240917,student917@edulearn.com,password123,male,2008-09-12,active,10th Grade,2,Cairo,Maadi,Street 58,Youssef Ibrahim,Father,01282156441
+Mahmoud Mansour,STU20240918,student918@edulearn.com,password123,male,2008-08-19,active,11th Grade,5,Alexandria,Mansoura,Street 38,Hassan Mansour,Brother,01229448631
+Kareem Farouk,STU20240919,student919@edulearn.com,password123,male,2006-08-22,active,11th Grade,3,Alexandria,Maadi,Street 46,Ali Farouk,Uncle,01213036329
+Omar Gaber,STU20240920,student920@edulearn.com,password123,male,2008-06-07,inactive,11th Grade,5,Alexandria,Mohandeseen,Street 51,Omar Gaber,Grandfather,01224737124
+Mariam Rahman,STU20240921,student921@edulearn.com,password123,female,2009-06-19,active,12th Grade,1,Dakahlia,Maadi,Street 37,Kareem Rahman,Uncle,01027102993
+Mahmoud Farouk,STU20240922,student922@edulearn.com,password123,male,2009-02-19,active,12th Grade,1,Red Sea,Nasr City,Street 74,Hassan Farouk,Father,01127537564
+Kareem Khalil,STU20240923,student923@edulearn.com,password123,male,2008-09-20,inactive,12th Grade,1,Alexandria,Nasr City,Street 59,Omar Khalil,Mother,01092344655
+Hassan Mansour,STU20240924,student924@edulearn.com,password123,male,2008-03-30,inactive,11th Grade,2,Red Sea,Dokki,Street 27,Ahmed Mansour,Father,01228219714
+Mona Saeed,STU20240925,student925@edulearn.com,password123,female,2006-06-08,inactive,11th Grade,4,Alexandria,Hurghada,Street 55,Mahmoud Saeed,Uncle,01131987631
+Fatima Mansour,STU20240926,student926@edulearn.com,password123,female,2010-01-11,active,12th Grade,1,Red Sea,Nasr City,Street 71,Ahmed Mansour,Mother,01217185503
+Mariam Husseini,STU20240927,student927@edulearn.com,password123,female,2010-01-16,active,12th Grade,4,Cairo,Maadi,Street 31,Ahmed Husseini,Grandfather,01245577207
+Salma Saeed,STU20240928,student928@edulearn.com,password123,female,2007-05-29,active,10th Grade,4,Giza,Nasr City,Street 54,Mahmoud Saeed,Mother,01086383326
+Kareem Mansour,STU20240929,student929@edulearn.com,password123,male,2009-04-08,active,12th Grade,1,Giza,Dokki,Street 73,Youssef Mansour,Grandfather,01098947266
+Nour Husseini,STU20240930,student930@edulearn.com,password123,female,2009-04-20,active,11th Grade,4,Dakahlia,Hurghada,Street 90,Omar Husseini,Mother,01050915358
+Sara Ibrahim,STU20240931,student931@edulearn.com,password123,female,2010-02-20,inactive,11th Grade,3,Cairo,Dokki,Street 73,Youssef Ibrahim,Father,01192222674
+Sara Rahman,STU20240932,student932@edulearn.com,password123,female,2010-09-22,inactive,10th Grade,4,Cairo,Dokki,Street 56,Ali Rahman,Mother,01073793039
+Mona Farouk,STU20240933,student933@edulearn.com,password123,female,2007-08-30,active,12th Grade,5,Dakahlia,Maadi,Street 43,Omar Farouk,Grandfather,01077865475
+Mahmoud Saeed,STU20240934,student934@edulearn.com,password123,male,2009-07-13,active,11th Grade,2,Red Sea,Smouha,Street 85,Hassan Saeed,Brother,01020132194
+Fatima Saeed,STU20240935,student935@edulearn.com,password123,female,2009-04-16,active,10th Grade,1,Red Sea,Hurghada,Street 23,Ahmed Saeed,Grandfather,01085606866
+Ahmed Rahman,STU20240936,student936@edulearn.com,password123,male,2006-11-10,active,12th Grade,5,Giza,Nasr City,Street 79,Tariq Rahman,Uncle,01048183668
+Sara Khalil,STU20240937,student937@edulearn.com,password123,female,2007-04-16,active,11th Grade,5,Alexandria,Maadi,Street 24,Ahmed Khalil,Mother,01197501177
+Youssef Fawzi,STU20240938,student938@edulearn.com,password123,male,2010-08-18,active,11th Grade,3,Dakahlia,Smouha,Street 34,Mahmoud Fawzi,Father,01272173502
+Aisha Gaber,STU20240939,student939@edulearn.com,password123,female,2010-06-19,active,11th Grade,3,Cairo,Maadi,Street 66,Tariq Gaber,Grandfather,01294760110
+Mariam Farouk,STU20240940,student940@edulearn.com,password123,female,2010-11-17,inactive,11th Grade,2,Alexandria,Mohandeseen,Street 53,Tariq Farouk,Mother,01025132885
+Ali Mansour,STU20240941,student941@edulearn.com,password123,male,2010-05-08,active,10th Grade,3,Dakahlia,Smouha,Street 1,Omar Mansour,Father,01145784023
+Aisha Husseini,STU20240942,student942@edulearn.com,password123,female,2008-07-11,active,10th Grade,2,Cairo,Mansoura,Street 36,Hassan Husseini,Grandfather,01011397161
+Tariq Husseini,STU20240943,student943@edulearn.com,password123,male,2007-10-18,inactive,12th Grade,5,Dakahlia,Mansoura,Street 29,Ahmed Husseini,Father,01134419998
+Tariq Rahman,STU20240944,student944@edulearn.com,password123,male,2006-08-31,active,12th Grade,2,Red Sea,Smouha,Street 38,Kareem Rahman,Mother,01065362290
+Kareem Khalil,STU20240945,student945@edulearn.com,password123,male,2005-11-28,active,11th Grade,3,Cairo,Mohandeseen,Street 64,Hassan Khalil,Uncle,01236510986
+Sara Ibrahim,STU20240946,student946@edulearn.com,password123,female,2009-02-09,active,10th Grade,2,Alexandria,Mohandeseen,Street 98,Ali Ibrahim,Father,01251423771
+Kareem Husseini,STU20240947,student947@edulearn.com,password123,male,2008-04-23,active,11th Grade,5,Giza,Maadi,Street 28,Tariq Husseini,Uncle,01186760019
+Hassan Farouk,STU20240948,student948@edulearn.com,password123,male,2005-11-21,inactive,10th Grade,5,Red Sea,Nasr City,Street 99,Kareem Farouk,Brother,01195286035
+Mariam Fawzi,STU20240949,student949@edulearn.com,password123,female,2005-02-05,active,11th Grade,5,Giza,Hurghada,Street 45,Youssef Fawzi,Grandfather,01073762880
+Kareem Abdullah,STU20240950,student950@edulearn.com,password123,male,2005-11-26,active,10th Grade,1,Giza,Nasr City,Street 5,Tariq Abdullah,Mother,01257443294
+Sara Ibrahim,STU20240951,student951@edulearn.com,password123,female,2010-09-28,active,11th Grade,1,Giza,Hurghada,Street 92,Ali Ibrahim,Mother,01114446764
+Kareem Mansour,STU20240952,student952@edulearn.com,password123,male,2008-10-15,active,12th Grade,5,Red Sea,Maadi,Street 2,Mahmoud Mansour,Grandfather,01147020393
+Sara Khalil,STU20240953,student953@edulearn.com,password123,female,2009-09-03,active,12th Grade,2,Dakahlia,Smouha,Street 52,Tariq Khalil,Father,01149474498
+Hassan Saeed,STU20240954,student954@edulearn.com,password123,male,2007-03-01,active,10th Grade,4,Giza,Mohandeseen,Street 3,Hassan Saeed,Grandfather,01177990680
+Mahmoud Rahman,STU20240955,student955@edulearn.com,password123,male,2007-03-14,active,11th Grade,2,Cairo,Mansoura,Street 55,Hassan Rahman,Brother,01112105663
+Sara Saeed,STU20240956,student956@edulearn.com,password123,female,2005-04-12,active,11th Grade,2,Cairo,Maadi,Street 89,Tariq Saeed,Uncle,01222191774
+Hassan Fawzi,STU20240957,student957@edulearn.com,password123,male,2008-07-29,active,12th Grade,4,Cairo,Nasr City,Street 81,Hassan Fawzi,Brother,01248613294
+Mariam Rahman,STU20240958,student958@edulearn.com,password123,female,2006-05-18,active,10th Grade,2,Alexandria,Nasr City,Street 48,Kareem Rahman,Uncle,01135926600
+Salma Ibrahim,STU20240959,student959@edulearn.com,password123,female,2009-09-24,active,10th Grade,5,Dakahlia,Smouha,Street 49,Omar Ibrahim,Uncle,01014257320
+Nour Husseini,STU20240960,student960@edulearn.com,password123,female,2007-10-02,inactive,12th Grade,2,Red Sea,Mansoura,Street 44,Kareem Husseini,Mother,01174901811
+Kareem Farouk,STU20240961,student961@edulearn.com,password123,male,2007-04-23,active,10th Grade,1,Dakahlia,Dokki,Street 42,Kareem Farouk,Uncle,01130447020
+Laila Husseini,STU20240962,student962@edulearn.com,password123,female,2006-03-15,inactive,11th Grade,5,Giza,Dokki,Street 21,Ahmed Husseini,Mother,01077897970
+Omar Rahman,STU20240963,student963@edulearn.com,password123,male,2005-07-04,active,10th Grade,5,Red Sea,Mohandeseen,Street 57,Omar Rahman,Brother,01246267713
+Youssef Husseini,STU20240964,student964@edulearn.com,password123,male,2007-04-19,active,12th Grade,5,Alexandria,Nasr City,Street 98,Hassan Husseini,Uncle,01086473391
+Laila Saeed,STU20240965,student965@edulearn.com,password123,female,2009-09-14,inactive,12th Grade,3,Red Sea,Maadi,Street 11,Kareem Saeed,Uncle,01225075404
+Omar Rahman,STU20240966,student966@edulearn.com,password123,male,2009-04-08,active,12th Grade,3,Alexandria,Hurghada,Street 3,Youssef Rahman,Mother,01284285613
+Mahmoud Rahman,STU20240967,student967@edulearn.com,password123,male,2008-05-14,inactive,11th Grade,1,Giza,Smouha,Street 87,Ahmed Rahman,Mother,01039212517
+Sara Rahman,STU20240968,student968@edulearn.com,password123,female,2010-10-30,active,10th Grade,4,Cairo,Hurghada,Street 64,Omar Rahman,Mother,01131649677
+Ahmed Ibrahim,STU20240969,student969@edulearn.com,password123,male,2010-01-17,active,12th Grade,1,Dakahlia,Smouha,Street 52,Ahmed Ibrahim,Mother,01068253376
+Laila Husseini,STU20240970,student970@edulearn.com,password123,female,2010-02-05,active,10th Grade,5,Giza,Nasr City,Street 25,Hassan Husseini,Brother,01297477758
+Nour Fawzi,STU20240971,student971@edulearn.com,password123,female,2009-02-12,active,10th Grade,2,Cairo,Nasr City,Street 20,Kareem Fawzi,Grandfather,01237807567
+Salma Farouk,STU20240972,student972@edulearn.com,password123,female,2006-09-19,active,12th Grade,4,Cairo,Nasr City,Street 63,Tariq Farouk,Grandfather,01014307474
+Tariq Saeed,STU20240973,student973@edulearn.com,password123,male,2006-03-14,active,10th Grade,4,Giza,Hurghada,Street 67,Hassan Saeed,Brother,01114849382
+Mona Ibrahim,STU20240974,student974@edulearn.com,password123,female,2006-07-23,active,11th Grade,3,Alexandria,Mohandeseen,Street 22,Hassan Ibrahim,Father,01091404727
+Youssef Saeed,STU20240975,student975@edulearn.com,password123,male,2010-04-30,active,12th Grade,1,Red Sea,Smouha,Street 77,Mahmoud Saeed,Brother,01143467415
+Fatima Husseini,STU20240976,student976@edulearn.com,password123,female,2005-11-04,active,10th Grade,5,Dakahlia,Smouha,Street 85,Youssef Husseini,Brother,01236617588
+Mahmoud Saeed,STU20240977,student977@edulearn.com,password123,male,2009-01-17,active,11th Grade,4,Cairo,Hurghada,Street 29,Ahmed Saeed,Uncle,01052051762
+Laila Farouk,STU20240978,student978@edulearn.com,password123,female,2007-10-19,active,11th Grade,5,Cairo,Hurghada,Street 32,Ali Farouk,Mother,01047649309
+Salma Rahman,STU20240979,student979@edulearn.com,password123,female,2010-06-27,active,10th Grade,5,Red Sea,Mansoura,Street 97,Mahmoud Rahman,Mother,01263843388
+Tariq Husseini,STU20240980,student980@edulearn.com,password123,male,2006-11-25,active,10th Grade,1,Cairo,Hurghada,Street 72,Mahmoud Husseini,Uncle,01190594392
+Laila Saeed,STU20240981,student981@edulearn.com,password123,female,2008-07-24,active,10th Grade,2,Cairo,Smouha,Street 16,Omar Saeed,Mother,01224622514
+Mona Khalil,STU20240982,student982@edulearn.com,password123,female,2010-06-03,inactive,10th Grade,1,Cairo,Maadi,Street 48,Hassan Khalil,Mother,01121943857
+Kareem Husseini,STU20240983,student983@edulearn.com,password123,male,2006-06-30,active,12th Grade,2,Red Sea,Smouha,Street 81,Kareem Husseini,Uncle,01188632589
+Fatima Farouk,STU20240984,student984@edulearn.com,password123,female,2010-04-14,active,12th Grade,4,Giza,Hurghada,Street 47,Hassan Farouk,Uncle,01141902659
+Youssef Farouk,STU20240985,student985@edulearn.com,password123,male,2006-04-16,inactive,10th Grade,5,Alexandria,Mansoura,Street 84,Ali Farouk,Grandfather,01025057962
+Laila Ibrahim,STU20240986,student986@edulearn.com,password123,female,2008-09-06,active,12th Grade,5,Giza,Maadi,Street 100,Kareem Ibrahim,Brother,01264789062
+Ahmed Abdullah,STU20240987,student987@edulearn.com,password123,male,2007-08-23,inactive,12th Grade,2,Alexandria,Smouha,Street 64,Ali Abdullah,Father,01034274500
+Hassan Abdullah,STU20240988,student988@edulearn.com,password123,male,2008-02-01,active,10th Grade,4,Alexandria,Smouha,Street 63,Youssef Abdullah,Grandfather,01186553362
+Youssef Rahman,STU20240989,student989@edulearn.com,password123,male,2009-07-06,active,11th Grade,3,Dakahlia,Mohandeseen,Street 31,Mahmoud Rahman,Uncle,01295653584
+Mona Ibrahim,STU20240990,student990@edulearn.com,password123,female,2009-05-21,active,10th Grade,2,Dakahlia,Nasr City,Street 37,Ali Ibrahim,Mother,01218814599
+Mona Abdullah,STU20240991,student991@edulearn.com,password123,female,2006-07-09,active,12th Grade,4,Cairo,Smouha,Street 99,Ahmed Abdullah,Uncle,01098917073
+Mona Fawzi,STU20240992,student992@edulearn.com,password123,female,2007-07-07,active,11th Grade,5,Alexandria,Smouha,Street 51,Omar Fawzi,Uncle,01176854998
+Mahmoud Gaber,STU20240993,student993@edulearn.com,password123,male,2005-03-26,active,10th Grade,5,Dakahlia,Maadi,Street 81,Mahmoud Gaber,Father,01031885650
+Omar Husseini,STU20240994,student994@edulearn.com,password123,male,2006-11-09,inactive,12th Grade,2,Giza,Smouha,Street 39,Mahmoud Husseini,Grandfather,01233027501
+Ahmed Husseini,STU20240995,student995@edulearn.com,password123,male,2005-11-09,active,11th Grade,3,Alexandria,Nasr City,Street 74,Tariq Husseini,Uncle,01095389899
+Mona Gaber,STU20240996,student996@edulearn.com,password123,female,2007-04-10,active,11th Grade,4,Giza,Dokki,Street 74,Hassan Gaber,Father,01013905777
+Tariq Abdullah,STU20240997,student997@edulearn.com,password123,male,2006-07-15,inactive,10th Grade,5,Dakahlia,Smouha,Street 88,Ahmed Abdullah,Grandfather,01250423733
+Kareem Rahman,STU20240998,student998@edulearn.com,password123,male,2009-01-30,inactive,10th Grade,2,Dakahlia,Dokki,Street 71,Youssef Rahman,Uncle,01021627585
+Ali Khalil,STU20240999,student999@edulearn.com,password123,male,2010-01-17,active,11th Grade,4,Alexandria,Mohandeseen,Street 38,Kareem Khalil,Father,01140695560
+Mahmoud Husseini,STU20241000,student1000@edulearn.com,password123,male,2010-10-31,active,11th Grade,3,Alexandria,Dokki,Street 98,Mahmoud Husseini,Mother,01130884190
