@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme.dart';
-<<<<<<< HEAD
-import '../../services/api_service.dart';
-=======
 import '../../services/student_service.dart';
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 import 'student_lesson_viewer_screen.dart';
 
 class StudentSubjectDetailScreen extends StatefulWidget {
@@ -69,11 +65,7 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
     });
 
     try {
-<<<<<<< HEAD
-      final list = await ApiService.fetchStudentLessonsForSubject(
-=======
       final list = await StudentService.fetchStudentLessonsForSubject(
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         academicId: widget.academicId,
         subjectId: widget.subjectId,
       );

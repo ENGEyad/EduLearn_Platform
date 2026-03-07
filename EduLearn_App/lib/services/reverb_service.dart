@@ -1,16 +1,25 @@
 import 'package:pusher_reverb_flutter/pusher_reverb_flutter.dart';
 import 'auth_service.dart';
 
-/// Service واحد لتجنب تكرار كود Reverb في أكثر من شاشة
+/// ✅ ReverbService مضبوط: Client واحد فقط + await connect + logs
+/// السبب: ReverbClient.instance() عادة Singleton، وإنشاء عميلين يسبب تلخبط بالـ authorizer
 class ReverbService {
   ReverbService._();
 
-  static ReverbClient? _studentClient;
-  static ReverbClient? _teacherClient;
+  static ReverbClient? _client;
+
+  /// لمعرفة الدور الحالي للعميل
+  static String? _mode; // 'student' | 'teacher'
+  static String? _studentAcademicId;
+  static String? _teacherCode;
+
+  /// لمنع تكرار محاولات connect بنفس الوقت
+  static Future<ReverbClient>? _connecting;
 
   static String _buildAuthEndpoint() {
-    // ✅ endpoint الصحيح حسب Laravel routes
-    return '${AuthService.rootUrl}/api/chat/broadcasting/auth';
+    // ✅ endpoint الصحيح حسب Laravel routes/api.php:
+    // POST /api/broadcasting/auth
+    return '${AuthService.rootUrl}/api/broadcasting/auth';
   }
 
   static Future<Map<String, String>> _teacherAuthorizer(
@@ -37,77 +46,141 @@ class ReverbService {
     };
   }
 
+  /// ✅ عميل المدرس (Client واحد في الجلسة)
   static Future<ReverbClient> getTeacherClient({
     required String teacherCode,
     int port = 8080,
   }) async {
-    if (_teacherClient != null) return _teacherClient!;
+    // إذا موجود عميل بنفس الوضع رجّعه
+    if (_client != null && _mode == 'teacher' && _teacherCode == teacherCode) {
+      return _client!;
+    }
 
-    final backendUri = Uri.parse(AuthService.rootUrl);
+    // إذا موجود عميل لكن بوضع مختلف (طالب) لازم نفصله أولاً
+    if (_client != null && _mode != 'teacher') {
+      await disconnectAll();
+    }
 
-    _teacherClient = ReverbClient.instance(
-      host: backendUri.host,
-      port: port,
-      appKey: AuthService.pusherApiKey,
-      authEndpoint: _buildAuthEndpoint(),
-      authorizer: (channelName, socketId) =>
-          _teacherAuthorizer(channelName, socketId, teacherCode: teacherCode),
-    );
+    _mode = 'teacher';
+    _teacherCode = teacherCode;
+    _studentAcademicId = null;
 
-    // connect() returns void in this package
-    _teacherClient!.connect();
-    return _teacherClient!;
+    return _ensureConnected(port: port);
   }
 
+  /// ✅ عميل الطالب (Client واحد في الجلسة)
   static Future<ReverbClient> getStudentClient({
     required String academicId,
     int port = 8080,
   }) async {
-    if (_studentClient != null) return _studentClient!;
-
-    final backendUri = Uri.parse(AuthService.rootUrl);
-
-    _studentClient = ReverbClient.instance(
-      host: backendUri.host,
-      port: port,
-      appKey: AuthService.pusherApiKey,
-      authEndpoint: _buildAuthEndpoint(),
-      authorizer: (channelName, socketId) =>
-          _studentAuthorizer(channelName, socketId, academicId: academicId),
-    );
-
-    _studentClient!.connect();
-    return _studentClient!;
-  }
-
-  static Future<void> disconnectStudent() async {
-    final c = _studentClient;
-    if (c == null) {
-      _studentClient = null;
-      return;
+    if (_client != null && _mode == 'student' && _studentAcademicId == academicId) {
+      return _client!;
     }
 
-    try {
-      c.disconnect();
-    } catch (_) {}
-    _studentClient = null;
-  }
-
-  static Future<void> disconnectTeacher() async {
-    final c = _teacherClient;
-    if (c == null) {
-      _teacherClient = null;
-      return;
+    if (_client != null && _mode != 'student') {
+      await disconnectAll();
     }
 
-    try {
-      c.disconnect();
-    } catch (_) {}
-    _teacherClient = null;
+    _mode = 'student';
+    _studentAcademicId = academicId;
+    _teacherCode = null;
+
+    return _ensureConnected(port: port);
   }
 
+  static Future<ReverbClient> _ensureConnected({required int port}) async {
+    // لو فيه connect شغال بالفعل، انتظر نفس الـ Future
+    if (_connecting != null) return _connecting!;
+
+    _connecting = () async {
+      final backendUri = Uri.parse(AuthService.rootUrl);
+
+      // أنشئ عميل إذا مش موجود
+      if (_client == null) {
+        _client = ReverbClient.instance(
+          host: backendUri.host,
+          port: port,
+          appKey: AuthService.pusherApiKey,
+          authEndpoint: _buildAuthEndpoint(),
+          authorizer: (channelName, socketId) async {
+            // ✅ authorizer حسب الوضع الحالي
+            if (_mode == 'teacher') {
+              final code = _teacherCode;
+              if (code == null || code.isEmpty) {
+                throw Exception('Teacher code is missing for authorizer');
+              }
+              return _teacherAuthorizer(channelName, socketId, teacherCode: code);
+            }
+
+            if (_mode == 'student') {
+              final id = _studentAcademicId;
+              if (id == null || id.isEmpty) {
+                throw Exception('Academic ID is missing for authorizer');
+              }
+              return _studentAuthorizer(channelName, socketId, academicId: id);
+            }
+
+            throw Exception('Reverb mode is not set (student/teacher)');
+          },
+
+          // ✅ Logs للتشخيص (مهم جدًا)
+          onConnected: (socketId) {
+            // ignore: avoid_print
+            print('✅ Reverb connected. socketId=$socketId mode=$_mode host=${backendUri.host}:$port');
+          },
+          onDisconnected: () {
+            // ignore: avoid_print
+            print('⚠️ Reverb disconnected. mode=$_mode');
+          },
+          onReconnecting: () {
+            // ignore: avoid_print
+            print('🔄 Reverb reconnecting... mode=$_mode');
+          },
+          onError: (error) {
+            // ignore: avoid_print
+            print('❌ Reverb error: $error');
+          },
+        );
+      }
+
+      // ✅ الأهم: انتظر الاتصال فعلاً
+      await _client!.connect();
+      return _client!;
+    }();
+
+    try {
+      return await _connecting!;
+    } finally {
+      _connecting = null;
+    }
+  }
+
+  /// ✅ فصل العميل الحالي فقط (سواء طالب أو مدرس)
   static Future<void> disconnectAll() async {
-    await disconnectStudent();
-    await disconnectTeacher();
+    final c = _client;
+    _client = null;
+    _mode = null;
+    _studentAcademicId = null;
+    _teacherCode = null;
+
+    if (c == null) return;
+
+    try {
+      c.disconnect();
+    } catch (_) {}
+  }
+
+  /// للتوافق (إذا كودك يناديها)
+  static Future<void> disconnectStudent() async {
+    if (_mode == 'student') {
+      await disconnectAll();
+    }
+  }
+
+  /// للتوافق (إذا كودك يناديها)
+  static Future<void> disconnectTeacher() async {
+    if (_mode == 'teacher') {
+      await disconnectAll();
+    }
   }
 }

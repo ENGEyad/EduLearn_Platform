@@ -1,21 +1,14 @@
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
-<<<<<<< HEAD
-=======
 import 'package:edulearn/services/api_service.dart';
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../theme.dart';
-<<<<<<< HEAD
-import '../../services/api_service.dart';
-=======
 // import '../../services/student_service.dart';
 
 
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 
 class StudentLessonViewerScreen extends StatefulWidget {
   final int lessonId;
@@ -92,11 +85,7 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> {
 
   Future<void> _setDraftStatusSilently() async {
     try {
-<<<<<<< HEAD
-      await ApiService.updateStudentLessonStatus(
-=======
       await StudentService.updateStudentLessonStatus(
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         academicId: widget.academicId,
         lessonId: widget.lessonId,
         status: 'draft',
@@ -113,11 +102,7 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> {
   String _mediaValueFromBlock(Map<String, dynamic> block) {
     // prefer backend helper if exists
     try {
-<<<<<<< HEAD
-      final v = ApiService.pickMediaValueFromBlock(block);
-=======
       final v = ApiHelpers.pickMediaValueFromBlock(block);
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
       if (v is String) return v;
     } catch (_) {}
 
@@ -132,15 +117,9 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> {
   String _buildMediaUrl(String rawOrPath) {
     if (rawOrPath.isEmpty) return '';
     try {
-<<<<<<< HEAD
-      return ApiService.buildMediaUrl(rawOrPath);
-    } catch (_) {
-      return ApiService.buildFullMediaUrl(rawOrPath);
-=======
       return ApiHelpers.buildMediaUrl(rawOrPath);
     } catch (_) {
       return ApiHelpers.buildFullMediaUrl(rawOrPath);
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
     }
   }
 
@@ -188,11 +167,7 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> {
 
   try {
     // ✅ واجهة الطالب فقط (لا نستخدم fetchLessonDetail للأستاذ لأنه يتطلب teacherCode)
-<<<<<<< HEAD
-    final lesson = await ApiService.fetchStudentLessonDetail(
-=======
     final lesson = await StudentService.fetchStudentLessonDetail(
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
       academicId: widget.academicId,
       lessonId: widget.lessonId,
     );
@@ -261,11 +236,7 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> {
     setState(() => _isCompleting = true);
 
     try {
-<<<<<<< HEAD
-      await ApiService.updateStudentLessonStatus(
-=======
       await StudentService.updateStudentLessonStatus(
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         academicId: widget.academicId,
         lessonId: widget.lessonId,
         status: 'completed',

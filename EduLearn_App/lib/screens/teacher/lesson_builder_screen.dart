@@ -10,15 +10,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../theme.dart';
-<<<<<<< HEAD
-import '../../services/api_service.dart';
-=======
 
 // ✅ بدل api_service.dart
 import '../../services/lesson_service.dart';
 import '../../services/api_helpers.dart';
 import '../../services/auth_service.dart';
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 
 class LessonBuilderScreen extends StatefulWidget {
   final String classKey;
@@ -58,14 +54,10 @@ class LessonBuilderScreen extends StatefulWidget {
 
 class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   final TextEditingController _titleController = TextEditingController();
-<<<<<<< HEAD
-  final TextEditingController _contentController = TextEditingController();
-=======
 
   // ✅ Block editor (بدل content + tokens + preview + pendingMedia)
   final List<_LessonBlock> _blocks = [];
   int? _activeTextBlockIndex;
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 
   // 🔹 داخلياً: نحتفظ بموديول واحد فقط (للتوافق مع شاشتك الحالية)
   final List<_ModuleData> _modules = [];
@@ -83,15 +75,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   Duration _recordingElapsed = Duration.zero;
   late final Ticker _ticker;
 
-<<<<<<< HEAD
-  // 🔹 Uploaded media objects (معاينة حقيقية)
-  final List<_PendingMedia> _pendingMedia = [];
-
-  // ✅ معاينة محتوى الطالب (blocks)
-  List<Map<String, dynamic>> _previewBlocks = [];
-
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
   // 🔹 Editing state
   bool get _isEditingExisting => widget.existingLessonId != null;
   bool _hasUnsavedChanges = false;
@@ -107,22 +90,13 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     _ticker = Ticker(_onTick);
 
     _titleController.addListener(_onAnyFieldChanged);
-<<<<<<< HEAD
-    _contentController.addListener(_onAnyFieldChanged);
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 
     if (_isEditingExisting) {
       _loadExistingLesson();
     } else {
       _addInitialStructure();
-<<<<<<< HEAD
-      _initializing = false;
-      _previewBlocks = _buildBlocksFromContent(_contentController.text);
-=======
       _ensureAtLeastOneTextBlock();
       _initializing = false;
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
     }
   }
 
@@ -130,17 +104,12 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   void dispose() {
     _ticker.dispose();
     _stopRecordingIfNeededOnDispose();
-<<<<<<< HEAD
-    _titleController.dispose();
-    _contentController.dispose();
-=======
 
     for (final b in _blocks) {
       b.dispose();
     }
 
     _titleController.dispose();
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
     _recorder.dispose();
     super.dispose();
   }
@@ -155,29 +124,16 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   void _onAnyFieldChanged() {
     if (_initializing) return;
 
-<<<<<<< HEAD
-    setState(() {
-      _hasUnsavedChanges = true;
-      _previewBlocks = _buildBlocksFromContent(_contentController.text);
-    });
-
-    // autosave draft كل ~5 ثواني (بسيط وعملي)
-    final now = DateTime.now();
-    if (_lastDraftSaveAt == null || now.difference(_lastDraftSaveAt!).inSeconds >= 5) {
-=======
     setState(() => _hasUnsavedChanges = true);
 
     final now = DateTime.now();
     if (_lastDraftSaveAt == null ||
         now.difference(_lastDraftSaveAt!).inSeconds >= 5) {
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
       _lastDraftSaveAt = now;
       _saveLocalDraft(); // لا ننتظر
     }
   }
 
-<<<<<<< HEAD
-=======
   void _markDirtyAndMaybeAutosave() {
     if (_initializing) return;
 
@@ -191,7 +147,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     }
   }
 
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
   // ======== Load existing lesson from local draft or API ========
 
   Future<void> _loadExistingLesson() async {
@@ -200,15 +155,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       final draft = await _loadLocalDraft();
       if (draft != null) {
         _titleController.text = (draft['title'] ?? '').toString();
-<<<<<<< HEAD
-        _contentController.text = (draft['content'] ?? '').toString();
-        final fs = draft['font_size'];
-        if (fs is num) _fontSize = fs.toDouble();
-        _addInitialStructure();
-
-        // draft لا يشمل ميديا (حسب تصميمك) — نعيد المعاينة
-        _pendingMedia.clear();
-=======
 
         final fs = draft['font_size'];
         if (fs is num) _fontSize = fs.toDouble();
@@ -247,16 +193,11 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
         }
 
         _ensureAtLeastOneTextBlock();
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         return;
       }
 
       // 2) Load from API
-<<<<<<< HEAD
-      final lesson = await ApiService.fetchLessonDetail(
-=======
       final lesson = await LessonService.fetchLessonDetail(
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         lessonId: widget.existingLessonId!,
         teacherCode: widget.teacherCode,
       );
@@ -273,33 +214,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       );
       _selectedModule = _modules.first;
 
-<<<<<<< HEAD
-      _pendingMedia.clear();
-
-      final blocks = (lesson['blocks'] as List?) ?? [];
-      final buffer = StringBuffer();
-      final restoredMedia = <_PendingMedia>[];
-
-      for (final raw in blocks) {
-        final block = (raw as Map).cast<String, dynamic>();
-        final type = (block['type'] ?? '').toString();
-        final body = (block['body'] ?? '').toString();
-
-        if (type == 'text') {
-          if (body.trim().isNotEmpty) {
-            buffer.writeln(body.trim());
-            buffer.writeln();
-          }
-          continue;
-        }
-
-        final mediaValue = ApiService.pickMediaValueFromBlock(block);
-        if (mediaValue.isEmpty) continue;
-
-        final mediaPath = ApiService.extractMediaPath(mediaValue);
-        final mediaUrl = ApiService.buildMediaUrl(mediaPath.isNotEmpty ? mediaPath : mediaValue);
-
-=======
       _blocks.clear();
 
       final blocks = (lesson['blocks'] as List?) ?? [];
@@ -321,29 +235,11 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
         final mediaValue = ApiHelpers.pickMediaValueFromBlock(block);
         final mediaPath = ApiHelpers.extractMediaPath(mediaValue);
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         final mime = block['media_mime']?.toString();
         final size = block['media_size'] is int
             ? block['media_size'] as int
             : (block['media_size'] is num ? (block['media_size'] as num).toInt() : null);
 
-<<<<<<< HEAD
-        // ✅ نعيد إدراجها داخل النص كـ token ثابت
-        final id = _id();
-        buffer.writeln(_MediaToken.encode(id));
-        buffer.writeln();
-
-        restoredMedia.add(
-          _PendingMedia(
-            id: id,
-            kind: _inferKindFromBlockType(type),
-            localPath: null,
-            mediaPath: mediaPath,
-            remoteUrl: mediaUrl,
-            mime: mime,
-            size: size,
-            status: _MediaStatus.ready,
-=======
         final id = _id();
         _blocks.add(
           _LessonBlock.media(
@@ -358,22 +254,10 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
               size: size,
               status: _MediaStatus.ready,
             ),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
           ),
         );
       }
 
-<<<<<<< HEAD
-      _contentController.text = buffer.toString().trim();
-      _pendingMedia.addAll(restoredMedia);
-
-      // Restore font size from first block meta if exists
-      if (blocks.isNotEmpty) {
-        final firstBlock = (blocks.first as Map).cast<String, dynamic>();
-        final meta = firstBlock['meta'] is Map ? (firstBlock['meta'] as Map).cast<String, dynamic>() : null;
-        if (meta != null && meta['font_size'] is num) {
-          _fontSize = (meta['font_size'] as num).toDouble();
-=======
       // font size from first block meta (مثل كودك السابق)
       if (blocks.isNotEmpty) {
         final first = blocks.first;
@@ -385,33 +269,22 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
           if (meta != null && meta['font_size'] is num) {
             _fontSize = (meta['font_size'] as num).toDouble();
           }
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         }
       }
 
       _addInitialStructure();
-<<<<<<< HEAD
-=======
       _ensureAtLeastOneTextBlock();
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
     } catch (e) {
       _showSnack(
         'Failed to load lesson: ${e.toString().replaceFirst('Exception: ', '')}',
       );
       _addInitialStructure();
-<<<<<<< HEAD
-=======
       _ensureAtLeastOneTextBlock();
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
     } finally {
       if (!mounted) return;
       setState(() {
         _initializing = false;
         _hasUnsavedChanges = false;
-<<<<<<< HEAD
-        _previewBlocks = _buildBlocksFromContent(_contentController.text);
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
       });
     }
   }
@@ -440,17 +313,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   Future<void> _saveLocalDraft() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-<<<<<<< HEAD
-      final draft = {
-        'title': _titleController.text,
-        'content': _contentController.text,
-        'font_size': _fontSize,
-      };
-      await prefs.setString(_draftKey, jsonEncode(draft));
-    } catch (_) {
-      // تجاهل — لا نريد إزعاج المستخدم
-    }
-=======
 
       final blocksJson = _blocks.map((b) => b.toDraftJson()).toList();
 
@@ -461,7 +323,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       };
       await prefs.setString(_draftKey, jsonEncode(draft));
     } catch (_) {}
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
   }
 
   Future<Map<String, dynamic>?> _loadLocalDraft() async {
@@ -497,8 +358,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     _selectedModule ??= _modules.first;
   }
 
-<<<<<<< HEAD
-=======
   void _ensureAtLeastOneTextBlock() {
     if (_blocks.isEmpty) {
       final b = _LessonBlock.text(
@@ -520,7 +379,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     }
   }
 
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
   void _showSnack(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
@@ -528,13 +386,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
   String _id() => DateTime.now().microsecondsSinceEpoch.toString();
 
-<<<<<<< HEAD
-  // ======== TEXT HELPER: bold/italic ========
-
-  void _insertAroundSelection(String prefix, String suffix) {
-    final text = _contentController.text;
-    final selection = _contentController.selection;
-=======
   // ======== TEXT HELPER: bold/italic (على بلوك النص النشط) ========
 
   void _insertAroundSelection(String prefix, String suffix) {
@@ -547,7 +398,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     final c = block.controller!;
     final text = c.text;
     final selection = c.selection;
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
     if (!selection.isValid) return;
 
     final start = selection.start;
@@ -559,22 +409,15 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
     final newText = text.replaceRange(start, end, '$prefix$selectedText$suffix');
 
-<<<<<<< HEAD
-    _contentController.value = _contentController.value.copyWith(
-=======
     c.value = c.value.copyWith(
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
       text: newText,
       selection: TextSelection(
         baseOffset: start,
         extentOffset: start + prefix.length + selectedText.length + suffix.length,
       ),
     );
-<<<<<<< HEAD
-=======
 
     _markDirtyAndMaybeAutosave();
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
   }
 
   // =================== Media Picking (Unified UX) ===================
@@ -686,8 +529,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   }
 
   // =================== Media Attachment + Upload ===================
-<<<<<<< HEAD
-=======
   // ✅ الآن: الميديا تظهر كبـ "Block" داخل المحرر نفسه (بدون Tokens)
 
   int _insertIndexForNewMediaBlock() {
@@ -697,7 +538,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     }
     return idx + 1; // تحت بلوك النص النشط مباشرة
   }
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 
   Future<void> _attachAndUploadMedia({
     required _MediaKind kind,
@@ -705,13 +545,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   }) async {
     final id = _id();
 
-<<<<<<< HEAD
-    // 1) إدراج token داخل النص عند موضع المؤشر (ثابت ومضمون)
-    _insertMediaTokenAtCursor(id);
-
-    // 2) إضافة عنصر pending محلي للمعاينة الفورية
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
     final pending = _PendingMedia(
       id: id,
       kind: kind,
@@ -723,37 +556,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       status: _MediaStatus.uploading,
     );
 
-<<<<<<< HEAD
-    setState(() {
-      _pendingMedia.add(pending);
-      _hasUnsavedChanges = true;
-      _previewBlocks = _buildBlocksFromContent(_contentController.text);
-    });
-
-    // 3) رفع وتحديث العنصر (بدون تكرار logic)
-    await _uploadMedia(id: id, localPath: localPath);
-  }
-
-  void _insertMediaTokenAtCursor(String id) {
-    final token = '${_MediaToken.encode(id)}\n';
-    final text = _contentController.text;
-    final selection = _contentController.selection;
-
-    final start = selection.isValid && selection.start >= 0 ? selection.start : text.length;
-    final end = selection.isValid && selection.end >= 0 ? selection.end : text.length;
-
-    final newText = text.replaceRange(start, end, token);
-
-    _contentController.value = _contentController.value.copyWith(
-      text: newText,
-      selection: TextSelection.collapsed(offset: start + token.length),
-    );
-  }
-
-  Future<void> _uploadMedia({required String id, required String localPath}) async {
-    try {
-      final uploadRes = await ApiService.uploadLessonMedia(filePath: localPath);
-=======
     final insertAt = _insertIndexForNewMediaBlock();
 
     setState(() {
@@ -790,40 +592,19 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       final uploadRes = await LessonService.uploadLessonMedia(
         filePath: localPath,
       );
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 
       final mediaPath = (uploadRes['media_path'] ?? '').toString().trim();
       final mediaUrl = (uploadRes['media_url'] ?? '').toString().trim();
       final mime = uploadRes['media_mime']?.toString();
       final size = uploadRes['media_size'] is int
           ? uploadRes['media_size'] as int
-<<<<<<< HEAD
-          : (uploadRes['media_size'] is num ? (uploadRes['media_size'] as num).toInt() : null);
-=======
           : (uploadRes['media_size'] is num
               ? (uploadRes['media_size'] as num).toInt()
               : null);
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 
       if (!mounted) return;
 
       setState(() {
-<<<<<<< HEAD
-        final idx = _pendingMedia.indexWhere((m) => m.id == id);
-        if (idx != -1) {
-          final old = _pendingMedia[idx];
-          _pendingMedia[idx] = old.copyWith(
-            mediaPath: mediaPath,
-            remoteUrl: mediaUrl.isNotEmpty ? mediaUrl : (mediaPath.isNotEmpty ? ApiService.buildMediaUrl(mediaPath) : ''),
-            mime: mime,
-            size: size,
-            status: _MediaStatus.ready,
-          );
-        }
-        _previewBlocks = _buildBlocksFromContent(_contentController.text);
-        _hasUnsavedChanges = true;
-      });
-=======
         final idx = _blocks.indexWhere((b) => b.id == blockId);
         if (idx != -1 && _blocks[idx].type == _LessonBlockType.media) {
           final old = _blocks[idx].media!;
@@ -843,24 +624,10 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       });
 
       _markDirtyAndMaybeAutosave();
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
     } catch (e) {
       if (!mounted) return;
 
       setState(() {
-<<<<<<< HEAD
-        final idx = _pendingMedia.indexWhere((m) => m.id == id);
-        if (idx != -1) {
-          _pendingMedia[idx] = _pendingMedia[idx].copyWith(status: _MediaStatus.failed);
-        }
-      });
-
-      _showSnack('Failed to upload media: ${e.toString().replaceFirst('Exception: ', '')}');
-    }
-  }
-
-  // =================== Voice Recording (WhatsApp-like practical) ===================
-=======
         final idx = _blocks.indexWhere((b) => b.id == blockId);
         if (idx != -1 && _blocks[idx].type == _LessonBlockType.media) {
           final old = _blocks[idx].media!;
@@ -877,7 +644,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   }
 
   // =================== Voice Recording ===================
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 
   Future<void> _toggleVoiceRecording() async {
     if (_isRecording) {
@@ -896,12 +662,8 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       }
 
       final tempDir = Directory.systemTemp;
-<<<<<<< HEAD
-      final filePath = '${tempDir.path}/lesson_voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
-=======
       final filePath =
           '${tempDir.path}/lesson_voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 
       await _recorder.start(
         const RecordConfig(
@@ -918,13 +680,9 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
       setState(() => _isRecording = true);
     } catch (e) {
-<<<<<<< HEAD
-      _showSnack('Failed to start recording: ${e.toString().replaceFirst('Exception: ', '')}');
-=======
       _showSnack(
         'Failed to start recording: ${e.toString().replaceFirst('Exception: ', '')}',
       );
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
     }
   }
 
@@ -938,32 +696,20 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
       if (path == null) return;
 
-<<<<<<< HEAD
-      // نضيف كتسجيل صوتي (audio) — نفس مسار الصوت
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
       await _attachAndUploadMedia(kind: _MediaKind.voice, localPath: path);
     } catch (e) {
       _ticker.stop();
       setState(() => _isRecording = false);
       _recordingStartedAt = null;
-<<<<<<< HEAD
-      _showSnack('Failed to stop recording: ${e.toString().replaceFirst('Exception: ', '')}');
-=======
       _showSnack(
         'Failed to stop recording: ${e.toString().replaceFirst('Exception: ', '')}',
       );
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
     }
   }
 
   Future<void> _cancelRecording() async {
     try {
-<<<<<<< HEAD
-      await _recorder.stop(); // stop بدون attach
-=======
       await _recorder.stop();
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
     } catch (_) {}
     _ticker.stop();
     if (!mounted) return;
@@ -977,10 +723,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
   void _stopRecordingIfNeededOnDispose() {
     if (_isRecording) {
-<<<<<<< HEAD
-      // best-effort
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
       _recorder.stop();
       _ticker.stop();
     }
@@ -988,8 +730,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
   // =================== SAVE LESSON ===================
 
-<<<<<<< HEAD
-=======
   bool _hasAnyMeaningfulContent() {
     for (final b in _blocks) {
       if (b.type == _LessonBlockType.text) {
@@ -1072,79 +812,45 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     return blocks;
   }
 
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
   Future<void> _saveLesson({required bool publish}) async {
     try {
       FocusScope.of(context).unfocus();
       final title = _titleController.text.trim();
-<<<<<<< HEAD
-      final content = _contentController.text;
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 
       if (title.isEmpty) {
         _showSnack('Please enter a lesson title.');
         return;
       }
 
-<<<<<<< HEAD
-      // منع حفظ ميديا تحت الرفع أو فاشلة
-      final uploading = _pendingMedia.any((m) => m.status == _MediaStatus.uploading);
-      if (uploading) {
-        _showSnack('Please wait until media upload finishes.');
-        return;
-      }
-      final failed = _pendingMedia.any((m) => m.status == _MediaStatus.failed);
-      if (failed) {
-=======
       if (_hasUploadingMedia()) {
         _showSnack('Please wait until media upload finishes.');
         return;
       }
 
       if (_hasFailedMedia()) {
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         _showSnack('Some media failed to upload. Remove or retry before saving.');
         return;
       }
 
-<<<<<<< HEAD
-      if (content.trim().isEmpty && _pendingMedia.isEmpty) {
-=======
       if (!_hasAnyMeaningfulContent()) {
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         _showSnack('Please add some content or media to the lesson.');
         return;
       }
 
       setState(() => _isSaving = true);
 
-<<<<<<< HEAD
-      // ✅ الآن: لا نرسل modules/topics (حل نهائي) — نحافظ فقط للـ API إن كانت تتطلب وجودها
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
       final modulesPayload = _modules
           .map((m) => {'id': m.tempId, 'title': m.title, 'position': m.position})
           .toList();
 
       final topicsPayload = <Map<String, dynamic>>[];
 
-<<<<<<< HEAD
-      // ✅ بناء blocks يعتمد على tokens + pending media (ثابت)
-      final blocksPayload = _buildBlocksFromContent(content);
-
-      await ApiService.saveLesson(
-        teacherCode: widget.teacherCode,
-        assignmentId: widget.assignmentId,
-        classModuleId: widget.moduleId, // ✅ هذا هو class_module_id
-=======
       final blocksPayload = _buildBlocksPayload();
 
       await LessonService.saveLesson(
         teacherCode: widget.teacherCode,
         assignmentId: widget.assignmentId,
         classModuleId: widget.moduleId,
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         classSectionId: widget.classSectionId,
         subjectId: widget.subjectId,
         lessonId: widget.existingLessonId,
@@ -1157,10 +863,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
       _showSnack(publish ? 'Lesson published.' : 'Lesson saved as draft.');
 
-<<<<<<< HEAD
-      _pendingMedia.clear();
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
       await _clearLocalDraft();
 
       if (!mounted) return;
@@ -1203,23 +905,14 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       appBar: AppBar(
         title: const Text('Lesson Builder'),
         leading: IconButton(
-<<<<<<< HEAD
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: EduTheme.primaryDark),
-=======
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: EduTheme.primaryDark),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
           onPressed: _handleBack,
         ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 18.0),
             child: Text(
-<<<<<<< HEAD
-              _isEditingExisting ? (_hasUnsavedChanges ? 'Editing...' : 'Loaded') : 'New Lesson',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: _hasUnsavedChanges ? Colors.orange : EduTheme.primaryDark,
-=======
               _isEditingExisting
                   ? (_hasUnsavedChanges ? 'Editing...' : 'Loaded')
                   : 'New Lesson',
@@ -1227,7 +920,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                     color: _hasUnsavedChanges
                         ? Colors.orange
                         : EduTheme.primaryDark,
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                     fontWeight: FontWeight.w600,
                   ),
             ),
@@ -1253,22 +945,14 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                   Text(
                     'Class: ${widget.classKey} • Students: ${widget.studentsCount}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-<<<<<<< HEAD
-                          color: EduTheme.primaryDark.withValues(alpha: 0.6),
-=======
                           color: EduTheme.primaryDark.withOpacity(0.6),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                         ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Module: ${widget.moduleTitle}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-<<<<<<< HEAD
-                          color: EduTheme.primaryDark.withValues(alpha: 0.6),
-=======
                           color: EduTheme.primaryDark.withOpacity(0.6),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                         ),
                   ),
                   const SizedBox(height: 12),
@@ -1276,10 +960,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                     controller: _titleController,
                     decoration: const InputDecoration(
                       labelText: 'Lesson Title',
-<<<<<<< HEAD
-                      hintText: 'e.g. Introduction to Photosynthesis',
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1309,38 +989,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                         _buildToolbar(),
                         const SizedBox(height: 10),
 
-<<<<<<< HEAD
-                        TextField(
-                          controller: _contentController,
-                          maxLines: null,
-                          keyboardType: TextInputType.multiline,
-                          style: TextStyle(fontSize: _fontSize),
-                          decoration: const InputDecoration(
-                            hintText:
-                                'Write your lesson content here...\nUse the toolbar to attach media.',
-                            alignLabelWithHint: true,
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        Text(
-                          'Student View Preview',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: EduTheme.primaryDark,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-=======
                         // ✅ المحرر نفسه صار يعرض النص + الميديا بنفس شكل معاينة الطالب
                         Container(
                           width: double.infinity,
@@ -1348,7 +996,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                             boxShadow: const [
                               BoxShadow(
                                 color: Color(0x11000000),
@@ -1360,42 +1007,16 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-<<<<<<< HEAD
-                              for (final block in _previewBlocks) ...[
-                                _buildPreviewBlock(block),
-                                const SizedBox(height: 18),
-=======
                               for (int i = 0; i < _blocks.length; i++) ...[
                                 _buildEditorBlock(i, _blocks[i]),
                                 if (i != _blocks.length - 1)
                                   const SizedBox(height: 16),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                               ],
                             ],
                           ),
                         ),
 
-<<<<<<< HEAD
-                        if (_pendingMedia.isNotEmpty) ...[
-                          const SizedBox(height: 16),
-                          Text(
-                            'Attached Media (Teacher Preview)',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: EduTheme.primaryDark,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          Column(
-                            children: _pendingMedia.map((m) => _buildMediaCard(m)).toList(),
-                          ),
-                        ],
-
                         const SizedBox(height: 12),
-
-=======
-                        const SizedBox(height: 12),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                         SizedBox(
                           width: double.infinity,
                           child: TextButton.icon(
@@ -1431,11 +1052,7 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-<<<<<<< HEAD
-            color: Colors.black.withValues(alpha: 0.04),
-=======
             color: Colors.black.withOpacity(0.04),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
@@ -1451,14 +1068,7 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
               icon: const Icon(Icons.attach_file_rounded),
               onPressed: _openMediaPickerSheet,
             ),
-<<<<<<< HEAD
-
             const SizedBox(width: 8),
-
-            // ✅ تسجيل صوت محسّن + مؤقت + إلغاء سريع
-=======
-            const SizedBox(width: 8),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
             Row(
               children: [
                 ElevatedButton.icon(
@@ -1471,14 +1081,10 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
-<<<<<<< HEAD
-                  icon: Icon(_isRecording ? Icons.stop_rounded : Icons.mic_rounded, size: 18),
-=======
                   icon: Icon(
                     _isRecording ? Icons.stop_rounded : Icons.mic_rounded,
                     size: 18,
                   ),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                   label: Text(_isRecording ? 'Stop' : 'Voice'),
                 ),
                 if (_isRecording) ...[
@@ -1498,13 +1104,7 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                 ],
               ],
             ),
-<<<<<<< HEAD
-
             const SizedBox(width: 12),
-
-=======
-            const SizedBox(width: 12),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
             IconButton(
               tooltip: 'Bold',
               icon: const Icon(Icons.format_bold_rounded),
@@ -1515,13 +1115,7 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
               icon: const Icon(Icons.format_italic_rounded),
               onPressed: () => _insertAroundSelection('_', '_'),
             ),
-<<<<<<< HEAD
-
             const SizedBox(width: 12),
-
-=======
-            const SizedBox(width: 12),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
             Row(
               children: [
                 const Text('A'),
@@ -1531,14 +1125,10 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                   max: 24,
                   divisions: 6,
                   label: _fontSize.toStringAsFixed(0),
-<<<<<<< HEAD
-                  onChanged: (v) => setState(() => _fontSize = v),
-=======
                   onChanged: (v) {
                     setState(() => _fontSize = v);
                     _markDirtyAndMaybeAutosave();
                   },
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                 ),
               ],
             ),
@@ -1554,96 +1144,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     return '$mm:$ss';
   }
 
-<<<<<<< HEAD
-  // ========= Preview rendering =========
-
-  TextSpan _buildStyledTextSpan(String body, double fontSize) {
-    final defaultStyle = TextStyle(
-      fontSize: fontSize,
-      height: 1.4,
-      color: EduTheme.primaryDark,
-    );
-
-    final spans = <TextSpan>[];
-    final regex = RegExp(r'\*\*(.+?)\*\*|_(.+?)_', dotAll: true);
-    int lastIndex = 0;
-
-    for (final match in regex.allMatches(body)) {
-      if (match.start > lastIndex) {
-        spans.add(TextSpan(text: body.substring(lastIndex, match.start), style: defaultStyle));
-      }
-
-      final boldText = match.group(1);
-      final italicText = match.group(2);
-
-      if (boldText != null) {
-        spans.add(TextSpan(text: boldText, style: defaultStyle.copyWith(fontWeight: FontWeight.bold)));
-      } else if (italicText != null) {
-        spans.add(TextSpan(text: italicText, style: defaultStyle.copyWith(fontStyle: FontStyle.italic)));
-      }
-
-      lastIndex = match.end;
-    }
-
-    if (lastIndex < body.length) {
-      spans.add(TextSpan(text: body.substring(lastIndex), style: defaultStyle));
-    }
-
-    if (spans.isEmpty) {
-      spans.add(TextSpan(text: body, style: defaultStyle));
-    }
-
-    return TextSpan(children: spans, style: defaultStyle);
-  }
-
-  Widget _buildPreviewBlock(Map<String, dynamic> block) {
-    final type = (block['type'] ?? '').toString();
-    switch (type) {
-      case 'image':
-        return _buildPreviewImageBlock(block);
-      case 'audio':
-        return _buildPreviewAudioBlock(block);
-      case 'video':
-        return _buildPreviewVideoBlock(block);
-      default:
-        return _buildPreviewTextBlock(block);
-    }
-  }
-
-  Widget _buildPreviewTextBlock(Map<String, dynamic> block) {
-    final body = (block['body'] ?? '').toString();
-    if (body.trim().isEmpty) return const SizedBox.shrink();
-
-    final meta = block['meta'] is Map ? (block['meta'] as Map).cast<String, dynamic>() : <String, dynamic>{};
-    final fontSize = (meta['font_size'] is num) ? (meta['font_size'] as num).toDouble() : _fontSize;
-
-    return RichText(text: _buildStyledTextSpan(body, fontSize));
-  }
-
-  Widget _buildPreviewImageBlock(Map<String, dynamic> block) {
-    final value = ApiService.pickMediaValueFromBlock(block);
-    final path = ApiService.extractMediaPath(value);
-    final url = ApiService.buildMediaUrl(path.isNotEmpty ? path : value);
-    if (url.isEmpty) return const SizedBox.shrink();
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
-      child: Image.network(
-        url,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => const Text('Failed to load image'),
-      ),
-    );
-  }
-
-  Widget _buildPreviewVideoBlock(Map<String, dynamic> block) {
-    final value = ApiService.pickMediaValueFromBlock(block);
-    final path = ApiService.extractMediaPath(value);
-    final url = ApiService.buildMediaUrl(path.isNotEmpty ? path : value);
-    if (url.isEmpty) return const SizedBox.shrink();
-
-    final caption = (block['caption'] ?? '').toString();
-=======
   // ========= Editor rendering =========
 
   Widget _buildEditorBlock(int index, _LessonBlock block) {
@@ -1667,23 +1167,10 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     final media = block.media!;
     final isUploading = media.status == _MediaStatus.uploading;
     final isFailed = media.status == _MediaStatus.failed;
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-<<<<<<< HEAD
-        LessonVideoPlayer(url: url),
-        if (caption.isNotEmpty) ...[
-          const SizedBox(height: 6),
-          Text(
-            caption,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: EduTheme.primaryDark.withValues(alpha: 0.7),
-                ),
-          ),
-        ],
-=======
         Row(
           children: [
             Icon(_iconForKind(media.kind), color: EduTheme.primaryDark),
@@ -1733,114 +1220,10 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
         ),
         const SizedBox(height: 8),
         _buildMediaPreview(media),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
       ],
     );
   }
 
-<<<<<<< HEAD
-  Widget _buildPreviewAudioBlock(Map<String, dynamic> block) {
-    final value = ApiService.pickMediaValueFromBlock(block);
-    final path = ApiService.extractMediaPath(value);
-    final url = ApiService.buildMediaUrl(path.isNotEmpty ? path : value);
-    if (url.isEmpty) return const SizedBox.shrink();
-    return LessonAudioPlayer(url: url);
-  }
-
-  // ======== Build blocks from content + tokens ========
-
-  List<Map<String, dynamic>> _buildBlocksFromContent(String content) {
-    final raw = content.trim();
-    if (raw.isEmpty && _pendingMedia.isEmpty) return [];
-
-    // نقسم النص بناءً على tokens [[MEDIA:id]]
-    final tokens = _MediaToken.regex.allMatches(raw).toList();
-
-    final blocks = <Map<String, dynamic>>[];
-    int position = 1;
-    int cursor = 0;
-
-    void addTextBlock(String text) {
-      final t = text.trim();
-      if (t.isEmpty) return;
-      blocks.add({
-        'id': null,
-        'type': 'text',
-        'body': t,
-        'caption': null,
-        'media_url': null,
-        'media_path': null,
-        'media_mime': null,
-        'media_size': null,
-        'media_duration': null,
-        'module_id': _selectedModule?.tempId,
-        'topic_id': null,
-        'position': position++,
-        'meta': {'font_size': _fontSize},
-      });
-    }
-
-    void addMediaBlock(String id) {
-      final media = _pendingMedia.firstWhere(
-        (m) => m.id == id,
-        orElse: () => _PendingMedia.missing(id),
-      );
-
-      if (media.isMissing) {
-        // token بدون ميديا — نعتبره نصاً حتى لا نكسر المحتوى
-        addTextBlock(_MediaToken.encode(id));
-        return;
-      }
-
-      final type = media.kind == _MediaKind.image
-          ? 'image'
-          : media.kind == _MediaKind.video
-              ? 'video'
-              : 'audio';
-
-      blocks.add({
-        'id': null,
-        'type': type,
-        'body': null,
-        'caption': null,
-        'media_url': null,
-        'media_path': media.mediaPath.isNotEmpty ? media.mediaPath : null,
-        'media_mime': media.mime,
-        'media_size': media.size,
-        'media_duration': null,
-        'module_id': _selectedModule?.tempId,
-        'topic_id': null,
-        'position': position++,
-        'meta': {'font_size': _fontSize},
-      });
-    }
-
-    for (final m in tokens) {
-      final before = raw.substring(cursor, m.start);
-      addTextBlock(before);
-
-      final id = _MediaToken.decode(m.group(0) ?? '');
-      if (id != null && id.isNotEmpty) {
-        addMediaBlock(id);
-      }
-
-      cursor = m.end;
-    }
-
-    if (cursor < raw.length) {
-      addTextBlock(raw.substring(cursor));
-    }
-
-    // إذا لا يوجد tokens لكن هناك ميديا (حالة نادرة) — نضيفهم بالآخر
-    if (tokens.isEmpty && _pendingMedia.isNotEmpty) {
-      for (final media in _pendingMedia) {
-        if (media.status != _MediaStatus.ready) continue;
-        addMediaBlock(media.id);
-      }
-    }
-
-    return blocks;
-=======
   void _removeBlockAt(int index) {
     setState(() {
       final removed = _blocks.removeAt(index);
@@ -1939,7 +1322,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       case _MediaKind.voice:
         return 'Voice';
     }
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
   }
 
   Widget _buildBottomButtons(double bottomInset) {
@@ -1985,185 +1367,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       ),
     );
   }
-<<<<<<< HEAD
-
-  // ===== Teacher preview cards =====
-
-  Widget _buildMediaCard(_PendingMedia media) {
-    final isUploading = media.status == _MediaStatus.uploading;
-    final isFailed = media.status == _MediaStatus.failed;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x11000000),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
-            child: Row(
-              children: [
-                Icon(_iconForKind(media.kind), color: EduTheme.primaryDark),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    _labelForKind(media.kind),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: EduTheme.primaryDark,
-                        ),
-                  ),
-                ),
-                if (isUploading)
-                  const Padding(
-                    padding: EdgeInsets.only(right: 8.0),
-                    child: SizedBox(
-                      height: 16,
-                      width: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
-                if (isFailed)
-                  const Padding(
-                    padding: EdgeInsets.only(right: 8.0),
-                    child: Icon(Icons.error_outline_rounded, color: Colors.red),
-                  ),
-                if (isFailed)
-                  TextButton(
-                    onPressed: () async {
-                      if (media.localPath == null || media.localPath!.isEmpty) return;
-                      setState(() {
-                        final idx = _pendingMedia.indexWhere((m) => m.id == media.id);
-                        if (idx != -1) {
-                          _pendingMedia[idx] = _pendingMedia[idx].copyWith(status: _MediaStatus.uploading);
-                        }
-                      });
-                      await _uploadMedia(id: media.id, localPath: media.localPath!);
-                    },
-                    child: const Text('Retry'),
-                  ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline_rounded),
-                  onPressed: () => _removeMedia(media.id),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-            child: _buildTeacherMediaPreview(media),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _removeMedia(String id) {
-    setState(() {
-      _pendingMedia.removeWhere((m) => m.id == id);
-
-      // ✅ إزالة token من المحتوى أيضًا (حل نهائي)
-      final token = _MediaToken.encode(id);
-      final txt = _contentController.text;
-      _contentController.text = txt.replaceAll(token, '').replaceAll('\n\n\n', '\n\n').trim();
-
-      _previewBlocks = _buildBlocksFromContent(_contentController.text);
-      _hasUnsavedChanges = true;
-    });
-  }
-
-  IconData _iconForKind(_MediaKind k) {
-    switch (k) {
-      case _MediaKind.image:
-        return Icons.image_rounded;
-      case _MediaKind.video:
-        return Icons.videocam_rounded;
-      case _MediaKind.audio:
-      case _MediaKind.voice:
-        return Icons.audiotrack_rounded;
-    }
-  }
-
-  String _labelForKind(_MediaKind k) {
-    switch (k) {
-      case _MediaKind.image:
-        return 'Image';
-      case _MediaKind.video:
-        return 'Video';
-      case _MediaKind.audio:
-        return 'Audio';
-      case _MediaKind.voice:
-        return 'Voice';
-    }
-  }
-
-  Widget _buildTeacherMediaPreview(_PendingMedia media) {
-    // ✅ local preview (instant)
-    final localPath = media.localPath;
-    if (localPath != null && localPath.isNotEmpty && File(localPath).existsSync()) {
-      final f = File(localPath);
-
-      if (media.kind == _MediaKind.image) {
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.file(
-            f,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const Text('Failed to preview image'),
-          ),
-        );
-      }
-
-      if (media.kind == _MediaKind.video) {
-        return LessonVideoPlayer(url: 'file://$localPath');
-      }
-
-      return LessonAudioPlayer(url: 'file://$localPath');
-    }
-
-    // ✅ remote preview
-    final url = media.remoteUrl.isNotEmpty
-        ? media.remoteUrl
-        : (media.mediaPath.isNotEmpty ? ApiService.buildMediaUrl(media.mediaPath) : '');
-
-    if (url.isEmpty) {
-      return Text(
-        media.status == _MediaStatus.failed ? 'Upload failed.' : 'Waiting for upload...',
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: EduTheme.primaryDark.withValues(alpha: 0.6),
-            ),
-      );
-    }
-
-    if (media.kind == _MediaKind.image) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Image.network(
-          url,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const Text('Failed to load image'),
-        ),
-      );
-    }
-
-    if (media.kind == _MediaKind.video) {
-      return LessonVideoPlayer(url: url);
-    }
-
-    return LessonAudioPlayer(url: url);
-  }
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 }
 
 // ======== Helper internal models ========
@@ -2187,15 +1390,9 @@ class _PendingMedia {
   final String id;
   final _MediaKind kind;
 
-<<<<<<< HEAD
-  final String? localPath; // local preview (optional)
-  final String mediaPath; // lessons/...
-  final String remoteUrl; // full url if provided
-=======
   final String? localPath;
   final String mediaPath;
   final String remoteUrl;
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
   final String? mime;
   final int? size;
   final _MediaStatus status;
@@ -2246,20 +1443,6 @@ class _PendingMedia {
   }
 }
 
-<<<<<<< HEAD
-// ======== Token helper (replaces old placeholders) ========
-
-class _MediaToken {
-  // token example: [[MEDIA:123456]]
-  static final RegExp regex = RegExp(r'\[\[MEDIA:([0-9]+)\]\]');
-
-  static String encode(String id) => '[[MEDIA:$id]]';
-
-  static String? decode(String token) {
-    final m = regex.firstMatch(token);
-    if (m == null) return null;
-    return m.group(1);
-=======
 enum _LessonBlockType { text, media }
 
 class _LessonBlock {
@@ -2338,7 +1521,6 @@ class _LessonBlock {
       'media_mime': m.mime,
       'media_size': m.size,
     };
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
   }
 }
 
@@ -2419,15 +1601,10 @@ class _LessonVideoPlayerState extends State<LessonVideoPlayer> {
             child: IconButton(
               iconSize: 48,
               icon: Icon(
-<<<<<<< HEAD
-                c.value.isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill,
-                color: Colors.white.withValues(alpha: 0.9),
-=======
                 c.value.isPlaying
                     ? Icons.pause_circle_filled
                     : Icons.play_circle_fill,
                 color: Colors.white.withOpacity(0.9),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
               ),
               onPressed: () {
                 setState(() {
@@ -2473,10 +1650,6 @@ class _LessonAudioPlayerState extends State<LessonAudioPlayer> {
 
   Future<void> _setup() async {
     try {
-<<<<<<< HEAD
-      // listeners أولاً
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
       _player.onDurationChanged.listen((d) {
         if (!mounted) return;
         setState(() {
@@ -2577,11 +1750,7 @@ class _LessonAudioPlayerState extends State<LessonAudioPlayer> {
   }
 }
 
-<<<<<<< HEAD
-// ======== Minimal ticker (بدون إضافة package) ========
-=======
 // ======== Minimal ticker ========
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 
 class Ticker {
   Ticker(this.onTick);
@@ -2615,8 +1784,4 @@ class Ticker {
       onTick(elapsed);
     }
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492

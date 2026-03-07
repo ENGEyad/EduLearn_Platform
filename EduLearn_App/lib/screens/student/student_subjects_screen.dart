@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme.dart';
-<<<<<<< HEAD
-import '../../services/api_service.dart';
-=======
 import '../../services/student_service.dart';
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 
 import 'student_subject_detail_screen.dart';
 
@@ -66,11 +62,7 @@ class _StudentSubjectsScreenState extends State<StudentSubjectsScreen> {
     });
 
     try {
-<<<<<<< HEAD
-      final List<dynamic> fresh = await ApiService.fetchStudentSubjects(
-=======
       final List<dynamic> fresh = await StudentService.fetchStudentSubjects(
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         academicId: academicId,
       );
 

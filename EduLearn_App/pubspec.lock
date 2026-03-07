@@ -822,9 +822,5 @@ packages:
     source: hosted
     version: "1.1.0"
 sdks:
-<<<<<<< HEAD
-  dart: ">=3.10.7 <4.0.0"
-=======
   dart: ">=3.9.2 <4.0.0"
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
   flutter: ">=3.35.0"

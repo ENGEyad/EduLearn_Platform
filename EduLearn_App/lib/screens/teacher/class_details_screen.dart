@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../theme.dart';
 import 'lesson_builder_screen.dart';
-<<<<<<< HEAD
-import '../../services/api_service.dart';
-=======
 
 // ✅ بدل api_service.dart
 import '../../services/lesson_service.dart';
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 
 class ClassDetailsScreen extends StatefulWidget {
   final String classTitle;
@@ -75,28 +71,17 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     });
 
     try {
-<<<<<<< HEAD
-      final modules = await ApiService.fetchLessonModules(
-=======
       final modules = await LessonService.fetchLessonModules(
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         teacherCode: widget.teacherCode,
         assignmentId: widget.assignmentId,
         classSectionId: widget.classSectionId,
         subjectId: widget.subjectId,
       );
 
-<<<<<<< HEAD
-      // ✅ تحسين بسيط: حماية من اختلاف نوع lessons_count (قد يأتي String)
-      _modules = modules.map((m) {
-        final rawCount = m['lessons_count'] ?? 0;
-        final intCount = rawCount is int ? rawCount : int.tryParse('$rawCount') ?? 0;
-=======
       _modules = modules.map((m) {
         final rawCount = m['lessons_count'] ?? 0;
         final intCount =
             rawCount is int ? rawCount : int.tryParse('$rawCount') ?? 0;
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 
         return _LessonModule(
           id: m['id'] as int,
@@ -127,11 +112,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     });
 
     try {
-<<<<<<< HEAD
-      final lessons = await ApiService.fetchLessonsForModule(
-=======
       final lessons = await LessonService.fetchLessonsForModule(
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         moduleId: module.id,
       );
 
@@ -143,11 +124,6 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
               ))
           .toList();
 
-<<<<<<< HEAD
-      // ✅ تحديث العدّاد المحلي للدروس داخل الوحدة بدون تغيير التصميم
-      // حتى لا يبقى lessonsCount قديم بعد إضافة/حذف/تعديل.
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
       final idx = _modules.indexWhere((m) => m.id == module.id);
       if (idx != -1) {
         _modules[idx].lessonsCount = _lessons.length;
@@ -186,15 +162,8 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
   // ======== زر الـ FAB في تبويب الدروس ========
   void _onLessonsFabPressed() {
     if (!_inModuleLessonsView) {
-<<<<<<< HEAD
-      // إضافة وحدة جديدة (ClassModule)
       _showAddModuleDialog();
     } else {
-      // إضافة درس جديد داخل الوحدة الحالية
-=======
-      _showAddModuleDialog();
-    } else {
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
       _openLessonBuilderForNewLesson();
     }
   }
@@ -245,11 +214,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     if (title.isEmpty) return;
 
     try {
-<<<<<<< HEAD
-      final created = await ApiService.createLessonModule(
-=======
       final created = await LessonService.createLessonModule(
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         teacherCode: widget.teacherCode,
         assignmentId: widget.assignmentId,
         classSectionId: widget.classSectionId,
@@ -267,10 +232,6 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
         _modules.add(newModule);
       });
 
-<<<<<<< HEAD
-      // مباشرة ندخل على دروس هذه الوحدة (فارغة حالياً)
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
       await _openModule(newModule);
     } catch (e) {
       _showSnack(e.toString().replaceFirst('Exception: ', ''));
@@ -359,11 +320,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     if (newTitle.isEmpty || newTitle == module.title) return;
 
     try {
-<<<<<<< HEAD
-      await ApiService.updateLessonModule(
-=======
       await LessonService.updateLessonModule(
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         moduleId: module.id,
         title: newTitle,
       );
@@ -403,11 +360,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     if (confirmed != true) return;
 
     try {
-<<<<<<< HEAD
-      await ApiService.deleteLessonModule(moduleId: module.id);
-=======
       await LessonService.deleteLessonModule(moduleId: module.id);
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 
       setState(() {
         _modules.removeWhere((m) => m.id == module.id);
@@ -424,10 +377,6 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
 
   // ======== فتح LessonBuilder لدرس جديد ========
   Future<void> _openLessonBuilderForNewLesson() async {
-<<<<<<< HEAD
-    // ✅ حماية: لا نسمح بفتح الـ Builder بدون اختيار ClassModule (حاوية)
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
     if (_activeModule == null) {
       _showSnack('اختر وحدة أولاً أو أضف وحدة جديدة.');
       return;
@@ -443,14 +392,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
           assignmentId: widget.assignmentId,
           classSectionId: widget.classSectionId,
           subjectId: widget.subjectId,
-<<<<<<< HEAD
-          // درس جديد → بدون existingLessonId
           existingLessonId: null,
-          // ✅ هذا هو class_module_id (الحاوية) — ما زلنا نمرره باسم moduleId
-          // حفاظاً على عدم كسر LessonBuilderScreen الحالي
-=======
-          existingLessonId: null,
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
           moduleId: _activeModule!.id,
           moduleTitle: _activeModule!.title,
         ),
@@ -477,10 +419,6 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
           classSectionId: widget.classSectionId,
           subjectId: widget.subjectId,
           existingLessonId: lesson.id,
-<<<<<<< HEAD
-          // ✅ هذا هو class_module_id (الحاوية)
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
           moduleId: _activeModule!.id,
           moduleTitle: _activeModule!.title,
         ),
@@ -543,31 +481,14 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     if (confirmed != true) return;
 
     try {
-<<<<<<< HEAD
-      /**
-       * ✅ إصلاح مهم:
-       * ApiService.deleteLessons في النسخة المعدلة يتطلب teacherCode
-       * لأن الـ backend يتحقق من ملكية الدروس للأستاذ.
-       */
-      await ApiService.deleteLessons(
-=======
       await LessonService.deleteLessons(
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         teacherCode: widget.teacherCode,
         lessonIds: _selectedLessonIds.toList(),
       );
 
       setState(() {
-<<<<<<< HEAD
-        _lessons.removeWhere(
-          (l) => _selectedLessonIds.contains(l.id),
-        );
-
-        // ✅ تحديث عدّاد دروس الوحدة الحالية بدون تغيير UI
-=======
         _lessons.removeWhere((l) => _selectedLessonIds.contains(l.id));
 
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         if (_activeModule != null) {
           final idx = _modules.indexWhere((m) => m.id == _activeModule!.id);
           if (idx != -1) {
@@ -592,15 +513,9 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
         _isLessonSelectionMode = false;
         _selectedLessonIds.clear();
       });
-<<<<<<< HEAD
-      return false; // لا تخرج من الشاشة، بس ألغِ التحديد
-    }
-    return true; // سلوك عادي
-=======
       return false;
     }
     return true;
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
   }
 
   @override
@@ -652,12 +567,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
           children: [
             const SizedBox(height: 10),
             Padding(
-<<<<<<< HEAD
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-=======
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
               child: _buildHeaderCard(),
             ),
             const SizedBox(height: 12),
@@ -672,20 +582,12 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                   const SizedBox(width: 10),
                   _buildStatCard(
                     title: 'Avg. Grade',
-<<<<<<< HEAD
-                    value: '88%', // وهمي حالياً
-=======
                     value: '88%',
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                   ),
                   const SizedBox(width: 10),
                   _buildStatCard(
                     title: 'Assignments Due',
-<<<<<<< HEAD
-                    value: '3', // وهمي حالياً
-=======
                     value: '3',
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                   ),
                 ],
               ),
@@ -695,12 +597,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
             const SizedBox(height: 4),
             Expanded(
               child: Padding(
-<<<<<<< HEAD
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 4),
-=======
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                 child: _buildTabContent(),
               ),
             ),
@@ -718,22 +615,13 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-<<<<<<< HEAD
-            color: Colors.black.withValues(alpha: 0.03),
-=======
             color: Colors.black.withOpacity(0.03),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-<<<<<<< HEAD
-      padding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-=======
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -763,22 +651,13 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
   Widget _buildStatCard({required String title, required String value}) {
     return Expanded(
       child: Container(
-<<<<<<< HEAD
-        padding:
-            const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-=======
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-<<<<<<< HEAD
-              color: Colors.black.withValues(alpha: 0.03),
-=======
               color: Colors.black.withOpacity(0.03),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -848,12 +727,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
             label,
             style: TextStyle(
               fontSize: 13,
-<<<<<<< HEAD
-              fontWeight:
-                  selected ? FontWeight.w700 : FontWeight.w600,
-=======
               fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
               color: selected ? EduTheme.primaryDark : EduTheme.textMuted,
             ),
           ),
@@ -905,22 +779,13 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-<<<<<<< HEAD
-                  color: Colors.black.withValues(alpha: 0.03),
-=======
                   color: Colors.black.withOpacity(0.03),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
-<<<<<<< HEAD
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-=======
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
             child: Row(
               children: [
                 CircleAvatar(
@@ -943,12 +808,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
-<<<<<<< HEAD
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-=======
                     crossAxisAlignment: CrossAxisAlignment.start,
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                     children: [
                       Text(
                         name,
@@ -988,10 +848,6 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     }
 
     if (!_inModuleLessonsView) {
-<<<<<<< HEAD
-      // حالة عرض الوحدات
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
       if (_modules.isEmpty) {
         return Center(
           child: Text(
@@ -1020,22 +876,13 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                   borderRadius: BorderRadius.circular(18),
                   boxShadow: [
                     BoxShadow(
-<<<<<<< HEAD
-                      color: Colors.black.withValues(alpha: 0.03),
-=======
                       color: Colors.black.withOpacity(0.03),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-<<<<<<< HEAD
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 12),
-=======
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                 child: Row(
                   children: [
                     Container(
@@ -1054,12 +901,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
-<<<<<<< HEAD
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
-=======
                         crossAxisAlignment: CrossAxisAlignment.start,
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                         children: [
                           Text(
                             module.title,
@@ -1092,17 +934,9 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
         },
       );
     } else {
-<<<<<<< HEAD
-      // حالة عرض دروس وحدة معيّنة
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // شريط علوي داخل التبويب: رجوع + اسم الوحدة
-=======
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
           Row(
             children: [
               IconButton(
@@ -1133,14 +967,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                         child: Text(
                           'لا توجد دروس بعد لهذه الوحدة.\nاستخدم زر + لإضافة أول درس.',
                           textAlign: TextAlign.center,
-<<<<<<< HEAD
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(
-=======
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                                 color: EduTheme.textMuted,
                               ),
                         ),
@@ -1153,17 +980,9 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                               _selectedLessonIds.contains(lesson.id);
 
                           return Padding(
-<<<<<<< HEAD
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 6),
-                            child: InkWell(
-                              borderRadius:
-                                  BorderRadius.circular(18),
-=======
                             padding: const EdgeInsets.symmetric(vertical: 6),
                             child: InkWell(
                               borderRadius: BorderRadius.circular(18),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                               onTap: () {
                                 if (_isLessonSelectionMode) {
                                   _toggleLessonSelection(lesson);
@@ -1183,12 +1002,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                                   color: isSelected
                                       ? const Color(0xFFE8F6FF)
                                       : Colors.white,
-<<<<<<< HEAD
-                                  borderRadius:
-                                      BorderRadius.circular(18),
-=======
                                   borderRadius: BorderRadius.circular(18),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                                   border: Border.all(
                                     color: isSelected
                                         ? EduTheme.primary
@@ -1197,20 +1011,6 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-<<<<<<< HEAD
-                                      color: Colors.black
-                                          .withValues(alpha: 0.03),
-                                      blurRadius: 10,
-                                      offset:
-                                          const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                padding: const EdgeInsets
-                                    .symmetric(
-                                        horizontal: 14,
-                                        vertical: 10),
-=======
                                       color: Colors.black.withOpacity(0.03),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
@@ -1219,26 +1019,15 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                                 ),
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 14, vertical: 10),
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                                 child: Row(
                                   children: [
                                     if (_isLessonSelectionMode)
                                       Padding(
                                         padding:
-<<<<<<< HEAD
-                                            const EdgeInsets
-                                                .only(
-                                                right: 6),
-                                        child: Icon(
-                                          isSelected
-                                              ? Icons
-                                                  .check_circle_rounded
-=======
                                             const EdgeInsets.only(right: 6),
                                         child: Icon(
                                           isSelected
                                               ? Icons.check_circle_rounded
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                                               : Icons
                                                   .radio_button_unchecked_rounded,
                                           color: isSelected
@@ -1250,39 +1039,6 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
-<<<<<<< HEAD
-                                            CrossAxisAlignment
-                                                .start,
-                                        children: [
-                                          Text(
-                                            lesson.title,
-                                            style:
-                                                const TextStyle(
-                                              fontWeight:
-                                                  FontWeight
-                                                      .w700,
-                                              fontSize: 15,
-                                              color: EduTheme
-                                                  .primaryDark,
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                              height: 2),
-                                          Text(
-                                            lesson.status ==
-                                                    'draft'
-                                                ? 'مسودة'
-                                                : 'منشور',
-                                            style:
-                                                TextStyle(
-                                              fontSize: 12,
-                                              color: lesson.status ==
-                                                      'draft'
-                                                  ? Colors
-                                                      .orange
-                                                  : EduTheme
-                                                      .textMuted,
-=======
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
@@ -1303,22 +1059,14 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                                               color: lesson.status == 'draft'
                                                   ? Colors.orange
                                                   : EduTheme.textMuted,
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                                             ),
                                           ),
                                         ],
                                       ),
                                     ),
                                     const Icon(
-<<<<<<< HEAD
-                                      Icons
-                                          .chevron_right_rounded,
-                                      color:
-                                          EduTheme.textMuted,
-=======
                                       Icons.chevron_right_rounded,
                                       color: EduTheme.textMuted,
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
                                     ),
                                   ],
                                 ),

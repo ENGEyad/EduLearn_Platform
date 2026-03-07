@@ -44,9 +44,4 @@
         </intent>
     </queries>
 
-<<<<<<< HEAD
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
-=======
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 </manifest>

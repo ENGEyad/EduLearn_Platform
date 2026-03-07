@@ -52,11 +52,7 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
 
     try {
       final List<dynamic> fresh =
-<<<<<<< HEAD
-          await ApiService.fetchTeacherAssignments(teacherCode: teacherCode);
-=======
           await TeacherService.fetchTeacherAssignments(teacherCode: teacherCode);
->>>>>>> 6a86bc1197f81540b5d636365760ead1205a1492
 
       setState(() {
         _assignments = fresh;
