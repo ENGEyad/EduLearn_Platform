@@ -480,6 +480,14 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                     await _pickAudioFile();
                   },
                 ),
+                _sheetItem(
+                  icon: Icons.picture_as_pdf_rounded,
+                  title: 'PDF Document',
+                  onTap: () async {
+                    Navigator.of(ctx).pop();
+                    await _pickPDF();
+                  },
+                ),
               ],
             ),
           ),
@@ -526,6 +534,17 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     final path = result.files.single.path;
     if (path == null) return;
     await _attachAndUploadMedia(kind: _MediaKind.audio, localPath: path);
+  }
+
+  Future<void> _pickPDF() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+    if (result == null || result.files.isEmpty) return;
+    final path = result.files.single.path;
+    if (path == null) return;
+    await _attachAndUploadMedia(kind: _MediaKind.pdf, localPath: path);
   }
 
   // =================== Media Attachment + Upload ===================
@@ -790,7 +809,9 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
           ? 'image'
           : media.kind == _MediaKind.video
               ? 'video'
-              : 'audio'; // audio + voice
+              : media.kind == _MediaKind.pdf
+                  ? 'file'
+                  : 'audio'; // audio + voice
 
       blocks.add({
         'id': null,
@@ -929,50 +950,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.classTitle,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: EduTheme.primaryDark,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Class: ${widget.classKey} • Students: ${widget.studentsCount}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: EduTheme.primaryDark.withOpacity(0.6),
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Module: ${widget.moduleTitle}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: EduTheme.primaryDark.withOpacity(0.6),
-                        ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _titleController,
-                    decoration: const InputDecoration(
-                      labelText: 'Lesson Title',
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Lesson Content',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: EduTheme.primaryDark,
-                        ),
-                  ),
-                ],
-              ),
-            ),
             Expanded(
               child: Container(
                 decoration: const BoxDecoration(
@@ -986,6 +963,45 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const SizedBox(height: 12),
+                        // 🔹 Moving lesson info and title inside scrollable area to fix overflow
+                        Text(
+                          widget.classTitle,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: EduTheme.primaryDark,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Class: ${widget.classKey} • Students: ${widget.studentsCount}',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: EduTheme.primaryDark.withOpacity(0.6),
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Module: ${widget.moduleTitle}',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: EduTheme.primaryDark.withOpacity(0.6),
+                              ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _titleController,
+                          decoration: const InputDecoration(
+                            labelText: 'Lesson Title',
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        Text(
+                          'Lesson Content',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: EduTheme.primaryDark,
+                              ),
+                        ),
+                        const SizedBox(height: 10),
                         _buildToolbar(),
                         const SizedBox(height: 10),
 
@@ -1264,6 +1280,29 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
         return LessonVideoPlayer(url: 'file://$localPath');
       }
 
+      if (media.kind == _MediaKind.pdf) {
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.red.withOpacity(0.3)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.picture_as_pdf_rounded, color: Colors.red, size: 30),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  localPath.split('/').last,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
       return LessonAudioPlayer(url: 'file://$localPath');
     }
 
@@ -1296,6 +1335,30 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       return LessonVideoPlayer(url: url);
     }
 
+    if (media.kind == _MediaKind.pdf) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.red.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.red.withOpacity(0.2)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.picture_as_pdf_rounded, color: Colors.red, size: 30),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'PDF Document',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+            const Icon(Icons.open_in_new_rounded, size: 18, color: Colors.grey),
+          ],
+        ),
+      );
+    }
+
     return LessonAudioPlayer(url: url);
   }
 
@@ -1308,6 +1371,8 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       case _MediaKind.audio:
       case _MediaKind.voice:
         return Icons.audiotrack_rounded;
+      case _MediaKind.pdf:
+        return Icons.picture_as_pdf_rounded;
     }
   }
 
@@ -1321,12 +1386,17 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
         return 'Audio';
       case _MediaKind.voice:
         return 'Voice';
+      case _MediaKind.pdf:
+        return 'PDF Documentation';
     }
   }
 
   Widget _buildBottomButtons(double bottomInset) {
+    // Note: Since resizeToAvoidBottomInset is true, the Scaffold already handles the inset.
+    // Adding it again here doubles the space and causes overflow. 
+    // We only need some padding if there's no keyboard.
     return Container(
-      padding: EdgeInsets.fromLTRB(18, 10, 18, 10 + bottomInset),
+      padding: EdgeInsets.fromLTRB(18, 10, 18, bottomInset > 0 ? 10 : 24),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -1383,7 +1453,7 @@ class _ModuleData {
   });
 }
 
-enum _MediaKind { image, video, audio, voice }
+enum _MediaKind { image, video, audio, voice, pdf }
 enum _MediaStatus { uploading, ready, failed, missing }
 
 class _PendingMedia {
@@ -1513,7 +1583,9 @@ class _LessonBlock {
         ? 'image'
         : m.kind == _MediaKind.video
             ? 'video'
-            : 'audio';
+            : m.kind == _MediaKind.pdf
+                ? 'file'
+                : 'audio';
     return {
       'id': id,
       'type': typeStr,

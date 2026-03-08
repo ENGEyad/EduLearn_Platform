@@ -5,17 +5,17 @@
   <div class="col-12">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
-        <h5 class="mb-1">Classes</h5>
-        <small class="text-muted">Manage grades and sections</small>
+        <h5 class="mb-1">الفصول الدراسية</h5>
+        <small class="text-muted">إدارة الصفوف والأقسام</small>
       </div>
       <button id="btnAddClass" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i> Add Class
+        <i class="bi bi-plus-lg me-1"></i> إضافة فصل
       </button>
     </div>
 
     <div class="table-shell">
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="fw-semibold">Classes list</div>
+        <div class="fw-semibold">قائمة الفصول</div>
       </div>
 
       <div class="table-responsive">
@@ -23,12 +23,12 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>Grade</th>
-              <th>Section</th>
-              <th>Name</th>
-              <th>Stage</th>
-              <th>Active</th>
-              <th style="width: 140px;">Actions</th>
+              <th>الصف</th>
+              <th>القسم</th>
+              <th>الاسم</th>
+              <th>المرحلة</th>
+              <th>نشط</th>
+              <th style="width: 140px;">إجراءات</th>
             </tr>
           </thead>
           <tbody>
@@ -49,39 +49,39 @@
         <input type="hidden" id="class_id">
 
         <div class="modal-header">
-          <h5 class="modal-title" id="classModalTitle">Add Class</h5>
+          <h5 class="modal-title" id="classModalTitle">إضافة فصل</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label">Grade</label>
+            <label class="form-label">الصف</label>
             <input type="text" class="form-control" id="grade" required>
-            <small class="text-muted">Example: 1, 2, 3, 9</small>
+            <small class="text-muted">مثال: 1, 2, 3, 9</small>
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Section</label>
+            <label class="form-label">القسم</label>
             <input type="text" class="form-control" id="section" required>
-            <small class="text-muted">Example: A, B, 1, 2</small>
+            <small class="text-muted">مثال: A, B, 1, 2</small>
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Name</label>
+            <label class="form-label">الاسم</label>
             <input type="text" class="form-control" id="name" required>
-            <small class="text-muted">Example: Grade 2 - A</small>
+            <small class="text-muted">مثال: الصف 2 - أ</small>
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Stage (optional)</label>
+            <label class="form-label">المرحلة (اختياري)</label>
             <input type="text" class="form-control" id="stage">
-            <small class="text-muted">Example: Primary, Middle, High</small>
+            <small class="text-muted">مثال: ابتدائي, متوسط, ثانوي</small>
           </div>
 
           <div class="form-check">
             <input class="form-check-input" type="checkbox" id="class_is_active" checked>
             <label class="form-check-label" for="class_is_active">
-              Active
+              نشط
             </label>
           </div>
 
@@ -89,10 +89,8 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">
-            Save
-          </button>
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ</button>
         </div>
       </form>
     </div>

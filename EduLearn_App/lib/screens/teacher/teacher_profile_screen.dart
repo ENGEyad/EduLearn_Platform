@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme.dart';
+import '../../services/auth_service.dart';
+import '../auth/register_screen.dart';
 
 class TeacherProfileScreen extends StatelessWidget {
   final Map<String, dynamic> teacher;      // بيانات الأستاذ كاملة من الـ API
@@ -16,6 +18,40 @@ class TeacherProfileScreen extends StatelessWidget {
   String get fullName => (teacher['full_name'] ?? '').toString();
   String get teacherCode => (teacher['teacher_code'] ?? '').toString();
   String? get imageUrl => teacher['image'] as String?;
+
+  Future<void> _handleLogout(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await AuthService.logout();
+      if (!context.mounted) return;
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const RegisterScreen()),
+        (route) => false,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -191,9 +227,7 @@ class TeacherProfileScreen extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              onTap: () {
-                // لاحقاً: منطق تسجيل الخروج
-              },
+              onTap: () => _handleLogout(context),
             ),
           ),
         ],

@@ -4,10 +4,10 @@
 <div class="d-flex justify-content-between align-items-center mb-3" id="teachersHeader">
   <div class="d-flex gap-2">
     <button class="btn btn-outline-secondary" id="importTeachersBtn">
-      <i class="bi bi-upload"></i> Bulk Import
+      <i class="bi bi-upload"></i> استيراد دفعي
     </button>
     <button class="btn btn-primary" id="openTeacherFormBtn">
-      <i class="bi bi-plus"></i> Add New Teacher
+      <i class="bi bi-plus"></i> إضافة معلم جديد
     </button>
   </div>
 </div>
@@ -28,23 +28,23 @@
                 type="text"
                 id="teacherSearch"
                 class="form-control border-start-0"
-                placeholder="Search by name or ID..."
+                placeholder="ابحث بالاسم أو الرمز..."
               />
             </div>
           </div>
           <div class="col-md-3">
             <select class="form-select" id="teacherSubjectFilter">
-              <option value="">Filter by Subject</option>
-              <option>Mathematics</option>
-              <option>History</option>
-              <option>Biology</option>
+              <option value="">تصفية حسب المادة</option>
+              <option>رياضيات</option>
+              <option>تاريخ</option>
+              <option>أحياء</option>
             </select>
           </div>
           <div class="col-md-3">
             <select class="form-select" id="teacherStatusFilter">
-              <option value="">Filter by Status</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
+              <option value="">تصفية حسب الحالة</option>
+              <option value="Active">نشط</option>
+              <option value="Inactive">غير نشط</option>
             </select>
           </div>
         </div>
@@ -52,12 +52,12 @@
         <table class="table align-middle" id="teachersTable">
           <thead>
             <tr>
-              <th>Full Name</th>
-              <th>Teacher ID</th>
-              <th>Subjects Taught</th>
-              <th>Students</th>
-              <th>Status</th>
-              <th class="text-end">Actions</th>
+              <th>الاسم الكامل</th>
+              <th>رمز المعلم</th>
+              <th>المواد المدرسة</th>
+              <th>الطلاب</th>
+              <th>الحالة</th>
+              <th class="text-end">إجراءات</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -71,49 +71,49 @@
         <div class="profile-header mb-3">
           <div class="avatar-circle" id="teacherAvatar">TC</div>
           <div>
-            <h6 class="profile-name mb-0" id="teacherName">Select a teacher</h6>
-            <div class="profile-meta small text-muted" id="teacherId">Teacher Code: --</div>
+            <h6 class="profile-name mb-0" id="teacherName">تحديد معلم</h6>
+            <div class="profile-meta small text-muted" id="teacherId">رمز المعلم: --</div>
           </div>
         </div>
 
         <div class="mb-2">
-          <strong>Date of Birth:</strong>
+          <strong>تاريخ الميلاد:</strong>
           <div class="text-muted small" id="spTcBirthdate">--</div>
         </div>
 
         <div class="mb-2">
-          <strong>Email:</strong>
+          <strong>البريد الإلكتروني:</strong>
           <div class="text-muted small" id="spTcEmail">--</div>
         </div>
 
         <div class="mb-2">
-          <strong>Address:</strong>
+          <strong>العنوان:</strong>
           <div class="text-muted small" id="spTcAddress">--</div>
         </div>
 
         <hr class="my-2" />
 
         <div class="mb-2">
-          <strong>Phone:</strong>
+          <strong>الهاتف:</strong>
           <div class="text-muted small" id="spTcPhone">--</div>
         </div>
         <div class="mb-2">
-          <strong>Classes / Sections:</strong>
+          <strong>الفصول / الأقسام:</strong>
           <div class="text-muted small" id="spTcClassSection">--</div>
         </div>
         <div class="mb-2">
-          <strong>Subjects:</strong>
+          <strong>المواد:</strong>
           <div class="text-muted small" id="spTcSubjects">--</div>
         </div>
 
         <hr class="my-2" />
 
         <div class="d-flex justify-content-between mb-1">
-          <span class="small text-muted">Performance Average</span>
+          <span class="small text-muted">متوسط الأداء</span>
           <span id="spTcPerformance" class="fw-semibold">--</span>
         </div>
         <div class="d-flex justify-content-between">
-          <span class="small text-muted">Attendance Rate</span>
+          <span class="small text-muted">نسبة الحضور</span>
           <span id="spTcAttendance" class="fw-semibold">--</span>
         </div>
       </div>
@@ -127,96 +127,90 @@
 
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-      <h5 class="mb-1" id="teacherFormTitle">Add New Teacher</h5>
-      <small class="text-muted">Enter teacher personal and contact details</small>
+      <h5 class="mb-1" id="teacherFormTitle">إضافة معلم جديد</h5>
+      <small class="text-muted">أدخل بيانات المعلم الشخصية والتواصل</small>
     </div>
     <button class="btn btn-outline-secondary btn-sm" id="backToTeachersBtn">
-      <i class="bi bi-arrow-left"></i> Back to Teachers
+      <i class="bi bi-arrow-right"></i> الرجوع للمعلمين
     </button>
   </div>
 
   {{-- Personal Information --}}
-  <h6 class="mb-2">Personal Information</h6>
+  <h6 class="mb-2">المعلومات الشخصية</h6>
   <div class="row g-3 mb-3">
     <div class="col-md-4">
-      <label class="form-label">Full Name</label>
-      <input type="text" class="form-control" id="tcFullName" placeholder="e.g. Yasser Abdullah Hassan" required>
+      <label class="form-label">الاسم الكامل</label>
+      <input type="text" class="form-control" id="tcFullName" placeholder="مثال: ياسر عبدالله حسن" required>
     </div>
     <div class="col-md-3">
-      <label class="form-label">Date of Birth</label>
+      <label class="form-label">تاريخ الميلاد</label>
       <input type="date" class="form-control" id="tcBirthdate">
     </div>
     <div class="col-md-2">
-      <label class="form-label">Age</label>
+      <label class="form-label">العمر</label>
       <div class="input-group">
         <input type="text" class="form-control" id="tcAge" readonly>
-        <button class="btn btn-outline-secondary" type="button" id="calcAgeBtn">Calc</button>
+        <button class="btn btn-outline-secondary" type="button" id="calcAgeBtn">حساب</button>
       </div>
     </div>
   </div>
 
   {{-- Duty & Attendance --}}
-  <h6 class="mb-2 mt-4">Duty & Attendance</h6>
+  <h6 class="mb-2 mt-4">بيانات الدوام</h6>
   <div class="row g-3 mb-3">
     <div class="col-md-3">
-      <label class="form-label">Shift</label>
+      <label class="form-label">الفترة</label>
       <select class="form-select" id="tcShift">
-        <option value="">Select</option>
-        <option>Morning</option>
-        <option>Evening</option>
+        <option value="">اختير</option>
+        <option>صباحية</option>
+        <option>مسائية</option>
       </select>
     </div>
     <div class="col-md-3">
-      <label class="form-label">Teacher Phone</label>
+      <label class="form-label">هاتف المعلم</label>
       <input type="text" class="form-control" id="tcPhone" placeholder="77xxxxxxx">
     </div>
     <div class="col-md-4">
-      <label class="form-label">Email (optional)</label>
+      <label class="form-label">البريد الإلكتروني (اختياري)</label>
       <input type="email" class="form-control" id="tcEmail" placeholder="example@school.com">
     </div>
   </div>
 
   {{-- Photo + Assigned classes (read only) --}}
-  <h6 class="mb-2 mt-4">Photo & Assigned Classes</h6>
+  <h6 class="mb-2 mt-4">الصورة والفصول المعينة</h6>
   <div class="row g-3 mb-3">
     <div class="col-md-4">
-      <label class="form-label">Teacher Photo</label>
+      <label class="form-label">صورة المعلم</label>
       <input type="file" class="form-control" id="tcPhoto" accept="image/*">
     </div>
     <div class="col-md-8">
-      <label class="form-label">Classes / Sections (from Assignments)</label>
-      <input
-        type="text"
-        class="form-control"
-        id="tcAssignedClasses"
-        placeholder="Filled automatically from Assignments"
-        readonly
-      >
+      <label class="form-label">الفصول / الأقسام (من التعيينات)</label>
+      <input type="text" class="form-control" id="tcAssignedClasses" placeholder="تملأ تلقائياً من التعيينات" readonly>
     </div>
   </div>
 
   {{-- Social & Address --}}
-  <h6 class="mb-2 mt-4">Social & Address</h6>
+  <h6 class="mb-2 mt-4">العنوان</h6>
   <div class="row g-3 mb-3">
     <div class="col-md-3">
-      <label class="form-label">District</label>
-      <input type="text" class="form-control" id="tcDistrict" placeholder="District">
+      <label class="form-label">المحافظة</label>
+      <input type="text" class="form-control" id="tcDistrict" placeholder="المحافظة">
     </div>
     <div class="col-md-3">
-      <label class="form-label">Neighborhood</label>
-      <input type="text" class="form-control" id="tcNeighborhood" placeholder="Neighborhood">
+      <label class="form-label">الحي</label>
+      <input type="text" class="form-control" id="tcNeighborhood" placeholder="الحي">
     </div>
     <div class="col-md-3">
-      <label class="form-label">Block / Street</label>
-      <input type="text" class="form-control" id="tcStreet" placeholder="Street">
+      <label class="form-label">الشارع</label>
+      <input type="text" class="form-control" id="tcStreet" placeholder="الشارع">
     </div>
   </div>
 
   <div class="d-flex gap-2 mt-4">
     <button class="btn btn-primary" type="button" id="saveTeacherBtn">
-      <i class="bi bi-check2"></i> Save Teacher
+      <i class="bi bi-check2"></i> حفظ المعلم
     </button>
-    <button class="btn btn-light" type="button" id="cancelTeacherBtn">Cancel</button>
+    <button class="btn btn-light" type="button" id="cancelTeacherBtn">إلغاء</button>
   </div>
 
   <div class="alert alert-success mt-3 d-none" id="teacherSavedAlert"></div>

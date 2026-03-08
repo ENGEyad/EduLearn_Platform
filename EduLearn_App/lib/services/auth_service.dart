@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'api_config.dart';
 import 'api_helpers.dart';
 
@@ -38,6 +40,7 @@ class AuthService {
         response.statusCode < 300 &&
         data['success'] == true &&
         data['student'] is Map<String, dynamic>) {
+      await saveSession(data, 'student');
       return data;
     } else {
       final msg = data['message']?.toString() ?? 'Auth failed';
@@ -75,10 +78,41 @@ class AuthService {
         response.statusCode < 300 &&
         data['success'] == true &&
         data['teacher'] is Map<String, dynamic>) {
+      await saveSession(data, 'teacher');
       return data;
     } else {
       final msg = data['message']?.toString() ?? 'Auth failed';
       throw Exception(msg);
     }
+  }
+
+  // =================== Session Management ===================
+
+  static Future<void> saveSession(Map<String, dynamic> data, String type) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_session', jsonEncode(data));
+    await prefs.setString('user_type', type);
+  }
+
+  static Future<Map<String, dynamic>?> getSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final sessionStr = prefs.getString('user_session');
+    if (sessionStr == null) return null;
+    try {
+      return jsonDecode(sessionStr) as Map<String, dynamic>;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<String?> getUserType() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('user_type');
+  }
+
+  static Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_session');
+    await prefs.remove('user_type');
   }
 }

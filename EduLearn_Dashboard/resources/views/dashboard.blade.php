@@ -5,38 +5,38 @@
 <div class="row g-3 mb-3">
   <div class="col-md-2 col-sm-6">
     <div class="stat-card">
-      <div class="text-muted">Total Teachers</div>
+      <div class="text-muted">إجمالي المعلمين</div>
       <h3 class="mt-1 mb-1" id="dashTeachers">{{ $stats['teachers'] ?? 0 }}</h3>
-      <div class="text-success fw-semibold">+2 this month</div>
+      <div class="text-success fw-semibold">‏+2 هذا الشهر</div>
     </div>
   </div>
   <div class="col-md-2 col-sm-6">
     <div class="stat-card">
-      <div class="text-muted">Total Students</div>
+      <div class="text-muted">إجمالي الطلاب</div>
       <h3 class="mt-1 mb-1" id="dashStudents">{{ $stats['students'] ?? 0 }}</h3>
-      <div class="text-success fw-semibold">+15 this month</div>
+      <div class="text-success fw-semibold">‏+15 هذا الشهر</div>
     </div>
   </div>
   <div class="col-md-2 col-sm-6">
     <div class="stat-card">
-      <div class="text-muted">Total Classes</div>
+      <div class="text-muted">إجمالي الفصول</div>
       <h3 class="mt-1 mb-1" id="dashClasses">{{ $stats['classes'] ?? 0 }}</h3>
-      <div class="text-success fw-semibold">+1 this month</div>
+      <div class="text-success fw-semibold">‏+1 هذا الشهر</div>
     </div>
   </div>
   <div class="col-md-2 col-sm-6">
     <div class="stat-card">
-      <div class="text-muted">Total Subjects</div>
+      <div class="text-muted">إجمالي المواد</div>
       <h3 class="mt-1 mb-1" id="dashSubjects">{{ $stats['subjects'] ?? 0 }}</h3>
-      <div class="text-muted">+0 this month</div>
+      <div class="text-muted">‏+0 هذا الشهر</div>
     </div>
   </div>
   <div class="col-md-4 col-sm-12">
     <div class="stat-card d-flex justify-content-between align-items-center">
       <div>
-        <div class="text-muted">Daily Attendance</div>
+        <div class="text-muted">الحضور اليومي</div>
         <h3 class="mt-1 mb-1" id="dashAttendance">{{ $stats['attendance'] ?? 0 }}%</h3>
-        <div class="text-danger fw-semibold">-1.5% from yesterday</div>
+        <div class="text-danger fw-semibold">‏-1.5% عن أمس</div>
       </div>
       <i class="bi bi-activity fs-1 text-primary"></i>
     </div>
@@ -46,12 +46,12 @@
 <div class="row g-3 mb-3">
   <div class="col-lg-4">
     <div class="card-panel h-100">
-      <div class="section-title mb-1">Overall Student Performance</div>
+      <div class="section-title mb-1">أداء الطلاب العام</div>
       <div class="d-flex align-items-center gap-1 mb-1">
-        <h2 class="mb-0">B+ Average</h2>
+        <h2 class="mb-0">متوسط B+</h2>
         <span class="text-success fw-semibold" style="font-size:.8rem;">+2.1%</span>
       </div>
-      <p class="text-muted mb-2">Grade distribution</p>
+      <p class="text-muted mb-2">توزيع الدرجات</p>
       <canvas id="gradeChart" height="180"></canvas>
     </div>
   </div>
@@ -59,10 +59,10 @@
     <div class="card-panel h-100">
       <div class="d-flex justify-content-between align-items-center mb-1">
         <div>
-          <div class="section-title mb-0">Weekly Attendance Trend</div>
+          <div class="section-title mb-0">اتجاه الحضور الأسبوعي</div>
           <small class="text-danger">-0.5%</small>
         </div>
-        <div class="text-muted small">93% Avg.</div>
+        <div class="text-muted small">93% متوسط</div>
       </div>
       <canvas id="attendanceChart" height="100"></canvas>
     </div>
@@ -72,18 +72,18 @@
 <div class="row g-3">
   <div class="col-lg-6">
     <div class="card-panel">
-      <div class="section-title">Recent Activities</div>
-      <p class="text-muted mb-1">• 3 new students enrolled</p>
-      <p class="text-muted mb-1">• 1 class created (Grade 8 – A)</p>
-      <p class="text-muted mb-0">• Attendance report generated</p>
+      <div class="section-title">أحداث حديثة</div>
+      <p class="text-muted mb-1">• تسجيل 3 طلاب جدد</p>
+      <p class="text-muted mb-1">• إنشاء فصل جديد (الصف 8 – أ)</p>
+      <p class="text-muted mb-0">• تم إنشاء تقرير الحضور</p>
     </div>
   </div>
   <div class="col-lg-6">
     <div class="card-panel">
-      <div class="section-title">Alerts</div>
-      <p class="text-muted mb-1">• 2 classes have attendance below 85%</p>
-      <p class="text-muted mb-1">• Teacher Jane Smith marked absent</p>
-      <p class="text-muted mb-0">• Backup is due in 2 days</p>
+      <div class="section-title">تنبيهات</div>
+      <p class="text-muted mb-1">• فصلان بحضور أقل من 85%</p>
+      <p class="text-muted mb-1">• المعلمة جين سميث مسجلة كغائبة</p>
+      <p class="text-muted mb-0">• النسخ الاحتياطية متأخرة يومين</p>
     </div>
   </div>
 </div>

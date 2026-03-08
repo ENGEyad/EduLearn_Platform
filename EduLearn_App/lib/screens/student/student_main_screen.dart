@@ -52,10 +52,8 @@ class _StudentMainScreenState extends State<StudentMainScreen> {
       ),
       // لو بروفايل يحتاج بيانات الطالب عدله كذا:
       StudentProfileScreen(
-        // student: widget.student,
+        student: widget.student,
       ),
-      // لو بروفايل فعلاً بدون أي باراميتر خليه:
-      // const StudentProfileScreen(),
     ];
 
     return WillPopScope(

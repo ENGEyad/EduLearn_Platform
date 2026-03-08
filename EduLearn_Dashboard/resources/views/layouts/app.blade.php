@@ -1,18 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <title>{{ $title ?? 'EduLearn – School Admin Panel' }}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="csrf-token" content="{{ csrf_token() }}">
+  <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Bootstrap + Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <!-- Bootstrap RTL + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
 
   <style>
@@ -38,15 +39,15 @@
     * { box-sizing: border-box; }
     body {
       background: var(--bg);
-      font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-family: "Cairo", system-ui, -apple-system, sans-serif;
       color: var(--text);
       min-height: 100vh;
     }
 
     /* Sidebar */
     .sidebar {
-      position: fixed; top: 0; left: 0; width: var(--sidebar-width); height: 100vh;
-      background: #ffffff; border-right: 1px solid #edf0f7; padding: 1.2rem 1rem 1.5rem;
+      position: fixed; top: 0; right: 0; width: var(--sidebar-width); height: 100vh;
+      background: #ffffff; border-left: 1px solid #edf0f7; padding: 1.2rem 1rem 1.5rem;
       display: flex; flex-direction: column; gap: 1rem; z-index: 100;
     }
     .brand-box { display:flex; align-items:center; gap:.75rem; margin-bottom:.5rem; }
@@ -64,7 +65,7 @@
     .sidebar .bottom-links { margin-top:auto; border-top:1px solid #edf0f7; padding-top:1rem; }
 
     /* Main wrapper */
-    .main-wrapper { margin-left: var(--sidebar-width); min-height: 100vh; display:flex; flex-direction:column; }
+    .main-wrapper { margin-right: var(--sidebar-width); min-height: 100vh; display:flex; flex-direction:column; }
     .topbar { height:64px; background:#ffffff; border-bottom:1px solid #edf0f7; display:flex; align-items:center; justify-content:space-between; padding:0 1.5rem; }
     .content-area { padding: 1.5rem 1.5rem 2.5rem; }
 
@@ -87,10 +88,10 @@
     .profile-tabs .nav-link{ border:0!important; background:transparent!important; color:#6b7280; padding:.4rem .2rem; margin-right:1rem; border-bottom:2px solid transparent!important; font-weight:500; }
     .profile-tabs .nav-link.active{ color:var(--primary)!important; border-bottom-color:var(--primary)!important; }
 
-    @media (max-width: 992px){ .sidebar { width: 210px; } .main-wrapper { margin-left:210px; } }
+    @media (max-width: 992px){ .sidebar { width: 210px; } .main-wrapper { margin-right:210px; } }
     @media (max-width: 768px){
       .sidebar { position: static; width: 100%; height: auto; flex-direction: row; overflow-x: auto; }
-      .main-wrapper { margin-left: 0; }
+      .main-wrapper { margin-right: 0; }
       .topbar { flex-wrap: wrap; gap: .75rem; }
     }
 
@@ -218,62 +219,62 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="brand-box">
-      <div class="brand-avatar">EL</div>
+      <img src="{{ asset('favicon.png') }}" alt="EduLearn Logo" width="38" height="38" style="border-radius:12px;object-fit:cover;">
       <div>
         <div class="fw-semibold">EduLearn</div>
-        <small>School Admin</small>
+        <small>الإدارة المدرسية</small>
       </div>
     </div>
 
     <nav class="nav flex-column gap-1" id="sidebarNav">
   <a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active' : '' }}">
     <span class="icon-wrap"><i class="bi bi-grid-1x2"></i></span>
-    <span>Dashboard</span>
+    <span>الرئيسية</span>
   </a>
   <a href="{{ url('/students') }}" class="{{ request()->is('students*') ? 'active' : '' }}">
     <span class="icon-wrap"><i class="bi bi-person-lines-fill"></i></span>
-    <span>Students</span>
+    <span>الطلاب</span>
   </a>
   <a href="{{ url('/teachers') }}" class="{{ request()->is('teachers*') ? 'active' : '' }}">
     <span class="icon-wrap"><i class="bi bi-person-badge"></i></span>
-    <span>Teachers</span>
+    <span>المعلمون</span>
   </a>
   <a href="{{ url('/classes') }}" class="{{ request()->is('classes*') ? 'active' : '' }}">
     <span class="icon-wrap"><i class="bi bi-journal-text"></i></span>
-    <span>Classes</span>
+    <span>الفصول</span>
   </a>
   <a href="{{ url('/subjects') }}" class="{{ request()->is('subjects*') ? 'active' : '' }}">
     <span class="icon-wrap"><i class="bi bi-journal-bookmark"></i></span>
-    <span>Subjects</span>
+    <span>المواد</span>
   </a>
 
 
 <a href="{{ url('/class-subjects') }}" class="{{ request()->is('class-subjects*') ? 'active' : '' }}">
     <span class="icon-wrap"><i class="bi bi-journal-check"></i></span>
-    <span>Class Subjects</span>
+    <span>مواد الفصول</span>
   </a>
   
   <a href="{{ url('/assignments') }}" class="{{ request()->is('assignments*') ? 'active' : '' }}">
     <span class="icon-wrap"><i class="bi bi-diagram-3"></i></span>
-    <span>Assignments</span>
+    <span>التعيينات</span>
   </a>
   <a href="{{ url('/reports') }}" class="{{ request()->is('reports*') ? 'active' : '' }}">
     <span class="icon-wrap"><i class="bi bi-bar-chart"></i></span>
-    <span>Reports</span>
+    <span>التقارير</span>
   </a>
   <a href="{{ url('/settings') }}" class="{{ request()->is('settings*') ? 'active' : '' }}">
     <span class="icon-wrap"><i class="bi bi-gear"></i></span>
-    <span>Settings</span>
+    <span>الإعدادات</span>
   </a>
 </nav>
 
 
     <div class="bottom-links">
       <button class="w-100 d-flex align-items-center gap-2 border-0 bg-transparent text-start text-muted mb-2">
-        <i class="bi bi-question-circle"></i> Help
+        <i class="bi bi-question-circle"></i> المساعدة
       </button>
       <button class="w-100 d-flex align-items-center gap-2 border-0 bg-transparent text-start text-muted">
-        <i class="bi bi-box-arrow-left"></i> Logout
+        <i class="bi bi-box-arrow-left"></i> تسجيل الخروج
       </button>
     </div>
   </aside>
@@ -282,12 +283,12 @@
   <div class="main-wrapper">
     <header class="topbar">
       <div>
-        <div class="page-title" id="pageTitle">{{ $pageTitle ?? 'Dashboard' }}</div>
-        <small class="text-muted" id="pageSubtitle">{{ $pageSubtitle ?? 'Welcome, Admin!' }}</small>
+        <div class="page-title" id="pageTitle">{{ $pageTitle ?? 'الرئيسية' }}</div>
+        <small class="text-muted" id="pageSubtitle">{{ $pageSubtitle ?? 'أهلاً بك، مدير النظام!' }}</small>
       </div>
       <div class="right-area d-flex align-items-center gap-3">
         <button class="btn btn-light border-0" id="timeFilterBtn">
-          This Week
+          هذا الأسبوع
           <i class="bi bi-chevron-down"></i>
         </button>
         <button class="btn position-relative btn-link text-dark">

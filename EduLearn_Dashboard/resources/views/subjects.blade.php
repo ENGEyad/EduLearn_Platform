@@ -5,17 +5,17 @@
   <div class="col-12">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
-        <h5 class="mb-1">Subjects</h5>
-        <small class="text-muted">Add, edit and manage school subjects</small>
+        <h5 class="mb-1">المواد الدراسية</h5>
+        <small class="text-muted">إضافة وتعديل وإدارة المواد المدرسية</small>
       </div>
       <button id="btnAddSubject" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i> Add Subject
+        <i class="bi bi-plus-lg me-1"></i> إضافة مادة
       </button>
     </div>
 
     <div class="table-shell">
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="fw-semibold">Subjects list</div>
+        <div class="fw-semibold">قائمة المواد</div>
       </div>
 
       <div class="table-responsive">
@@ -23,11 +23,11 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>Code</th>
-              <th>Name (EN)</th>
-              <th>Name (AR)</th>
-              <th>Active</th>
-              <th style="width: 140px;">Actions</th>
+              <th>الرمز</th>
+              <th>الاسم (إنجليزي)</th>
+              <th>الاسم (عربي)</th>
+              <th>نشط</th>
+              <th style="width: 140px;">إجراءات</th>
             </tr>
           </thead>
           <tbody>
@@ -48,42 +48,38 @@
         <input type="hidden" id="subject_id">
 
         <div class="modal-header">
-          <h5 class="modal-title" id="subjectModalTitle">Add Subject</h5>
+          <h5 class="modal-title" id="subjectModalTitle">إضافة مادة</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label">Code</label>
+            <label class="form-label">الرمز</label>
             <input type="text" class="form-control" id="code" required>
-            <small class="text-muted">Example: quran, islamic, math</small>
+            <small class="text-muted">مثال: quran, islamic, math</small>
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Name (EN)</label>
+            <label class="form-label">الاسم (إنجليزي)</label>
             <input type="text" class="form-control" id="name_en" required>
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Name (AR)</label>
+            <label class="form-label">الاسم (عربي)</label>
             <input type="text" class="form-control" id="name_ar">
           </div>
 
           <div class="form-check">
             <input class="form-check-input" type="checkbox" id="is_active" checked>
-            <label class="form-check-label" for="is_active">
-              Active
-            </label>
+            <label class="form-check-label" for="is_active">نشط</label>
           </div>
 
           <div id="subjectError" class="text-danger small mt-2" style="display:none;"></div>
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">
-            Save
-          </button>
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ</button>
         </div>
       </form>
     </div>

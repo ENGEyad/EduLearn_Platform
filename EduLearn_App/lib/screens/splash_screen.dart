@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../theme.dart';
+import '../services/auth_service.dart';
+import 'student/student_main_screen.dart';
+import 'teacher/teacher_main_screen.dart';
 import 'auth/register_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -14,12 +17,60 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // بعد 3 ثواني انتقل لصفحة التسجيل/الدخول
-    Timer(const Duration(seconds: 3), () {
+    _checkLogin();
+  }
+
+  Future<void> _checkLogin() async {
+    // Wait for the splash screen animation/timer
+    await Future.delayed(const Duration(seconds: 3));
+
+    if (!mounted) return;
+
+    final session = await AuthService.getSession();
+    final type = await AuthService.getUserType();
+
+    if (session != null && type != null) {
+      if (type == 'student') {
+        final student = session['student'] as Map<String, dynamic>;
+        final assignedSubjects = (student['assigned_subjects'] as List?) ?? [];
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => StudentMainScreen(
+              student: student,
+              assignedSubjects: assignedSubjects,
+            ),
+          ),
+        );
+      } else {
+        final teacher = session['teacher'] as Map<String, dynamic>;
+        final assignments = (teacher['assignments'] as List?) ?? [];
+
+        // Calculate total students (same logic as in RegisterScreen)
+        final int totalAssignedStudents = assignments.fold<int>(0, (sum, item) {
+          if (item is! Map<String, dynamic>) return sum;
+          final dynamic count = item['students_count'];
+          if (count is int) return sum + count;
+          if (count is num) return sum + count.toInt();
+          if (count is String) return sum + (int.tryParse(count) ?? 0);
+          return sum;
+        });
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => TeacherMainScreen(
+              teacher: teacher,
+              assignments: assignments,
+              totalAssignedStudents: totalAssignedStudents,
+            ),
+          ),
+        );
+      }
+    } else {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const RegisterScreen()),
       );
-    });
+    }
   }
 
   @override

@@ -5,57 +5,57 @@
   <div class="col-12">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
-        <h5 class="mb-1">Assignments</h5>
-        <small class="text-muted">Link teachers with classes and subjects</small>
+        <h5 class="mb-1">التعيينات</h5>
+        <small class="text-muted">ربط المعلمين بالفصول والمواد</small>
       </div>
       <button id="btnAddAssignment" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i> New Assignment
+        <i class="bi bi-plus-lg me-1"></i> تعيين جديد
       </button>
     </div>
 
     <div class="card-panel mb-3">
       <div class="row g-2 align-items-end">
         <div class="col-md-3">
-          <label class="form-label">Teacher</label>
+          <label class="form-label">المعلم</label>
           <select class="form-select" id="filterTeacher">
-            <option value="">All teachers</option>
+            <option value="">جميع المعلمين</option>
           </select>
         </div>
         <div class="col-md-3">
-          <label class="form-label">Grade</label>
+          <label class="form-label">الصف</label>
           <select class="form-select" id="filterGrade">
-            <option value="">All grades</option>
+            <option value="">جميع الصفوف</option>
           </select>
         </div>
         <div class="col-md-3">
-          <label class="form-label">Subject</label>
+          <label class="form-label">المادة</label>
           <select class="form-select" id="filterSubject">
-            <option value="">All subjects</option>
+            <option value="">جميع المواد</option>
           </select>
         </div>
         <div class="col-md-3 text-end">
-          <button class="btn btn-light" id="btnResetFilters">Reset</button>
+          <button class="btn btn-light" id="btnResetFilters">إعادة تعيين</button>
         </div>
       </div>
     </div>
 
     <div class="table-shell">
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="fw-semibold">Assignments list</div>
+        <div class="fw-semibold">قائمة التعيينات</div>
       </div>
       <div class="table-responsive">
         <table class="table align-middle mb-0" id="assignments-table">
           <thead>
             <tr>
               <th>#</th>
-              <th>Teacher</th>
-              <th>Class</th>
-              <th>Grade</hth>
-              <th>Section</th>
-              <th>Subject</th>
-              <th>Weekly load</th>
-              <th>Active</th>
-              <th style="width: 120px;">Actions</th>
+              <th>المعلم</th>
+              <th>الفصل</th>
+              <th>الصف</th>
+              <th>القسم</th>
+              <th>المادة</th>
+              <th>الحصص الأسبوعية</th>
+              <th>نشط</th>
+              <th style="width: 120px;">إجراءات</th>
             </tr>
           </thead>
           <tbody>
@@ -74,44 +74,42 @@
       <form id="assignmentForm">
         @csrf
         <div class="modal-header">
-          <h5 class="modal-title" id="assignmentModalTitle">New Assignment</h5>
+          <h5 class="modal-title" id="assignmentModalTitle">تعيين جديد</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label">Teacher</label>
+            <label class="form-label">المعلم</label>
             <select class="form-select" id="teacher_id" required></select>
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Class</label>
+            <label class="form-label">الفصل</label>
             <select class="form-select" id="class_section_id" required></select>
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Subject</label>
+            <label class="form-label">المادة</label>
             <select class="form-select" id="subject_id" required></select>
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Weekly load (optional)</label>
+            <label class="form-label">الحصص الأسبوعية (اختياري)</label>
             <input type="number" min="0" max="40" class="form-control" id="weekly_load">
           </div>
 
           <div class="form-check">
             <input class="form-check-input" type="checkbox" id="assign_is_active" checked>
-            <label class="form-check-label" for="assign_is_active">
-              Active
-            </label>
+            <label class="form-check-label" for="assign_is_active">نشط</label>
           </div>
 
           <div id="assignError" class="text-danger small mt-2" style="display:none;"></div>
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+          <button type="submit" class="btn btn-primary">حفظ</button>
         </div>
       </form>
     </div>
