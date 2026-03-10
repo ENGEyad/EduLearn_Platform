@@ -220,11 +220,23 @@ class TeacherController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            fclose($handle);
+            if (isset($handle) && is_resource($handle)) {
+                fclose($handle);
+            }
             throw $e;
         }
 
-        fclose($handle);
+        if (isset($handle) && is_resource($handle)) {
+            fclose($handle);
+        }
+
+        \App\Models\DashboardNotification::logEvent(
+            'teacher_event',
+            'استيراد معلمين',
+            "تم استيراد قائمة معلمين جديدة إلى النظام.",
+            'النظام',
+            'bi-file-earmark-arrow-up'
+        );
 
         return response()->json([
             'message' => 'Teachers imported successfully',

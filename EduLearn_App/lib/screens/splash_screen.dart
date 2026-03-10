@@ -4,7 +4,7 @@ import '../theme.dart';
 import '../services/auth_service.dart';
 import 'student/student_main_screen.dart';
 import 'teacher/teacher_main_screen.dart';
-import 'auth/register_screen.dart';
+import 'auth/login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -68,7 +68,7 @@ class _SplashScreenState extends State<SplashScreen> {
       }
     } else {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const RegisterScreen()),
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
       );
     }
   }

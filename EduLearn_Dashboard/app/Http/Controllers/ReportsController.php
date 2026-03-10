@@ -10,13 +10,32 @@ class ReportsController extends Controller
 {
     public function index()
     {
+        $years = \App\Models\Student::select('grade')->distinct()->whereNotNull('grade')->pluck('grade');
+        $teachers = \App\Models\Teacher::select('id', 'full_name')->get();
+        // Get all unique classes/sections for filtering
+        $classes = \App\Models\Student::select('grade', 'class_section')
+            ->distinct()
+            ->whereNotNull('grade')
+            ->whereNotNull('class_section')
+            ->orderBy('grade')
+            ->orderBy('class_section')
+            ->get();
+
+        // Get all subject names
+        $subjects = \App\Models\Subject::select('id', 'name_en as name')->orderBy('name_en')->get();
+
         return view('reports', [
-            'pageTitle'      => 'Reports',
-            'pageSubtitle'   => 'Generate system reports',
+            'pageTitle' => 'Reports',
+            'pageSubtitle' => 'Generate system reports',
+            'years' => $years,
+            'teachers' => $teachers,
+            'classes_dropdown' => $classes,
+            'subjects_dropdown' => $subjects,
             'REPORTS_ROUTES' => [
-                'list'    => route('reports.list'),
-                'class'   => route('reports.class', ['grade' => '__GRADE__', 'section' => '__SECTION__']),
+                'list' => route('reports.list'),
+                'class' => route('reports.class', ['grade' => '__GRADE__', 'section' => '__SECTION__']),
                 'student' => route('reports.student', ['student' => '__ID__']),
+                'subject' => route('reports.subject', ['student' => '__SID__', 'subject' => '__SUBID__']),
             ],
         ]);
     }
@@ -25,114 +44,213 @@ class ReportsController extends Controller
     public function list(Request $request)
     {
         $search = trim($request->get('search', ''));
+        $classFilter = trim($request->get('class', ''));
+        $subjectFilter = trim($request->get('subject', ''));
 
-        $query = Student::query()
-            ->select(['grade','class_section', DB::raw('COUNT(*) as students_count')])
-            ->when($search !== '', function ($q) use ($search) {
-                $s = "%{$search}%";
-                $q->where(function ($qq) use ($s) {
-                    $qq->where('grade', 'like', $s)
-                       ->orWhere('class_section', 'like', $s)
-                       ->orWhere(DB::raw("CONCAT(COALESCE(grade,''),' - ',COALESCE(class_section,''))"), 'like', $s);
+        // Start with a base query of distinct classes
+        $query = Student::select('grade', 'class_section')->distinct()
+            ->whereNotNull('grade')
+            ->whereNotNull('class_section');
+
+        // If filtering by subject, finding the class matching the subject Filter in memory or DB
+        if ($subjectFilter !== '') {
+            $query->whereHas('classSection', function ($q) use ($subjectFilter) {
+                $q->whereHas('subjects', function ($q2) use ($subjectFilter) {
+                        $q2->where('subject_id', $subjectFilter);
+                    }
+                    );
                 });
-            })
-            ->groupBy('grade', 'class_section')
-            ->orderBy('grade')->orderBy('class_section');
+        }
 
-        $items = $query->get()->map(fn($row) => [
-            'grade'          => $row->grade,
-            'class_section'  => $row->class_section,
-            'students_count' => (int) $row->students_count,
-        ])->values();
+        if ($classFilter !== '') {
+            $parts = explode('-', $classFilter);
+            if (count($parts) == 2) {
+                $query->where('grade', trim($parts[0]))
+                    ->where('class_section', trim($parts[1]));
+            }
+        }
+
+        // To handle the search string safely without breaking `group by`, we will fetch the grouped classes
+        // then filter in memory if the search string is present.
+        $baseClasses = $query->orderBy('grade')->orderBy('class_section')->get();
+
+        $items = collect();
+        foreach ($baseClasses as $row) {
+            // Check student count
+            $studentQuery = Student::where('grade', $row->grade)->where('class_section', $row->class_section);
+
+            // if we have a search term, we can check if it matches the class name or any student in the class
+            $matchesSearch = true;
+            if ($search !== '') {
+                $s = strtolower($search);
+                $className = strtolower($row->grade . ' - ' . $row->class_section);
+
+                // If it doesn't match class name, check if any student matches
+                if (strpos($className, $s) === false) {
+                    $hasMatchingStudent = (clone $studentQuery)->where(function ($q) use ($search) {
+                        $q->where('full_name', 'like', "%{$search}%")
+                            ->orWhere('academic_id', 'like', "%{$search}%");
+                    })->exists();
+                    if (!$hasMatchingStudent) {
+                        $matchesSearch = false; // Does not match class name or student name
+                    }
+                }
+            }
+
+            if ($matchesSearch) {
+                $items->push([
+                    'grade' => $row->grade,
+                    'class_section' => $row->class_section,
+                    'students_count' => $studentQuery->count(),
+                ]);
+            }
+        }
+
+        // If search matches students, grab them directly
+        $matchingStudents = collect();
+        if ($search !== '') {
+            $matchingStudents = Student::where(function ($q) use ($search) {
+                $q->where('full_name', 'like', "%{$search}%")
+                    ->orWhere('academic_id', 'like', "%{$search}%");
+            });
+
+            if ($classFilter !== '') {
+                $parts = explode('-', $classFilter);
+                if (count($parts) == 2) {
+                    $matchingStudents->where('grade', trim($parts[0]))
+                        ->where('class_section', trim($parts[1]));
+                }
+            }
+
+            $matchingStudents = $matchingStudents->get(['id', 'full_name', 'academic_id', 'grade', 'class_section']);
+        }
 
         return response()->json([
-            'data' => $items,
-            'meta' => ['total' => $items->count()],
+            'data' => $items->values(),
+            'students' => $matchingStudents,
+            'meta' => ['total' => $items->count() + $matchingStudents->count()],
         ]);
     }
 
     // تقرير صف: الطلاب + أرقام Placeholder + توزيع درجات
     public function class(Request $request, $grade, $section)
     {
-        $grade   = urldecode($grade);
+        $grade = urldecode($grade);
         $section = urldecode($section);
 
         $students = Student::query()
             ->where('grade', $grade)
             ->where('class_section', $section)
             ->orderBy('id', 'asc')
-            ->get(['id','full_name','academic_id','class_section']);
+            ->get(['id', 'full_name', 'academic_id', 'class_section']);
 
         $studentsTable = $students->map(fn($s) => [
-            'id'          => $s->id,
-            'name'        => $s->full_name,
+            'id' => $s->id,
+            'name' => $s->full_name,
             'academic_id' => $s->academic_id,
-            'section'     => $s->class_section,
-            'score'       => null,
-            'attendance'  => null,
-        ]);
+            'section' => $s->class_section,
+            'score' => null,
+            'attendance' => null,
+            ]);
+
+        $totalStudyTimeSec = Student::query()
+            ->where('grade', $grade)
+            ->where('class_section', $section)
+            ->sum('total_study_time_seconds');
+        $totalStudyTimeHrs = round($totalStudyTimeSec / 3600, 1);
 
         $stats = [
-            'students'   => $students->count().' / '.$students->count(),
-            'avg_score'  => 88.2,
-            'pass_rate'  => 0.94,
+            'students' => $students->count() . ' / ' . $students->count(),
+            'avg_score' => 88.2,
+            'pass_rate' => 0.94,
             'attendance' => 0.98,
-            'study_time' => 5.2,
+            'study_time' => $totalStudyTimeHrs,
         ];
 
         $gradeDist = [
-            ['label'=>'Grade A','value'=>15],
-            ['label'=>'Grade B','value'=>12],
-            ['label'=>'Grade C','value'=>7],
-            ['label'=>'Grade D','value'=>2],
-            ['label'=>'Grade F','value'=>1],
+            ['label' => 'Grade A', 'value' => 15],
+            ['label' => 'Grade B', 'value' => 12],
+            ['label' => 'Grade C', 'value' => 7],
+            ['label' => 'Grade D', 'value' => 2],
+            ['label' => 'Grade F', 'value' => 1],
         ];
 
         return response()->json([
-            'grade'              => $grade,
-            'section'            => $section,
-            'stats'              => $stats,
+            'grade' => $grade,
+            'section' => $section,
+            'stats' => $stats,
             'grade_distribution' => $gradeDist,
-            'students'           => $studentsTable,
+            'students' => $studentsTable,
         ]);
     }
 
     // تقرير طالب: الهوية من DB + Placeholder للباقي
     public function student(Student $student)
     {
+        $studyTimeHrs = round(($student->total_study_time_seconds ?? 0) / 3600, 1);
+
+        // Fetch subjects associated with the student's class section
+        $classSectionId = $student->class_section_id;
+        $subjectIds = \App\Models\ClassSectionSubject::where('class_section_id', $classSectionId)->pluck('subject_id');
+        $subjects = \App\Models\Subject::whereIn('id', $subjectIds)->get();
+
+        $subjectsData = $subjects->map(function ($sub) use ($student) {
+            // Study time per subject
+            $lessons = \App\Models\Lesson::on('app_mysql')->where('subject_id', $sub->id)->get();
+            $progressRecords = \App\Models\StudentLessonProgress::on('app_mysql')
+                ->where('student_id', $student->id)
+                ->whereIn('lesson_id', $lessons->pluck('id'))
+                ->get();
+
+            $studyTimeSecSub = $progressRecords->sum('time_spent_seconds');
+            $studyTimeHrsSubStr = round($studyTimeSecSub / 3600, 1) . ' hrs';
+
+            // simple placeholders for score and rank right now
+            $score = 0.85;
+            $status = $score >= 0.5 ? 'Pass' : 'Fail';
+
+            return [
+            'id' => $sub->id,
+            'name' => $sub->name_en,
+            'score' => $score,
+            'rank' => 'N/A',
+            'time' => $studyTimeHrsSubStr, // e.g. "40 hrs"
+            'numeric_time' => round($studyTimeSecSub / 3600, 1), // numeric for charting
+            'status' => $status,
+            ];
+        })->values()->toArray();
+
+
         return response()->json([
             'student' => [
-                'id'          => $student->id,
-                'name'        => $student->full_name,
-                'class'       => $student->grade,
-                'section'     => $student->class_section,
+                'id' => $student->id,
+                'name' => $student->full_name,
+                'class' => $student->grade,
+                'section' => $student->class_section,
                 'academic_id' => $student->academic_id,
-                'photo_url'   => $student->photo_path ? asset($student->photo_path) : null,
-                'status'      => 'ON TRACK',
+                'photo_url' => $student->photo_path ? asset($student->photo_path) : null,
+                'status' => 'ON TRACK',
             ],
             'stats' => [
-                'avg_score'  => 0.88,
-                'pass_rate'  => 0.95,
+                'avg_score' => 0.88,
+                'pass_rate' => 0.95,
                 'attendance' => 0.98,
-                'study_time' => 120,
+                'study_time' => $studyTimeHrs,
             ],
             'charts' => [
                 'progress' => [
-                    'labels' => ['Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May'],
-                    'values' => [72,75,78,80,82,84,86,87,88],
+                    'labels' => ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                    'values' => [72, 75, 78, 80, 82, 84, 86, 87, 88],
                 ],
                 'study_time_by_subject' => [
-                    'labels' => ['Math','Science','History','English','Art'],
-                    'values' => [40,35,25,20,10],
+                    'labels' => collect($subjectsData)->pluck('name')->toArray(),
+                    'values' => collect($subjectsData)->pluck('numeric_time')->toArray(),
                 ],
             ],
-            'subjects' => [
-                ['name'=>'Mathematics','score'=>0.92,'rank'=>'3rd','time'=>'40 hrs','status'=>'Pass'],
-                ['name'=>'Science','score'=>0.85,'rank'=>'5th','time'=>'35 hrs','status'=>'Pass'],
-                ['name'=>'History','score'=>0.88,'rank'=>'4th','time'=>'25 hrs','status'=>'Pass'],
-                ['name'=>'English Literature','score'=>0.78,'rank'=>'12th','time'=>'20 hrs','status'=>'Pass'],
-                ['name'=>'Art','score'=>0.45,'rank'=>'25th','time'=>'10 hrs','status'=>'Fail'],
-            ],
+            'subjects' => collect($subjectsData)->map(function ($s) {
+            unset($s['numeric_time']); // Remove numeric time before sending array to frontend to match structure
+            return $s;
+        })->toArray(),
         ]);
     }
 }

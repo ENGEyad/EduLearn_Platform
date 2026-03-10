@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme.dart';
 import '../../services/auth_service.dart';
-import '../auth/register_screen.dart';
+import '../auth/login_screen.dart';
 
 class StudentProfileScreen extends StatelessWidget {
   final Map<String, dynamic> student;
@@ -39,7 +39,7 @@ class StudentProfileScreen extends StatelessWidget {
       if (!context.mounted) return;
 
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const RegisterScreen()),
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
         (route) => false,
       );
     }

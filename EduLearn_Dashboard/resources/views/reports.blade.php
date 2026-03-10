@@ -9,34 +9,47 @@
     <div class="content-wrap">
       <div class="page-header">
         <div>
-          <h2 class="page-title">Class Reports</h2>
-          <div class="text-muted small">List classes and filter by name, year, and teacher.</div>
+          <h2 class="page-title">Class & Student Reports</h2>
+          <div class="text-muted small">Search students by name or academic ID, or filter by class.</div>
         </div>
-        <button class="btn btn-primary js-generate">
-          <i class="bi bi-file-bar-graph me-1"></i> Generate Report
-        </button>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary js-refresh-list" title="Refresh">
+            <i class="bi bi-arrow-clockwise"></i>
+          </button>
+          <button class="btn btn-primary js-generate">
+            <i class="bi bi-file-bar-graph me-1"></i> Generate Report
+          </button>
+        </div>
       </div>
 
       <div class="filters mb-3">
         <div class="input-group" style="max-width:320px">
           <span class="input-group-text border-end-0"><i class="bi bi-search"></i></span>
-          <input id="filterSearch" type="text" class="form-control border-start-0" placeholder="Search by class name (e.g., Grade 4 - A)">
+          <input id="filterSearch" type="text" class="form-control border-start-0" placeholder="Search by student, teacher, class">
         </div>
 
-        <select id="filterYear" class="form-select" style="max-width:220px">
-          <option value="">All Years</option>
+        <select id="filterClass" class="form-select" style="max-width:220px">
+          <option value="">All Classes</option>
+          @foreach($classes_dropdown as $cls)
+              <option value="{{ $cls->grade }} - {{ $cls->class_section }}">{{ $cls->grade }} - {{ $cls->class_section }}</option>
+          @endforeach
         </select>
 
-        <select id="filterTeacher" class="form-select" style="max-width:240px">
-          <option value="">All Teachers</option>
+        <select id="filterSubject" class="form-select" style="max-width:240px">
+          <option value="">All Subjects</option>
+          @foreach($subjects_dropdown as $sub)
+              <option value="{{ $sub->id }}">{{ $sub->name }}</option>
+          @endforeach
         </select>
+        
+        <button id="applyFiltersBtn" class="btn btn-primary px-4"><i class="bi bi-funnel me-1"></i> Apply</button>
       </div>
 
       <div class="table-shell">
         <table class="table align-middle" id="classesTable">
           <thead>
             <tr>
-              <th style="width:70%">Class Name</th>
+              <th style="width:70%">Student / Class Name</th>
               <th class="text-end">Actions</th>
             </tr>
           </thead>
@@ -63,6 +76,8 @@
           <div class="subtitle">A detailed overview of class performance and student data.</div>
         </div>
         <div class="d-flex gap-2 no-print">
+          <button class="btn btn-outline-secondary js-refresh-class" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+          <button class="btn btn-outline-secondary js-back-to-list"><i class="bi bi-arrow-left me-1"></i>Back to List</button>
           <button class="btn-ghost js-print"><i class="bi bi-printer me-1"></i>Print</button>
           <button class="btn-cta js-export"><i class="bi bi-download me-1"></i>Export CSV / PDF</button>
         </div>
@@ -114,6 +129,8 @@
           Students <span class="sep">/</span> <span class="js-student-name-breadcrumb">--</span> <span class="sep">/</span> <strong>Report</strong>
         </div>
         <div class="no-print d-flex gap-2">
+          <button class="btn btn-outline-secondary btn-sm js-refresh-student" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+          <button class="btn btn-outline-secondary btn-sm js-back-to-class"><i class="bi bi-arrow-left"></i> Back to Class</button>
           <button class="btn btn-outline btn-sm js-print"><i class="bi bi-printer"></i> Print student report</button>
           <button class="btn btn-soft btn-sm js-export"><i class="bi bi-file-earmark-pdf"></i> Export PDF</button>
         </div>
@@ -188,6 +205,7 @@
           <strong class="js-sr-subject">Subject</strong>
         </div>
         <div class="no-print d-flex gap-2">
+          <button class="btn btn-outline-secondary js-refresh-subject" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
           <button class="btn btn-outline-secondary js-print"><i class="bi bi-printer me-1"></i> Print</button>
           <button class="btn btn-cta js-back-to-student"><i class="bi bi-arrow-left me-1"></i> Back to Student</button>
         </div>

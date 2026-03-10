@@ -16,6 +16,25 @@ import '../../services/lesson_service.dart';
 import '../../services/api_helpers.dart';
 import '../../services/auth_service.dart';
 
+// ✅ AI Question Model
+class GeneratedQuestion {
+  final String id;
+  String type; // multiple_choice, true_false, fill_blank, matching, flashcard
+  String questionText;
+  List<String>? options;
+  String answer;
+  bool isEditing;
+
+  GeneratedQuestion({
+    required this.id,
+    required this.type,
+    required this.questionText,
+    this.options,
+    required this.answer,
+    this.isEditing = false,
+  });
+}
+
 class LessonBuilderScreen extends StatefulWidget {
   final String classKey;
   final String classTitle;
@@ -79,6 +98,10 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   bool get _isEditingExisting => widget.existingLessonId != null;
   bool _hasUnsavedChanges = false;
   bool _initializing = true;
+
+  // 🔹 AI Generated Questions
+  List<GeneratedQuestion> _aiQuestions = [];
+  bool _isGeneratingAI = false;
 
   // ========= Draft autosave debounce =========
   DateTime? _lastDraftSaveAt;
@@ -963,49 +986,56 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 12),
-                        // 🔹 Moving lesson info and title inside scrollable area to fix overflow
-                        Text(
-                          widget.classTitle,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: EduTheme.primaryDark,
-                              ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Class: ${widget.classKey} • Students: ${widget.studentsCount}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: EduTheme.primaryDark.withOpacity(0.6),
-                              ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Module: ${widget.moduleTitle}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: EduTheme.primaryDark.withOpacity(0.6),
-                              ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: _titleController,
-                          decoration: const InputDecoration(
-                            labelText: 'Lesson Title',
+                        // 1️⃣ Step 1: Lesson Metadata
+                        _buildSectionHeader(context, "Step 1: Lesson Details"),
+                        Card(
+                          elevation: 2,
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              children: [
+                                TextField(
+                                  controller: _titleController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Lesson Title',
+                                    prefixIcon: Icon(Icons.title),
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildStaticField('Subject', widget.classTitle, Icons.book),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _buildStaticField('Grade', widget.classKey, Icons.grade),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    icon: const Icon(Icons.auto_awesome, size: 18),
+                                    label: const Text('Generate AI Suggestions'),
+                                    onPressed: () => _showSnack('AI suggestion feature coming soon.'),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 18),
-                        Text(
-                          'Lesson Content',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: EduTheme.primaryDark,
-                              ),
-                        ),
-                        const SizedBox(height: 10),
+
+                        const SizedBox(height: 24),
+
+                        // 2️⃣ Step 2: Source Material (The Editor)
+                        _buildSectionHeader(context, "Step 2: Upload Lesson Content"),
                         _buildToolbar(),
                         const SizedBox(height: 10),
-
-                        // ✅ المحرر نفسه صار يعرض النص + الميديا بنفس شكل معاينة الطالب
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(14),
@@ -1013,41 +1043,39 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x11000000),
-                                blurRadius: 10,
-                                offset: Offset(0, 4),
-                              ),
+                              BoxShadow(color: Color(0x11000000), blurRadius: 10, offset: Offset(0, 4)),
                             ],
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              for (int i = 0; i < _blocks.length; i++) ...[
-                                _buildEditorBlock(i, _blocks[i]),
-                                if (i != _blocks.length - 1)
-                                  const SizedBox(height: 16),
-                              ],
+                              if (_blocks.isEmpty)
+                                Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 20),
+                                    child: Column(
+                                      children: [
+                                        Icon(Icons.cloud_upload_outlined, size: 48, color: Colors.grey.shade400),
+                                        const SizedBox(height: 8),
+                                        Text("No content uploaded yet", style: TextStyle(color: Colors.grey.shade600)),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              else
+                                for (int i = 0; i < _blocks.length; i++) ...[
+                                  _buildEditorBlock(i, _blocks[i]),
+                                  if (i != _blocks.length - 1) const SizedBox(height: 16),
+                                ],
                             ],
                           ),
                         ),
 
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: TextButton.icon(
-                            style: TextButton.styleFrom(
-                              backgroundColor: const Color(0xFFE8F6FF),
-                              foregroundColor: EduTheme.primaryDark,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                            onPressed: () {
-                              _showSnack('Knowledge Check will be configured later.');
-                            },
-                            icon: const Icon(Icons.quiz_outlined),
-                            label: const Text('Add Knowledge Check (coming soon)'),
-                          ),
-                        ),
+                        const SizedBox(height: 24),
+
+                        // 3️⃣ Step 3: AI Assessment Review
+                        _buildSectionHeader(context, "Step 3: AI Assessment Review"),
+                        _buildAIQuestionsSection(),
                       ],
                     ),
                   ),
@@ -1059,6 +1087,182 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0, left: 4),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: EduTheme.primaryDark,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStaticField(String label, String value, IconData icon) {
+    return TextFormField(
+      initialValue: value,
+      readOnly: true,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, size: 20),
+        filled: true,
+        fillColor: Colors.grey.shade50,
+        border: const OutlineInputBorder(),
+      ),
+      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+    );
+  }
+
+  Widget _buildAIQuestionsSection() {
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.psychology),
+            label: const Text('Generate Exercises & Exam Questions'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: EduTheme.primaryDark,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: _isGeneratingAI ? null : _generateAIQuestions,
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (_isGeneratingAI)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 40),
+              child: Column(
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text("AI is generating questions from your content..."),
+                ],
+              ),
+            ),
+          )
+        else if (_aiQuestions.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Text("No questions generated yet. Click above to start.",
+                  style: TextStyle(color: Colors.grey.shade600)),
+            ),
+          )
+        else
+          ..._aiQuestions.asMap().entries.map((entry) => _buildAIQuestionCard(entry.value, entry.key)),
+      ],
+    );
+  }
+
+  Widget _buildAIQuestionCard(GeneratedQuestion q, int index) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ExpansionTile(
+        leading: _getQuestionIcon(q.type),
+        title: Text(q.questionText, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+        subtitle: Text('Type: ${q.type.replaceAll('_', ' ').toUpperCase()}', style: const TextStyle(fontSize: 10)),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(icon: const Icon(Icons.edit, size: 18, color: Colors.blue), onPressed: () {}),
+            IconButton(
+              icon: const Icon(Icons.delete, size: 18, color: Colors.red),
+              onPressed: () => setState(() => _aiQuestions.removeAt(index)),
+            ),
+            const Icon(Icons.expand_more),
+          ],
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (q.options != null) ...[
+                  const Text("Options:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  const SizedBox(height: 8),
+                  ...q.options!.map((opt) => Text("• $opt", style: const TextStyle(fontSize: 12))),
+                  const Divider(),
+                ],
+                const Text("Answer Review:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, fontSize: 12)),
+                const SizedBox(height: 8),
+                TextFormField(
+                  initialValue: q.answer,
+                  decoration: const InputDecoration(
+                    labelText: 'Correct Answer',
+                    filled: true,
+                    fillColor: Color(0xFFF5F5F5),
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (val) => q.answer = val,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Icon _getQuestionIcon(String type) {
+    switch (type) {
+      case 'multiple_choice': return const Icon(Icons.list_alt, color: Colors.blue);
+      case 'true_false': return const Icon(Icons.check_circle_outline, color: Colors.green);
+      case 'fill_blank': return const Icon(Icons.edit_note, color: Colors.orange);
+      case 'matching': return const Icon(Icons.compare_arrows, color: Colors.purple);
+      default: return const Icon(Icons.style, color: Colors.red);
+    }
+  }
+
+  Future<void> _generateAIQuestions() async {
+    if (!_hasAnyMeaningfulContent()) {
+      _showSnack('Please add some content first.');
+      return;
+    }
+
+    setState(() => _isGeneratingAI = true);
+
+    // Simulate API call
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (!mounted) return;
+
+    setState(() {
+      _isGeneratingAI = false;
+      _aiQuestions = [
+        GeneratedQuestion(
+          id: 'q1',
+          type: 'multiple_choice',
+          questionText: 'What is the main topic discussed in this lesson?',
+          options: ['Option A', 'Option B', 'Option C', 'Option D'],
+          answer: 'Option A',
+        ),
+        GeneratedQuestion(
+          id: 'q2',
+          type: 'true_false',
+          questionText: 'Is the content provided sufficient for an exam?',
+          answer: 'True',
+        ),
+        GeneratedQuestion(
+          id: 'q3',
+          type: 'fill_blank',
+          questionText: 'The core concept of this lesson is _____.',
+          answer: 'Knowledge',
+        ),
+      ];
+    });
+
+    _showSnack('AI Questions generated successfully!');
   }
 
   Widget _buildToolbar() {

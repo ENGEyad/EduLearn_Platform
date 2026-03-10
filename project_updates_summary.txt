@@ -27,3 +27,31 @@
 - ✅ تحديث إعدادات الـ IP والسيرفر للسماح بالاتصال الخارجي (0.0.0.0).
 - ✅ تطوير `AuthService` ليشمل عمليات إدارة الجلسات محلياً.
 - ✅ تحسينات عامة في أداء الاتصال بالـ API.
+
+---
+
+## 6. صفحة التقارير – Dashboard (Reports Page)
+- ✅ إصلاح خطأ SQL في جلب المواد: تغيير العمود من `name` إلى `name_en as name` في جدول `subjects`.
+- ✅ تحويل قوائم الفلترة (Classes / Subjects) إلى قوائم ثابتة تُجلب من قاعدة البيانات عبر `ReportsController`.
+- ✅ إضافة زر "Apply Filter" بحيث لا تتحدث البيانات إلا عند الضغط عليه.
+- ✅ إضافة زر Refresh في كل قسم من أقسام صفحة التقارير.
+- ✅ تعديل البحث ليشمل اسم الطالب والـ Academic ID وليس فقط اسم الفصل.
+- ✅ عند البحث عن طالب، تظهر نتيجته مباشرة في الجدول (مع زر "View Student Report") إلى جانب الفصول.
+- ✅ تمييز صف الطالب عن صف الفصل بأيقونة وألوان مختلفة في جدول النتائج.
+- ✅ تحديث عنوان صفحة التقارير ليعكس البحث عن الطلاب والفصول.
+
+## 7. إدارة الطلاب – Dashboard (Student Management)
+- ✅ تغيير قائمة "Grade" في نموذج إضافة الطالب لتُجلب ديناميكياً من جدول `class_sections` بدلاً من القيم الثابتة.
+- ✅ جعل حقل "Section" اختيارياً مع تعيين القيمة الافتراضية `A` تلقائياً عند تركه فارغاً.
+- ✅ ضبط التحقق (Validation) في `StudentController::store()` ليجعل `grade` إلزامياً.
+- ✅ إصلاح خطأ `Undefined variable $grades` بتمرير المتغير من `StudentController::index()` إلى الواجهة.
+
+## 8. تطبيق الموبايل – Flutter App (Auth Flow)
+- ✅ إلغاء شاشة إنشاء حساب جديد (RegisterScreen) من التطبيق نهائياً، لأن إضافة المستخدمين تتم فقط من لوحة التحكم.
+- ✅ تحويل `SplashScreen` لتوجيه المستخدم إلى شاشة تسجيل الدخول `LoginScreen` بدلاً من شاشة التسجيل.
+- ✅ إعادة تصميم `LoginScreen` لتدعم كلاً من الطالب والمُعلم عبر زر Toggle (I am a Student / I am a Teacher).
+- ✅ ربط تسجيل دخول الأستاذ من `LoginScreen` مباشرةً بـ `TeacherMainScreen`.
+- ✅ ربط تسجيل دخول الطالب من `LoginScreen` مباشرةً بـ `StudentMainScreen`.
+- ✅ إصلاح خطأ Compile في `student_profile_screen.dart` و`teacher_profile_screen.dart` الناتج عن مرجع `RegisterScreen` المحذوف، وتم استبداله بـ `LoginScreen`.
+- ✅ إضافة API endpoint جديد `/student/grades` لإرجاع قائمة المراحل الدراسية المتوفرة.
+- ✅ تطوير `StudentAuthController::getGrades()` لجلب المراحل الفريدة من جدول `class_sections`.

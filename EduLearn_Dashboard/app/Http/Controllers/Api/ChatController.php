@@ -21,11 +21,11 @@ class ChatController extends Controller
     public function openConversation(Request $request)
     {
         $validated = $request->validate([
-            'teacher_code'     => 'required|string',
-            'academic_id'      => 'required|string',
+            'teacher_code' => 'required|string',
+            'academic_id' => 'required|string',
             'class_section_id' => 'nullable|integer',
-            'subject_id'       => 'nullable|integer',
-            'as'               => 'nullable|in:teacher,student',
+            'subject_id' => 'nullable|integer',
+            'as' => 'nullable|in:teacher,student',
         ]);
 
         $as = $validated['as'] ?? 'teacher';
@@ -48,30 +48,30 @@ class ChatController extends Controller
         }
 
         $classSectionId = $validated['class_section_id'] ?? $student->class_section_id;
-        $subjectId      = $validated['subject_id'] ?? null;
+        $subjectId = $validated['subject_id'] ?? null;
 
         // ملاحظة: نُبقي المنطق كما هو (بدون تغيير DB)
         $conversation = Conversation::firstOrCreate(
-            [
-                'teacher_id'       => $teacher->id,
-                'student_id'       => $student->id,
-                'class_section_id' => $classSectionId,
-                'subject_id'       => $subjectId,
-            ],
-            [
-                'last_message'        => null,
-                'last_message_at'     => null,
-                'unread_for_teacher'  => 0,
-                'unread_for_student'  => 0,
-            ]
+        [
+            'teacher_id' => $teacher->id,
+            'student_id' => $student->id,
+            'class_section_id' => $classSectionId,
+            'subject_id' => $subjectId,
+        ],
+        [
+            'last_message' => null,
+            'last_message_at' => null,
+            'unread_for_teacher' => 0,
+            'unread_for_student' => 0,
+        ]
         );
 
         // تحميل الطرفين مرة واحدة لتفادي تكرار الاستعلامات
-        [$teacherMap, $studentMap] = $this->loadActorsForConversations(collect([$conversation]));
+        [$teacherMap, $studentMap, $classMap] = $this->loadActorsForConversations(collect([$conversation]));
 
         return response()->json([
-            'success'      => true,
-            'conversation' => $this->formatConversation($conversation, $forTeacher, $teacherMap, $studentMap),
+            'success' => true,
+            'conversation' => $this->formatConversation($conversation, $forTeacher, $teacherMap, $studentMap, $classMap),
         ]);
     }
 
@@ -98,13 +98,13 @@ class ChatController extends Controller
             ->orderByDesc('updated_at')
             ->get();
 
-        [$teacherMap, $studentMap] = $this->loadActorsForConversations($conversations);
+        [$teacherMap, $studentMap, $classMap] = $this->loadActorsForConversations($conversations);
 
         return response()->json([
-            'success'       => true,
+            'success' => true,
             'conversations' => $conversations->map(
-                fn (Conversation $c) => $this->formatConversation($c, true, $teacherMap, $studentMap)
-            ),
+        fn(Conversation $c) => $this->formatConversation($c, true, $teacherMap, $studentMap, $classMap)
+        ),
         ]);
     }
 
@@ -127,17 +127,56 @@ class ChatController extends Controller
         }
 
         $conversations = Conversation::where('student_id', $student->id)
+            ->orWhere(function ($q) use ($student) {
+            $q->whereNull('student_id')->where('class_section_id', $student->class_section_id);
+        })
             ->orderByDesc('last_message_at')
             ->orderByDesc('updated_at')
             ->get();
 
-        [$teacherMap, $studentMap] = $this->loadActorsForConversations($conversations);
+        [$teacherMap, $studentMap, $classMap] = $this->loadActorsForConversations($conversations);
 
         return response()->json([
-            'success'       => true,
+            'success' => true,
             'conversations' => $conversations->map(
-                fn (Conversation $c) => $this->formatConversation($c, false, $teacherMap, $studentMap)
-            ),
+        fn(Conversation $c) => $this->formatConversation($c, false, $teacherMap, $studentMap, $classMap)
+        ),
+        ]);
+    }
+
+    /**
+     * فتح / إنشاء محادثة جماعية للفصل
+     * POST /api/chat/conversations/open-group
+     */
+    public function openGroupConversation(Request $request)
+    {
+        $validated = $request->validate([
+            'teacher_code' => 'required|string',
+            'class_section_id' => 'required|integer',
+            'as' => 'nullable|in:teacher,student',
+        ]);
+
+        $teacher = Teacher::where('teacher_code', $validated['teacher_code'])->first();
+        if (!$teacher)
+            return response()->json(['success' => false, 'message' => 'Teacher not found.'], 404);
+
+        $conversation = Conversation::firstOrCreate(
+        [
+            'teacher_id' => $teacher->id,
+            'student_id' => null, // Null means Group
+            'class_section_id' => $validated['class_section_id'],
+        ],
+        [
+            'last_message' => null,
+            'last_message_at' => null,
+        ]
+        );
+
+        [$teacherMap, $studentMap, $classMap] = $this->loadActorsForConversations(collect([$conversation]));
+
+        return response()->json([
+            'success' => true,
+            'conversation' => $this->formatConversation($conversation, ($validated['as'] ?? 'teacher') === 'teacher', $teacherMap, $studentMap, $classMap),
         ]);
     }
 
@@ -152,12 +191,12 @@ class ChatController extends Controller
     public function messages(Request $request, Conversation $conversation)
     {
         $validated = $request->validate([
-            'as'           => 'required|in:teacher,student',
+            'as' => 'required|in:teacher,student',
             'teacher_code' => 'nullable|string',
-            'academic_id'  => 'nullable|string',
+            'academic_id' => 'nullable|string',
 
-            'limit'        => 'nullable|integer|min:1|max:200',
-            'before_id'    => 'nullable|integer|min:1',
+            'limit' => 'nullable|integer|min:1|max:200',
+            'before_id' => 'nullable|integer|min:1',
         ]);
 
         // تحقق صلاحية الطرف على المحادثة + جلب actor
@@ -174,7 +213,8 @@ class ChatController extends Controller
                 if ($updated > 0) {
                     $conversation->update(['unread_for_teacher' => 0]);
                 }
-            } else {
+            }
+            else {
                 $updated = Message::where('conversation_id', $conversation->id)
                     ->where('sender_type', 'teacher')
                     ->whereNull('read_at')
@@ -202,7 +242,7 @@ class ChatController extends Controller
             // بما أن ASC، "before_id" يعني أقدم، فسنحافظ على ASC ونأخذ limit من النهاية؟
             // لتبسيط وعدم كسر: سنغيّر على id DESC ثم نعكس النتائج.
             $paged = Message::where('conversation_id', $conversation->id)
-                ->when($beforeId, fn ($q) => $q->where('id', '<', $beforeId))
+                ->when($beforeId, fn($q) => $q->where('id', '<', $beforeId))
                 ->orderByDesc('id')
                 ->limit($limit + 1)
                 ->get();
@@ -216,8 +256,8 @@ class ChatController extends Controller
             $nextCursor = $hasMore ? $messages->first()->id : null;
 
             return response()->json([
-                'success'     => true,
-                'messages'    => $messages->map(fn (Message $m) => $this->formatMessage($m)),
+                'success' => true,
+                'messages' => $messages->map(fn(Message $m) => $this->formatMessage($m)),
                 'next_cursor' => $nextCursor, // استخدمه كـ before_id لجلب الأقدم
             ]);
         }
@@ -225,9 +265,15 @@ class ChatController extends Controller
         // السلوك القديم: كل الرسائل
         $messages = $query->get();
 
+        // تحميل أسماء المرسلين بكفاءة
+        $senderMaps = $this->loadSenderNames($messages);
+
         return response()->json([
-            'success'  => true,
-            'messages' => $messages->map(fn (Message $m) => $this->formatMessage($m)),
+            'success' => true,
+            'messages' => $messages->map(fn(Message $m) => $this->formatMessage(
+        $m,
+        $senderMaps[$m->sender_type][$m->sender_id] ?? 'Unknown'
+        )),
         ]);
     }
 
@@ -238,10 +284,10 @@ class ChatController extends Controller
     public function sendMessage(Request $request, Conversation $conversation)
     {
         $validated = $request->validate([
-            'sender_type'  => 'required|in:teacher,student',
+            'sender_type' => 'required|in:teacher,student',
             'teacher_code' => 'nullable|string',
-            'academic_id'  => 'nullable|string',
-            'body'         => 'required|string|min:1|max:5000',
+            'academic_id' => 'nullable|string',
+            'body' => 'required|string|min:1|max:5000',
         ]);
 
         // تحقق صلاحية المرسل على المحادثة + sender_id
@@ -254,20 +300,21 @@ class ChatController extends Controller
         $result = DB::transaction(function () use ($validated, $conversation, $senderId, $now) {
             $message = Message::create([
                 'conversation_id' => $conversation->id,
-                'sender_type'     => $validated['sender_type'],
-                'sender_id'       => $senderId,
-                'body'            => $validated['body'],
-                'sent_at'         => $now,
+                'sender_type' => $validated['sender_type'],
+                'sender_id' => $senderId,
+                'body' => $validated['body'],
+                'sent_at' => $now,
             ]);
 
             // تحديث المحادثة
-            $conversation->last_message    = $validated['body'];
+            $conversation->last_message = $validated['body'];
             $conversation->last_message_at = $now;
 
             if ($validated['sender_type'] === 'teacher') {
-                $conversation->unread_for_student = (int) $conversation->unread_for_student + 1;
-            } else {
-                $conversation->unread_for_teacher = (int) $conversation->unread_for_teacher + 1;
+                $conversation->unread_for_student = (int)$conversation->unread_for_student + 1;
+            }
+            else {
+                $conversation->unread_for_teacher = (int)$conversation->unread_for_teacher + 1;
             }
 
             $conversation->save();
@@ -276,42 +323,45 @@ class ChatController extends Controller
             return [$message, $conversation];
         });
 
-       
+
         /** @var Conversation $freshConversation */
-         /** @var Message $message */
+        /** @var Message $message */
         [$message, $freshConversation] = $result;
 
         // بثّ الرسالة للطرف الآخر (للوصول الفوري)
         broadcast(new MessageSent($message, $freshConversation))->toOthers();
 
         // تجهيز خرائط الطرفين للمحادثة
-        [$teacherMap, $studentMap] = $this->loadActorsForConversations(collect([$freshConversation]));
+        [$teacherMap, $studentMap, $classMap] = $this->loadActorsForConversations(collect([$freshConversation]));
 
         return response()->json([
-            'success'      => true,
-            'message'      => $this->formatMessage($message),
+            'success' => true,
+            'message' => $this->formatMessage($message, $sender['full_name'] ?? 'Unknown'),
             'conversation' => $this->formatConversation(
-                $freshConversation,
-                $validated['sender_type'] === 'teacher',
-                $teacherMap,
-                $studentMap
-            ),
+            $freshConversation,
+            $validated['sender_type'] === 'teacher',
+            $teacherMap,
+            $studentMap,
+            $classMap
+        ),
         ]);
     }
 
     /**
      * تحميل بيانات المعلمين والطلاب لمجموعة محادثات مرة واحدة لتفادي N+1
-     * @return array{0: array<int,Teacher>, 1: array<int,Student>}
+     * @return array{0: array<int,Teacher>, 1: array<int,Student>, 2: array<int,ClassSection>}
      */
     protected function loadActorsForConversations($conversations): array
     {
         $teacherIds = $conversations->pluck('teacher_id')->filter()->unique()->values();
         $studentIds = $conversations->pluck('student_id')->filter()->unique()->values();
+        $classIds = $conversations->pluck('class_section_id')->filter()->unique()->values();
 
         $teachers = Teacher::whereIn('id', $teacherIds)->get()->keyBy('id');
         $students = Student::whereIn('id', $studentIds)->get()->keyBy('id');
+        $classes = \App\Models\ClassSection::whereIn('id', $classIds)->get()->keyBy('id');
 
-        return [$teachers->all(), $students->all()];
+        return [$teachers->all(), $students->all(), $classes->all()];
     }
 
     /**
@@ -322,7 +372,7 @@ class ChatController extends Controller
     {
         if (($validated['as'] ?? null) === 'teacher') {
             $teacherCode = $validated['teacher_code'] ?? null;
-            $teacher = $teacherCode ? Teacher::where('teacher_code', $teacherCode)->first() : null;
+            $teacher = $teacherCode ?Teacher::where('teacher_code', $teacherCode)->first() : null;
 
             if (!$teacher || $teacher->id !== $conversation->teacher_id) {
                 abort(response()->json([
@@ -335,13 +385,18 @@ class ChatController extends Controller
         }
 
         $academicId = $validated['academic_id'] ?? null;
-        $student = $academicId ? Student::where('academic_id', $academicId)->first() : null;
+        $student = $academicId ?Student::where('academic_id', $academicId)->first() : null;
 
-        if (!$student || $student->id !== $conversation->student_id) {
-            abort(response()->json([
-                'success' => false,
-                'message' => 'Unauthorized student.',
-            ], 403));
+        if ($conversation->student_id === null) {
+            // Group Chat: Check if student belongs to the class
+            if (!$student || $student->class_section_id != $conversation->class_section_id) {
+                abort(response()->json(['success' => false, 'message' => 'Unauthorized student for this group.'], 403));
+            }
+        }
+        else {
+            if (!$student || $student->id !== $conversation->student_id) {
+                abort(response()->json(['success' => false, 'message' => 'Unauthorized student.'], 403));
+            }
         }
 
         return $student;
@@ -355,7 +410,7 @@ class ChatController extends Controller
     {
         if ($validated['sender_type'] === 'teacher') {
             $teacherCode = $validated['teacher_code'] ?? null;
-            $teacher = $teacherCode ? Teacher::where('teacher_code', $teacherCode)->first() : null;
+            $teacher = $teacherCode ?Teacher::where('teacher_code', $teacherCode)->first() : null;
 
             if (!$teacher || $teacher->id !== $conversation->teacher_id) {
                 abort(response()->json([
@@ -364,20 +419,38 @@ class ChatController extends Controller
                 ], 403));
             }
 
-            return ['id' => $teacher->id, 'type' => 'teacher'];
+            return ['id' => $teacher->id, 'type' => 'teacher', 'full_name' => $teacher->full_name];
         }
 
         $academicId = $validated['academic_id'] ?? null;
-        $student = $academicId ? Student::where('academic_id', $academicId)->first() : null;
+        $student = $academicId ?Student::where('academic_id', $academicId)->first() : null;
 
-        if (!$student || $student->id !== $conversation->student_id) {
-            abort(response()->json([
-                'success' => false,
-                'message' => 'Unauthorized student.',
-            ], 403));
+        if ($conversation->student_id === null) {
+            if (!$student || $student->class_section_id != $conversation->class_section_id) {
+                abort(response()->json(['success' => false, 'message' => 'Unauthorized student for this group.'], 403));
+            }
+        }
+        else {
+            if (!$student || $student->id !== $conversation->student_id) {
+                abort(response()->json(['success' => false, 'message' => 'Unauthorized student.'], 403));
+            }
         }
 
-        return ['id' => $student->id, 'type' => 'student'];
+        return ['id' => $student->id, 'type' => 'student', 'full_name' => $student->full_name];
+    }
+
+    /**
+     * تحميل أسماء المرسلين بكفاءة لمجموعة رسائل
+     */
+    protected function loadSenderNames($messages)
+    {
+        $teacherIds = $messages->where('sender_type', 'teacher')->pluck('sender_id')->unique();
+        $studentIds = $messages->where('sender_type', 'student')->pluck('sender_id')->unique();
+
+        return [
+            'teacher' => Teacher::whereIn('id', $teacherIds)->pluck('full_name', 'id'),
+            'student' => Student::whereIn('id', $studentIds)->pluck('full_name', 'id'),
+        ];
     }
 
     /**
@@ -387,37 +460,44 @@ class ChatController extends Controller
         Conversation $c,
         bool $forTeacher = true,
         array $teacherMap = [],
-        array $studentMap = []
-    ): array {
+        array $studentMap = [],
+        array $classMap = []
+        ): array
+    {
         $teacher = $c->teacher_id ? ($teacherMap[$c->teacher_id] ?? null) : null;
         $student = $c->student_id ? ($studentMap[$c->student_id] ?? null) : null;
+        $class = $c->class_section_id ? ($classMap[$c->class_section_id] ?? null) : null;
+
+        $isGroup = ($c->student_id === null);
 
         return [
-            'id'               => $c->id,
-            'teacher_id'       => $c->teacher_id,
-            'student_id'       => $c->student_id,
+            'id' => $c->id,
+            'is_group' => $isGroup,
+            'group_name' => $isGroup && $class ? "فصل {$class->name}" : null,
+            'teacher_id' => $c->teacher_id,
+            'student_id' => $c->student_id,
             'class_section_id' => $c->class_section_id,
-            'subject_id'       => $c->subject_id,
-            'last_message'     => $c->last_message,
-            'last_message_at'  => optional($c->last_message_at)->toIso8601String(),
+            'subject_id' => $c->subject_id,
+            'last_message' => $c->last_message,
+            'last_message_at' => optional($c->last_message_at)->toIso8601String(),
 
-            'unread_count'     => $forTeacher
-                ? (int) $c->unread_for_teacher
-                : (int) $c->unread_for_student,
+            'unread_count' => $forTeacher
+            ? (int)$c->unread_for_teacher
+            : (int)$c->unread_for_student,
 
             'teacher' => $teacher ? [
-                'id'           => $teacher->id,
-                'full_name'    => $teacher->full_name,
+                'id' => $teacher->id,
+                'full_name' => $teacher->full_name,
                 'teacher_code' => $teacher->teacher_code,
-                'image'        => $teacher->image ?? null,
+                'image' => $teacher->image ?? null,
             ] : null,
 
             'student' => $student ? [
-                'id'            => $student->id,
-                'full_name'     => $student->full_name,
-                'academic_id'   => $student->academic_id,
-                'image'         => $student->image ?? null,
-                'grade'         => $student->grade,
+                'id' => $student->id,
+                'full_name' => $student->full_name,
+                'academic_id' => $student->academic_id,
+                'image' => $student->image ?? null,
+                'grade' => $student->grade,
                 'class_section' => $student->class_section,
             ] : null,
         ];
@@ -426,16 +506,17 @@ class ChatController extends Controller
     /**
      * تنسيق بيانات الرسالة
      */
-    protected function formatMessage(Message $m): array
+    protected function formatMessage(Message $m, string $senderName = null): array
     {
         return [
-            'id'              => $m->id,
+            'id' => $m->id,
             'conversation_id' => $m->conversation_id,
-            'sender_type'     => $m->sender_type,
-            'sender_id'       => $m->sender_id,
-            'body'            => $m->body,
-            'sent_at'         => optional($m->sent_at)->toIso8601String(),
-            'read_at'         => optional($m->read_at)->toIso8601String(),
+            'sender_type' => $m->sender_type,
+            'sender_id' => $m->sender_id,
+            'sender_name' => $senderName,
+            'body' => $m->body,
+            'sent_at' => optional($m->sent_at)->toIso8601String(),
+            'read_at' => optional($m->read_at)->toIso8601String(),
         ];
     }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../theme.dart';
 import 'teacher_classes_screen.dart';
+import 'teacher_report_screen.dart';
 import '../../services/ai_service.dart';
 
 class TeacherHomeScreen extends StatelessWidget {
@@ -64,6 +65,17 @@ class TeacherHomeScreen extends StatelessWidget {
           teacher: teacher,
           assignments: assignments,
           totalAssignedStudents: totalAssignedStudents,
+        ),
+      ),
+    );
+  }
+
+  void _openPerformanceReports(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => TeacherReportScreen(
+          teacher: teacher,
+          totalStudents: totalAssignedStudents,
         ),
       ),
     );
@@ -292,10 +304,11 @@ class TeacherHomeScreen extends StatelessWidget {
                       onTap: () => _openClassesFromQuickAccess(context),
                     ),
                     const SizedBox(height: 10),
-                    const _QuickActionCard(
+                    _QuickActionCard(
                       title: 'Check Performance',
                       subtitle: 'Review student progress and analytics',
                       icon: Icons.show_chart_rounded,
+                      onTap: () => _openPerformanceReports(context),
                     ),
 
                     const SizedBox(height: 28),

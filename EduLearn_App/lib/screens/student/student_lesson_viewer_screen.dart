@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../theme.dart';
-// import '../../services/student_service.dart';
+import 'ai_tutor_screen.dart';
+import 'lesson_completion_screen.dart';
+import '../../services/student_service.dart';
 
 
 
@@ -32,7 +34,7 @@ class StudentLessonViewerScreen extends StatefulWidget {
       _StudentLessonViewerScreenState();
 }
 
-class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> {
+class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> with WidgetsBindingObserver {
   bool _isLoading = true;
   String? _error;
 
@@ -50,6 +52,8 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> {
 
   // Audio auto-play support (Listen button)
   final Map<int, GlobalKey<_LessonAudioPlayerState>> _audioKeysByIndex = {};
+
+  final Stopwatch _studyStopwatch = Stopwatch();
 
   @override
   void initState() {
@@ -69,8 +73,40 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _studyStopwatch.stop();
+    _saveProgressSilently(isCompleted: _statusForStudent == 'completed');
     _scrollController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (!_studyStopwatch.isRunning) {
+        _studyStopwatch.start();
+      }
+    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      if (_studyStopwatch.isRunning) {
+        _studyStopwatch.stop();
+      }
+    }
+  }
+
+  Future<void> _saveProgressSilently({bool isCompleted = false}) async {
+    final elapsedSecs = _studyStopwatch.elapsed.inSeconds;
+    if (elapsedSecs <= 0 && !isCompleted) return;
+
+    try {
+      await StudentService.saveStudentLessonProgress(
+        academicId: widget.academicId,
+        lessonId: widget.lessonId,
+        timeSpentSeconds: elapsedSecs,
+        status: isCompleted ? 'completed' : 'draft',
+      );
+      // Reset stopwatch to avoid counting twice if not disposed
+      if (!isCompleted) _studyStopwatch.reset();
+    } catch (_) {}
   }
 
   // =========================
@@ -236,12 +272,30 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> {
     setState(() => _isCompleting = true);
 
     try {
-      await StudentService.updateStudentLessonStatus(
+      _studyStopwatch.stop();
+      final elapsedSecs = _studyStopwatch.elapsed.inSeconds;
+
+      await StudentService.saveStudentLessonProgress(
         academicId: widget.academicId,
         lessonId: widget.lessonId,
+        timeSpentSeconds: elapsedSecs,
         status: 'completed',
       );
       _statusForStudent = 'completed';
+
+      if (!mounted) return;
+
+      // Reset the stopwatch to 0 so dispose doesn't add more time if they somehow go back.
+      _studyStopwatch.reset();
+
+      final result = await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => LessonCompletionScreen(
+            title: _title,
+            timeSpentSeconds: elapsedSecs,
+          ),
+        ),
+      );
 
       if (!mounted) return;
       Navigator.of(context).pop('completed');
@@ -681,8 +735,12 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> {
           ),
           _BottomNavItem(
             icon: Icons.help_outline_rounded,
-            label: 'Ask',
-            onTap: () => _showSnack('Ask سيتم تفعيلها لاحقاً.'),
+            label: 'AI Tutor',
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const AITutorScreen()),
+              );
+            },
           ),
         ],
       ),

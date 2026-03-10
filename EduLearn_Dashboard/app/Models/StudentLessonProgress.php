@@ -14,13 +14,14 @@ class StudentLessonProgress extends Model
         'lesson_id',
         'student_id',
         'status',
+        'time_spent_seconds',
         'last_opened_at',
         'completed_at',
     ];
 
     protected $casts = [
         'last_opened_at' => 'datetime',
-        'completed_at'   => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     public function lesson()

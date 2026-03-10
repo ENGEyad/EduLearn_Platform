@@ -42,12 +42,15 @@ class AIService {
   }
 
   /// Sends a chat message to the AI Tutor
-  static Future<Map<String, dynamic>?> sendChatMessage(String message) async {
+  static Future<Map<String, dynamic>?> sendChatMessage(String message, {String? sessionId}) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/chat/'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'message': message}),
+        body: json.encode({
+          'message': message,
+          if (sessionId != null) 'session_id': sessionId,
+        }),
       );
 
       if (response.statusCode == 200) {
@@ -58,6 +61,85 @@ class AIService {
       }
     } catch (e) {
       print('Exception during chat request: $e');
+      return null;
+    }
+  }
+
+  /// Fetches adaptive exercises from Dashboard API (which uses AI)
+  static Future<Map<String, dynamic>?> getAdaptiveExercises(int studentId, String topic) async {
+    try {
+      // Use dashboard API because it tracks database history
+      final dashboardUrl = "http://192.168.1.5:8000/api/ai/adaptive-exercises";
+      final response = await http.post(
+        Uri.parse(dashboardUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'student_id': studentId,
+          'topic': topic,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching adaptive exercises: $e');
+      return null;
+    }
+  }
+
+  /// Submits student response to a generated exercise
+  static Future<bool> submitResponse({
+    required int studentId,
+    required int exerciseId,
+    required String answer,
+    double? timeTaken,
+  }) async {
+    try {
+      final dashboardUrl = "http://192.168.1.5:8000/api/ai/submit-response";
+      final response = await http.post(
+        Uri.parse(dashboardUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'student_id': studentId,
+          'exercise_id': exerciseId,
+          'answer': answer,
+          'time_taken': timeTaken,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error submitting response: $e');
+      return false;
+    }
+  }
+  /// Generates a daily analytical report for a teacher
+  static Future<Map<String, dynamic>?> getTeacherDailyReport({
+    required String teacherName,
+    required Map<String, dynamic> classStats,
+    required List<Map<String, dynamic>> studentIssues,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/teacher-daily-report/'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'teacher_name': teacherName,
+          'class_stats': classStats,
+          'student_issues': studentIssues,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        print('Failed to get teacher report. Status: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Exception during teacher report request: $e');
       return null;
     }
   }

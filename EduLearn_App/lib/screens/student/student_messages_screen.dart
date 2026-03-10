@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pusher_reverb_flutter/pusher_reverb_flutter.dart';
 
 import '../../theme.dart';
@@ -254,8 +256,11 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
 
         final String lastPreview = (c['last_message'] ?? '').toString();
         final String rawTime = (c['last_message_at'] ?? '').toString();
+        
+        final bool isGroup = c['is_group'] == true;
+        final String? groupName = c['group_name'];
 
-        // ✅ عند الطالب: نفضل unread_for_student إن توفر، وإلا fallback على unread_count
+        // ✅ عادات الطالب: نفضل unread_for_student إن توفر، وإلا fallback على unread_count
         final int unread = int.tryParse(
               (c['unread_for_student'] ?? c['unread_count'] ?? '0').toString(),
             ) ??
@@ -279,6 +284,8 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
           lastMessageTimeLabel: timeLabel,
           lastMessageAt: lastAt,
           unreadCount: unread,
+          isGroup: isGroup,
+          groupName: groupName,
         );
 
         _teacherCodeByConversationId[conversationId] = teacherCode;
@@ -566,6 +573,7 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
           student: widget.student,
           teacher: t.raw,
           conversationId: conversationId!,
+          isGroup: meta?.isGroup ?? false,
         ),
       ),
     );
@@ -599,31 +607,34 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
     });
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6FB),
+      backgroundColor: const Color(0xFF0A0E1A),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         centerTitle: false,
         titleSpacing: 16,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Messages',
-              style: TextStyle(
-                color: EduTheme.primaryDark,
+            Text(
+              'MESSAGES',
+              style: GoogleFonts.orbitron(
+                color: const Color(0xFF00E5FF),
                 fontWeight: FontWeight.w800,
-                fontSize: 28,
-                letterSpacing: 0.2,
+                fontSize: 24,
+                letterSpacing: 2,
+                shadows: [
+                  const Shadow(color: Color(0xFF00E5FF), blurRadius: 8),
+                ],
               ),
             ),
             const SizedBox(height: 4),
             Text(
-              _studentFullName,
-              style: const TextStyle(
-                color: EduTheme.textMuted,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+              _studentFullName.toUpperCase(),
+              style: GoogleFonts.orbitron(
+                color: Colors.white54,
+                fontSize: 10,
+                letterSpacing: 1,
               ),
             ),
           ],
@@ -635,72 +646,84 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
               child: SizedBox(
                 width: 18,
                 height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF00E5FF)),
               ),
             )
           else
             IconButton(
               icon: const Icon(
                 Icons.refresh_rounded,
-                color: EduTheme.primaryDark,
+                color: Color(0xFF00E5FF),
               ),
               onPressed: () => _loadStudentConversations(showLoading: true),
             ),
         ],
       ),
-      body: orderedTeachers.isEmpty
-          ? const Center(
-              child: Text(
-                'No chats yet. Start a conversation with your teachers.',
-                style: TextStyle(
-                  color: EduTheme.textMuted,
-                  fontSize: 13,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF0A0E1A),
+              const Color(0xFF161B22),
+            ],
+          ),
+        ),
+        child: orderedTeachers.isEmpty
+            ? Center(
+                child: Text(
+                  'NO ACTIVE CHANNELS',
+                  style: GoogleFonts.orbitron(
+                    color: Colors.white24,
+                    fontSize: 12,
+                    letterSpacing: 2,
+                  ),
                 ),
+              )
+            : ListView.separated(
+                padding: const EdgeInsets.only(top: 16, bottom: 20, left: 16, right: 16),
+                itemCount: orderedTeachers.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final t = orderedTeachers[index];
+                  final meta = _metaByTeacherCode[t.teacherCode];
+                  
+                  final isGroup = meta?.isGroup ?? false;
+                  final displayName = isGroup ? (meta?.groupName ?? 'Class Group') : t.name;
+
+                  final avatarText = displayName.isNotEmpty ? displayName[0].toUpperCase() : '?';
+
+                  final subtitle = isGroup ? 'Teacher: ${t.name}' : 'Personal Chat';
+
+                  final displayPreview = (meta?.lastMessagePreview?.isNotEmpty ?? false)
+                      ? meta!.lastMessagePreview!
+                      : subtitle;
+
+                  final displayTime = meta?.lastMessageTimeLabel ?? '';
+
+                  final unreadCount = (meta?.unreadCount != null && meta!.unreadCount! > 0)
+                      ? meta.unreadCount
+                      : null;
+
+                  final avatarImageUrl = (!isGroup && t.imageUrl != null && t.imageUrl!.isNotEmpty)
+                      ? ApiHelpers.buildFullMediaUrl(t.imageUrl!)
+                      : null;
+
+                  return _MessageItem(
+                    avatarText: avatarText,
+                    avatarImageUrl: avatarImageUrl,
+                    name: displayName,
+                    preview: displayPreview,
+                    metaLine: subtitle,
+                    time: displayTime,
+                    unreadCount: unreadCount,
+                    isGroup: isGroup,
+                    onTap: () => _openChatForTeacher(t),
+                  );
+                },
               ),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.only(top: 8, bottom: 12),
-              itemCount: orderedTeachers.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 4),
-              itemBuilder: (context, index) {
-                final t = orderedTeachers[index];
-
-                final avatarText =
-                    t.name.isNotEmpty ? t.name[0].toUpperCase() : '?';
-
-                final meta = _metaByTeacherCode[t.teacherCode];
-
-                final subtitle = 'Code: ${t.teacherCode}';
-
-                final displayPreview =
-                    (meta?.lastMessagePreview?.isNotEmpty ?? false)
-                        ? meta!.lastMessagePreview!
-                        : subtitle;
-
-                final displayTime = meta?.lastMessageTimeLabel ?? '';
-
-                final unreadCount =
-                    (meta?.unreadCount != null && meta!.unreadCount! > 0)
-                        ? meta.unreadCount
-                        : null;
-
-                final avatarImageUrl =
-                    (t.imageUrl != null && t.imageUrl!.isNotEmpty)
-                        ? ApiHelpers.buildFullMediaUrl(t.imageUrl!)
-                        : null;
-
-                return _MessageItem(
-                  avatarText: avatarText,
-                  avatarImageUrl: avatarImageUrl,
-                  name: t.name.isNotEmpty ? t.name : t.teacherCode,
-                  preview: displayPreview,
-                  metaLine: subtitle,
-                  time: displayTime,
-                  unreadCount: unreadCount,
-                  onTap: () => _openChatForTeacher(t),
-                );
-              },
-            ),
+      ),
     );
   }
 }
@@ -726,6 +749,8 @@ class _ConversationMeta {
   final String? lastMessageTimeLabel;
   final DateTime? lastMessageAt;
   final int? unreadCount;
+  final bool isGroup;
+  final String? groupName;
 
   _ConversationMeta({
     required this.conversationId,
@@ -733,6 +758,8 @@ class _ConversationMeta {
     this.lastMessageTimeLabel,
     this.lastMessageAt,
     this.unreadCount,
+    this.isGroup = false,
+    this.groupName,
   });
 }
 
@@ -744,6 +771,7 @@ class _MessageItem extends StatelessWidget {
   final String metaLine;
   final String time;
   final int? unreadCount;
+  final bool isGroup;
   final VoidCallback? onTap;
 
   const _MessageItem({
@@ -754,6 +782,7 @@ class _MessageItem extends StatelessWidget {
     required this.time,
     this.avatarImageUrl,
     this.unreadCount,
+    this.isGroup = false,
     this.onTap,
   });
 
@@ -763,141 +792,116 @@ class _MessageItem extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: hasUnread ? const Color(0xFFEFF4FF) : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: hasUnread
-                  ? EduTheme.primary.withOpacity(0.25)
-                  : const Color(0xFFE2E6F0),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                offset: const Offset(0, 2),
-                blurRadius: 4,
-              ),
-            ],
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.03),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: hasUnread
+                ? const Color(0xFF00E5FF).withOpacity(0.3)
+                : Colors.white.withOpacity(0.05),
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: hasUnread
-                    ? EduTheme.primary.withOpacity(0.14)
-                    : Colors.white,
-                backgroundImage: avatarImageUrl != null
-                    ? NetworkImage(avatarImageUrl!)
-                    : null,
-                child: avatarImageUrl == null
-                    ? Text(
-                        avatarText,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 20,
-                          color: EduTheme.primaryDark,
-                        ),
-                      )
-                    : null,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontWeight:
-                                  hasUnread ? FontWeight.w800 : FontWeight.w700,
-                              fontSize: 15.5,
-                              color: EduTheme.primaryDark,
-                            ),
+        ),
+        child: Row(
+          children: [
+            Stack(
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: isGroup ? const Color(0xFF9C27B0).withOpacity(0.2) : const Color(0xFF00E5FF).withOpacity(0.1),
+                  backgroundImage: avatarImageUrl != null ? NetworkImage(avatarImageUrl!) : null,
+                  child: avatarImageUrl == null
+                      ? Text(
+                          avatarText,
+                          style: GoogleFonts.orbitron(
+                            color: isGroup ? const Color(0xFF9C27B0) : const Color(0xFF00E5FF),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
                           ),
-                        ),
-                        if (time.isNotEmpty) ...[
-                          const SizedBox(width: 8),
-                          Text(
-                            time,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: hasUnread
-                                  ? EduTheme.primary
-                                  : EduTheme.textMuted,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    if (metaLine.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        metaLine,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: EduTheme.textMuted,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 4),
-                    Text(
-                      preview,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: hasUnread
-                            ? EduTheme.primaryDark
-                            : EduTheme.textMuted,
-                        fontWeight:
-                            hasUnread ? FontWeight.w600 : FontWeight.w400,
-                      ),
-                    ),
-                  ],
+                        )
+                      : null,
                 ),
-              ),
-              const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                if (isGroup)
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF9C27B0),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.group, size: 10, color: Colors.white),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 4),
-                  if (hasUnread)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: EduTheme.primary,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        unreadCount.toString(),
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.orbitron(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            letterSpacing: 0.5,
+                          ),
                         ),
                       ),
+                      if (time.isNotEmpty)
+                        Text(
+                          time,
+                          style: GoogleFonts.nunito(
+                            color: hasUnread ? const Color(0xFF00E5FF) : Colors.white38,
+                            fontSize: 10,
+                            fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    preview,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.nunito(
+                      color: hasUnread ? Colors.white : Colors.white54,
+                      fontSize: 13,
+                      fontWeight: hasUnread ? FontWeight.w600 : FontWeight.normal,
                     ),
+                  ),
                 ],
               ),
+            ),
+            if (hasUnread) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00E5FF),
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(color: const Color(0xFF00E5FF).withOpacity(0.3), blurRadius: 6),
+                  ],
+                ),
+                child: Text(
+                  unreadCount.toString(),
+                  style: const TextStyle(color: Color(0xFF0A0E1A), fontSize: 10, fontWeight: FontWeight.bold),
+                ),
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );
@@ -910,12 +914,14 @@ class StudentChatScreen extends StatefulWidget {
   final Map<String, dynamic> student;
   final Map<String, dynamic> teacher;
   final int conversationId;
+  final bool isGroup;
 
   const StudentChatScreen({
     super.key,
     required this.student,
     required this.teacher,
     required this.conversationId,
+    this.isGroup = false,
   });
 
   @override
@@ -1087,9 +1093,27 @@ class _StudentChatScreenState extends State<StudentChatScreen>
     }
   }
 
-  Future<void> _sendMessage() async {
-    final text = _textController.text.trim();
+  Future<void> _sendMessage({String? overrideText}) async {
+    final text = (overrideText ?? _textController.text).trim();
     if (text.isEmpty) return;
+
+    final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
+    final tempMsg = {
+      'id': tempId,
+      'body': text,
+      'sender_type': 'student',
+      'sent_at': DateTime.now().toUtc().toIso8601String(),
+      'is_temp': true,
+    };
+
+    if (mounted) {
+      setState(() {
+        _messageIds.add(tempId);
+        _messages.add(tempMsg);
+      });
+      _textController.clear();
+      _scrollToBottom();
+    }
 
     try {
       final sent = await ChatService.sendMessageAsStudent(
@@ -1102,19 +1126,32 @@ class _StudentChatScreenState extends State<StudentChatScreen>
 
       if (!mounted) return;
       setState(() {
-        if (idStr.isNotEmpty) _messageIds.add(idStr);
-        _messages.add(sent);
+        // حذف الرسالة المؤقتة واستبدالها بالرسالة الحقيقية من السيرفر
+        _messages.removeWhere((m) => m['id'] == tempId);
+        _messageIds.remove(tempId);
+
+        if (idStr.isNotEmpty && !_messageIds.contains(idStr)) {
+          _messageIds.add(idStr);
+          _messages.add(sent);
+        }
       });
 
-      _textController.clear();
       _scrollToBottom();
     } catch (e) {
       debugPrint('Failed to send message: $e');
       if (!mounted) return;
+
+      // في حال الفشل، نحذف الرسالة المؤقتة وننبه المستخدم
+      setState(() {
+        _messages.removeWhere((m) => m['id'] == tempId);
+        _messageIds.remove(tempId);
+        _textController.text = text; // إعادة النص للتحكم
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            e.toString(),
+            'فشل في إرسال الرسالة: $e',
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -1155,222 +1192,154 @@ class _StudentChatScreenState extends State<StudentChatScreen>
 
   @override
   Widget build(BuildContext context) {
-    final subtitleParts = <String>[];
-    if (_teacherCode.isNotEmpty) subtitleParts.add('Code: $_teacherCode');
-    if (_studentName.isNotEmpty) subtitleParts.add(_studentName);
-    final subtitle = subtitleParts.join(' • ');
-
     final avatarUrl = _teacherImage != null && _teacherImage!.isNotEmpty
         ? ApiHelpers.buildFullMediaUrl(_teacherImage!)
         : null;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        elevation: 0.4,
-        backgroundColor: Colors.white,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
         titleSpacing: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF00E5FF)),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Row(
           children: [
-            const SizedBox(width: 4),
             CircleAvatar(
-              radius: 20,
-              backgroundColor: Colors.white,
+              radius: 18,
+              backgroundColor: Colors.white10,
               backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
               child: avatarUrl == null
-                  ? const Icon(
-                      Icons.person,
-                      color: EduTheme.primaryDark,
-                    )
+                  ? const Icon(Icons.person, color: Color(0xFF00E5FF), size: 20)
                   : null,
             ),
             const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _teacherName.isNotEmpty ? _teacherName : _teacherCode,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: EduTheme.primaryDark,
-                  ),
-                ),
-                if (subtitle.isNotEmpty)
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: EduTheme.textMuted,
-                    ),
-                  ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      backgroundColor: const Color(0xFFECEFF3),
-      body: Column(
-        children: [
-          Expanded(
-            child: _loading && !_initialLoaded
-                ? const Center(child: CircularProgressIndicator())
-                : _messages.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'No messages yet. Start the conversation.',
-                          style: TextStyle(color: EduTheme.textMuted),
-                        ),
-                      )
-                    : ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 10,
-                        ),
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          final m = _messages[index];
-                          final senderType = (m['sender_type'] ?? '').toString();
-                          final isStudent = senderType == 'student';
-
-                          final body = (m['body'] ?? '').toString();
-                          final createdAtRaw = (m['sent_at'] ?? '').toString();
-                          final createdTimeLabel =
-                              createdAtRaw.isEmpty ? '' : _formatTimeLabel(createdAtRaw);
-
-                          String? dateHeader;
-                          final dt = _parseUtcDate(createdAtRaw)?.toLocal();
-                          if (dt != null) {
-                            bool showHeader = false;
-                            if (index == 0) {
-                              showHeader = true;
-                            } else {
-                              final prevRaw =
-                                  (_messages[index - 1]['sent_at'] ?? '').toString();
-                              final prevDt = _parseUtcDate(prevRaw)?.toLocal();
-                              if (prevDt == null || !_isSameCalendarDate(prevDt, dt)) {
-                                showHeader = true;
-                              }
-                            }
-
-                            if (showHeader) {
-                              final now = DateTime.now();
-                              final today = DateTime(now.year, now.month, now.day);
-                              final date = DateTime(dt.year, dt.month, dt.day);
-                              final diffDays = today.difference(date).inDays;
-                              if (diffDays == 0) {
-                                dateHeader = 'Today';
-                              } else if (diffDays == 1) {
-                                dateHeader = 'Yesterday';
-                              } else {
-                                const monthNames = [
-                                  'Jan',
-                                  'Feb',
-                                  'Mar',
-                                  'Apr',
-                                  'May',
-                                  'Jun',
-                                  'Jul',
-                                  'Aug',
-                                  'Sep',
-                                  'Oct',
-                                  'Nov',
-                                  'Dec',
-                                ];
-                                dateHeader = '${monthNames[dt.month - 1]} ${dt.day}';
-                              }
-                            }
-                          }
-
-                          return Column(
-                            children: [
-                              if (dateHeader != null) _DateChip(label: dateHeader),
-                              _ChatBubble(
-                                isMe: isStudent,
-                                text: body,
-                                timeLabel: createdTimeLabel,
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            color: Colors.white,
-            child: SafeArea(
-              top: false,
-              child: Row(
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F7FB),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: TextField(
-                        controller: _textController,
-                        minLines: 1,
-                        maxLines: 4,
-                        decoration: const InputDecoration(
-                          hintText: 'Type a message...',
-                          border: InputBorder.none,
-                        ),
-                        textInputAction: TextInputAction.newline,
-                      ),
+                  Text(
+                    _teacherName,
+                    style: GoogleFonts.orbitron(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: _sendMessage,
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: const BoxDecoration(
-                        color: EduTheme.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.send_rounded,
-                        color: Colors.white,
-                        size: 22,
-                      ),
+                  Text(
+                    'SECURE CHANNEL',
+                    style: GoogleFonts.orbitron(
+                      fontSize: 8,
+                      color: const Color(0xFF00E5FF),
+                      letterSpacing: 1,
                     ),
                   ),
                 ],
               ),
             ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.more_vert, color: Color(0xFF00E5FF)),
+            onPressed: () {},
           ),
         ],
       ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF0A0E1A), Color(0xFF0F172A)],
+          ),
+        ),
+        child: Column(
+          children: [
+            Expanded(
+              child: _loading && !_initialLoaded
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF00E5FF)))
+                  : ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.only(top: 100, left: 12, right: 12, bottom: 20),
+                      itemCount: _messages.length,
+                      itemBuilder: (context, index) {
+                        final m = _messages[index];
+                        final senderType = (m['sender_type'] ?? '').toString();
+                        final isMe = senderType == 'student';
+
+                        final body = (m['body'] ?? '').toString();
+                        final time = (m['sent_at'] ?? '').toString();
+                        final timeLabel = time.isEmpty ? '' : _formatTimeLabel(time);
+
+                        return _ChatBubble(
+                          isMe: isMe,
+                          text: body,
+                          timeLabel: timeLabel,
+                          senderName: widget.isGroup ? (m['sender_name'] ?? (isMe ? null : 'Teacher')) : null,
+                          isTemp: m['is_temp'] == true,
+                        );
+                      },
+                    ),
+            ),
+            _buildInput(),
+          ],
+        ),
+      ),
     );
   }
-}
 
-class _DateChip extends StatelessWidget {
-  final String label;
-
-  const _DateChip({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 6, bottom: 10),
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          decoration: BoxDecoration(
-            color: const Color(0xFFD9E1F2),
-            borderRadius: BorderRadius.circular(999),
-          ),
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: EduTheme.primaryDark,
-            ),
+  Widget _buildInput() {
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          border: Border(top: BorderSide(color: Colors.white.withOpacity(0.1))),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: const Color(0xFF00E5FF).withOpacity(0.2)),
+                  ),
+                  child: TextField(
+                    controller: _textController,
+                    style: const TextStyle(color: Colors.white),
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (val) => _sendMessage(),
+                    decoration: const InputDecoration(
+                      hintText: 'Encrypt data...',
+                      hintStyle: TextStyle(color: Colors.white38),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              GestureDetector(
+                onTap: _sendMessage,
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(colors: [Color(0xFF00E5FF), Color(0xFF00B8D4)]),
+                  ),
+                  child: const Icon(Icons.send_rounded, color: Colors.white, size: 22),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1382,85 +1351,71 @@ class _ChatBubble extends StatelessWidget {
   final bool isMe;
   final String text;
   final String timeLabel;
+  final String? senderName;
+  final bool isTemp;
 
   const _ChatBubble({
     required this.isMe,
     required this.text,
     required this.timeLabel,
+    this.senderName,
+    this.isTemp = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = isMe ? EduTheme.primary : Colors.white;
-    final textColor = isMe ? Colors.white : EduTheme.primaryDark;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-      child: Column(
-        crossAxisAlignment:
-            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment:
-                isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Opacity(
+        opacity: isTemp ? 0.6 : 1.0,
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: isMe ? const Color(0xFF00E5FF).withOpacity(0.8) : Colors.white10,
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(16),
+              topRight: const Radius.circular(16),
+              bottomLeft: Radius.circular(isMe ? 16 : 4),
+              bottomRight: Radius.circular(isMe ? 4 : 16),
+            ),
+            border: Border.all(color: Colors.white10),
+          ),
+          child: Column(
+            crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
             children: [
-              Flexible(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: bgColor,
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(20),
-                      topRight: const Radius.circular(20),
-                      bottomLeft: Radius.circular(isMe ? 20 : 6),
-                      bottomRight: Radius.circular(isMe ? 6 : 20),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        offset: const Offset(0, 1),
-                        blurRadius: 3,
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    text,
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 14,
-                    ),
-                  ),
+              if (senderName != null && !isMe) ...[
+                Text(
+                  senderName!,
+                  style: const TextStyle(color: Color(0xFF00E5FF), fontSize: 10, fontWeight: FontWeight.bold),
                 ),
+                const SizedBox(height: 4),
+              ],
+              Text(
+                text,
+                style: TextStyle(color: isMe ? Colors.black : Colors.white, fontSize: 14),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    timeLabel,
+                    style: TextStyle(color: isMe ? Colors.black54 : Colors.white30, fontSize: 9),
+                  ),
+                  if (isTemp && isMe) ...[
+                    const SizedBox(width: 4),
+                    const SizedBox(
+                      width: 8,
+                      height: 8,
+                      child: CircularProgressIndicator(strokeWidth: 1, color: Colors.black54),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 2),
-          if (timeLabel.isNotEmpty)
-            Row(
-              mainAxisAlignment:
-                  isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-              children: [
-                Text(
-                  timeLabel,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: EduTheme.textMuted,
-                  ),
-                ),
-                if (isMe) ...[
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.done_all_rounded,
-                    size: 14,
-                    color: EduTheme.primary.withOpacity(0.9),
-                  ),
-                ],
-              ],
-            ),
-        ],
+        ),
       ),
     );
   }

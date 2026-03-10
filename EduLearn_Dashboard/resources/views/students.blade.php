@@ -168,13 +168,13 @@
       <label class="form-label">Grade</label>
       <select class="form-select" id="stGrade">
         <option value="">Select Grade</option>
-        @for ($i = 1; $i <= 12; $i++)
-          <option value="Grade {{ $i }}">Grade {{ $i }}</option>
-        @endfor
+        @foreach ($grades as $g)
+          <option value="{{ $g }}">{{ $g }}</option>
+        @endforeach
       </select>
     </div>
     <div class="col-md-3">
-      <label class="form-label">Class / Section</label>
+      <label class="form-label">Class / Section (Optional)</label>
       <input type="text" class="form-control" id="stClassSection" placeholder="e.g. A, B, C...">
     </div>
     <div class="col-md-3">

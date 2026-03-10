@@ -29,10 +29,11 @@ class Student extends Model
         'photo_path',
         'guardian_phones',
         'notes',
+        'total_study_time_seconds',
     ];
 
     protected $casts = [
-        'birthdate'       => 'date',
+        'birthdate' => 'date',
         'guardian_phones' => 'array',
         'performance_avg' => 'decimal:2',
         'attendance_rate' => 'decimal:2',
@@ -45,14 +46,14 @@ class Student extends Model
 
 
     public function getImageAttribute()
-{
-    if (!$this->photo_path) {
-        return null;
-    }
+    {
+        if (!$this->photo_path) {
+            return null;
+        }
 
-    // تأكد إنك مشغّل `php artisan storage:link`
-    return asset('storage/' . $this->photo_path);
-}
+        // تأكد إنك مشغّل `php artisan storage:link`
+        return asset('storage/' . $this->photo_path);
+    }
 
     /**
      * ربط الطالب بالصف/الشعبة الحقيقي (ClassSection)
@@ -78,10 +79,10 @@ class Student extends Model
 
         $classSection = $this->classSection()
             ->with([
-                'assignments.subject',
-                'assignments.teacher',
-                'subjects', // المواد المفعّلة عبر class_section_subjects (بدون أستاذ)
-            ])
+            'assignments.subject',
+            'assignments.teacher',
+            'subjects', // المواد المفعّلة عبر class_section_subjects (بدون أستاذ)
+        ])
             ->first();
 
         if (!$classSection) {
@@ -102,12 +103,12 @@ class Student extends Model
             }
 
             $subjects[] = [
-                'subject_id'       => $subject->id,
-                'subject_code'     => $subject->code,
-                'subject_name_en'  => $subject->name_en,
-                'subject_name_ar'  => $subject->name_ar,
-                'teacher_id'       => $assignment->teacher_id,
-                'teacher_name'     => optional($assignment->teacher)->full_name,
+                'subject_id' => $subject->id,
+                'subject_code' => $subject->code,
+                'subject_name_en' => $subject->name_en,
+                'subject_name_ar' => $subject->name_ar,
+                'teacher_id' => $assignment->teacher_id,
+                'teacher_name' => optional($assignment->teacher)->full_name,
             ];
         }
 
@@ -115,12 +116,12 @@ class Student extends Model
         if (empty($subjects)) {
             foreach ($classSection->subjects as $subject) {
                 $subjects[] = [
-                    'subject_id'       => $subject->id,
-                    'subject_code'     => $subject->code,
-                    'subject_name_en'  => $subject->name_en,
-                    'subject_name_ar'  => $subject->name_ar,
-                    'teacher_id'       => null,
-                    'teacher_name'     => null,
+                    'subject_id' => $subject->id,
+                    'subject_code' => $subject->code,
+                    'subject_name_en' => $subject->name_en,
+                    'subject_name_ar' => $subject->name_ar,
+                    'teacher_id' => null,
+                    'teacher_name' => null,
                 ];
             }
         }

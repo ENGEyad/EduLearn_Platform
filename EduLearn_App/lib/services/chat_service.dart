@@ -193,6 +193,45 @@ class ChatService {
     }
   }
 
+  static Future<Map<String, dynamic>> openGroupConversation({
+    required String academicId,
+    required String teacherCode,
+    required int classSectionId,
+  }) async {
+    final url = Uri.parse('$baseUrl/chat/conversations/open-group');
+
+    final body = <String, String>{
+      'academic_id': academicId,
+      'teacher_code': teacherCode,
+      'class_section_id': classSectionId.toString(),
+      'as': 'student',
+    };
+
+    final response = await http.post(
+      url,
+      headers: _headers(),
+      body: body,
+    );
+
+    late final Map<String, dynamic> data;
+    try {
+      data = ApiHelpers.decodeJsonAsMap(response.body);
+    } catch (_) {
+      throw Exception('Invalid server response.');
+    }
+
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300 &&
+        data['success'] == true &&
+        data['conversation'] is Map) {
+      return Map<String, dynamic>.from(
+          data['conversation'] as Map<dynamic, dynamic>);
+    } else {
+      final msg = data['message']?.toString() ?? 'Failed to open group conversation';
+      throw Exception(msg);
+    }
+  }
+
   static Future<List<dynamic>> fetchStudentConversations({
     required String academicId,
   }) async {

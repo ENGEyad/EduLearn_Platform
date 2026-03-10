@@ -3,26 +3,86 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Teacher;
+use App\Models\Student;
+use App\Models\ClassSection;
+use App\Models\Subject;
+use Illuminate\Support\Facades\Http;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // هنا بعدين بنجيب الإحصائيات من قاعدة البيانات
-        // مثلاً:
-        // $teachersCount = Teacher::count();
-        // لكن الآن بنرسل قيم ثابتة نفس اللي في الـ HTML
+        $period = $request->get('period', 'week');
+        $periodMap = [
+            'today' => 'اليوم',
+            'week' => 'هذا الأسبوع',
+            'month' => 'هذا الشهر',
+            'year' => 'هذا العام'
+        ];
+        $periodLabel = $periodMap[$period] ?? 'هذا الأسبوع';
+
+        $teachersCount = Teacher::count();
+        $studentsCount = Student::count();
+        $classesCount = ClassSection::count();
+        $subjectsCount = Subject::count();
+
+        // Calculate averages (simulating historical data for the demo)
+        $avgAttendance = Student::avg('attendance_rate') ?? 0;
+        $avgPerformance = Student::avg('performance_avg') ?? 0;
+
+        // Simulate some variance based on period
+        if ($period === 'today') {
+            $avgAttendance *= 0.98;
+            $avgPerformance *= 1.05;
+        }
+        elseif ($period === 'month') {
+            $avgAttendance *= 1.02;
+        }
+
+        // Prepare context for AI
+        $statsSummary = "إحصائيات المدرسة لـ ($periodLabel): 
+        - عدد المعلمين: $teachersCount
+        - عدد الطلاب: $studentsCount
+        - عدد الفصول: $classesCount
+        - عدد المواد: $subjectsCount
+        - متوسط الحضور: " . number_format($avgAttendance, 1) . "%
+        - متوسط الأداء الأكاديمي: " . number_format($avgPerformance, 1) . " / 100";
+
+        $aiInsight = "جاري تحليل البيانات لـ ($periodLabel)...";
+
+        try {
+            // Call the AI service running on 8001
+            $response = Http::timeout(10)->post('http://127.0.0.1:8001/chat/', [
+                'message' => "بصفتك محلل بيانات تعليمي، قم بتحليل إحصائيات فترة ($periodLabel) وتقديم تقرير (3 نقاط) باللغة العربية حول حالة المدرسة وتوصية واحدة: $statsSummary"
+            ]);
+
+            if ($response->successful()) {
+                $aiInsight = $response->json('reply') ?? "تعذر الحصول على تحليل دقيق حالياً.";
+            }
+            else {
+                $aiInsight = "الذكاء الاصطناعي غير متاح حالياً للتحليل.";
+            }
+        }
+        catch (\Exception $e) {
+            $aiInsight = "فشل الاتصال بخدمة الذكاء الاصطناعي: " . $e->getMessage();
+        }
 
         return view('dashboard', [
             'pageTitle' => 'Dashboard',
             'pageSubtitle' => 'Welcome, Admin!',
+            'period' => $period,
+            'periodLabel' => $periodLabel,
             'stats' => [
-                'teachers' => 52,
-                'students' => 850,
-                'classes'  => 32,
-                'subjects' => 15,
-                'attendance' => 92,
+                'teachers' => $teachersCount,
+                'students' => $studentsCount,
+                'classes' => $classesCount,
+                'subjects' => $subjectsCount,
+                'attendance' => round($avgAttendance),
+                'performance' => round($avgPerformance),
+                'danglingStudents' => Student::whereNull('class_section_id')->count(),
             ],
+            'aiInsight' => $aiInsight
         ]);
     }
 }

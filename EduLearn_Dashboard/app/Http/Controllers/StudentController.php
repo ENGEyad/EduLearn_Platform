@@ -16,10 +16,12 @@ class StudentController extends Controller
      */
     public function index()
     {
+        $grades = \App\Models\ClassSection::select('grade')->distinct()->pluck('grade');
         return view('students', [
             'title'        => 'Students – EduLearn',
             'pageTitle'    => 'Student Management',
             'pageSubtitle' => 'Manage school students, status and profiles',
+            'grades'       => $grades,
         ]);
     }
 

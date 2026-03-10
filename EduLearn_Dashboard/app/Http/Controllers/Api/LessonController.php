@@ -28,58 +28,58 @@ class LessonController extends Controller
     {
         $validated = $request->validate([
             // هوية الأستاذ + الاستهداف
-            'teacher_code'     => 'required|string',
-            'assignment_id'    => 'required|integer',
-            'class_module_id'  => 'required|integer',   // ✅ الآن مطلوب (لأنه Container الحقيقي)
+            'teacher_code' => 'required|string',
+            'assignment_id' => 'required|integer',
+            'class_module_id' => 'required|integer', // ✅ الآن مطلوب (لأنه Container الحقيقي)
             'class_section_id' => 'required|integer',
-            'subject_id'       => 'required|integer',
+            'subject_id' => 'required|integer',
 
             // بيانات الدرس
-            'lesson_id'        => 'nullable|integer',
-            'title'            => 'required|string|max:255',
-            'status'           => 'required|in:draft,published',
+            'lesson_id' => 'nullable|integer',
+            'title' => 'required|string|max:255',
+            'status' => 'required|in:draft,published',
 
             /**
-             * ------------------------------------------------------------
-             * ⚠️ Backward compatibility:
-             * نستقبل modules/topics لو جاءت من Flutter القديمة،
-             * لكننا لا نخزنها ولا نعتمد عليها في المرحلة الأولى.
-             * ------------------------------------------------------------
-             */
-            'modules'            => 'nullable|array',
-            'topics'             => 'nullable|array',
+     * ------------------------------------------------------------
+     * ⚠️ Backward compatibility:
+     * نستقبل modules/topics لو جاءت من Flutter القديمة،
+     * لكننا لا نخزنها ولا نعتمد عليها في المرحلة الأولى.
+     * ------------------------------------------------------------
+     */
+            'modules' => 'nullable|array',
+            'topics' => 'nullable|array',
 
             // Blocks فقط
-            'blocks'                  => 'nullable|array',
-            'blocks.*.id'             => 'nullable|integer',
-            'blocks.*.type'           => 'required|in:text,image,video,audio',
-            'blocks.*.body'           => 'nullable|string',
-            'blocks.*.caption'        => 'nullable|string|max:255',
+            'blocks' => 'nullable|array',
+            'blocks.*.id' => 'nullable|integer',
+            'blocks.*.type' => 'required|in:text,image,video,audio',
+            'blocks.*.body' => 'nullable|string',
+            'blocks.*.caption' => 'nullable|string|max:255',
 
             // ✅ مصدر الحقيقة للتخزين: media_path فقط
-            'blocks.*.media_path'     => 'nullable|string',
+            'blocks.*.media_path' => 'nullable|string',
 
             // (نستقبلها لكن لا نخزنها في DB)
-            'blocks.*.media_url'      => 'nullable|string',
+            'blocks.*.media_url' => 'nullable|string',
 
-            'blocks.*.media_mime'     => 'nullable|string',
-            'blocks.*.media_size'     => 'nullable|integer',
+            'blocks.*.media_mime' => 'nullable|string',
+            'blocks.*.media_size' => 'nullable|integer',
             'blocks.*.media_duration' => 'nullable|integer',
 
             // ✅ في المرحلة الأولى: لا Module/Topic داخل الدرس
             // نقبلها لو جاءت لكن سنجعلها null عند التخزين
-            'blocks.*.module_id'      => 'nullable',
-            'blocks.*.topic_id'       => 'nullable',
+            'blocks.*.module_id' => 'nullable',
+            'blocks.*.topic_id' => 'nullable',
 
-            'blocks.*.position'       => 'nullable|integer',
-            'blocks.*.meta'           => 'nullable|array',
+            'blocks.*.position' => 'nullable|integer',
+            'blocks.*.meta' => 'nullable|array',
         ]);
 
         // ============================================================
         // 🔍 التأكد من الأستاذ + التأكد من الإسناد (Assignment)
         // ============================================================
         $teacher = Teacher::where('teacher_code', $validated['teacher_code'])->first();
-        if (! $teacher) {
+        if (!$teacher) {
             return response()->json([
                 'success' => false,
                 'message' => 'Teacher not found',
@@ -90,7 +90,7 @@ class LessonController extends Controller
             ->where('teacher_id', $teacher->id)
             ->first();
 
-        if (! $assignment) {
+        if (!$assignment) {
             return response()->json([
                 'success' => false,
                 'message' => 'Assignment not found for this teacher',
@@ -105,26 +105,27 @@ class LessonController extends Controller
         DB::connection('app_mysql')->transaction(function () use ($validated, $teacher, $assignment, &$lessonId) {
 
             // 🔹 إنشاء أو تحديث الدرس
-            if (! empty($validated['lesson_id'])) {
+            if (!empty($validated['lesson_id'])) {
                 $lesson = Lesson::on('app_mysql')
                     ->where('id', $validated['lesson_id'])
                     ->where('teacher_id', $teacher->id)
                     ->firstOrFail();
-            } else {
+            }
+            else {
                 $lesson = new Lesson();
                 $lesson->setConnection('app_mysql');
             }
 
-            $lesson->teacher_id       = $teacher->id;
-            $lesson->assignment_id    = $assignment->id;
-            $lesson->class_module_id  = $validated['class_module_id']; // ✅ إلزامي
+            $lesson->teacher_id = $teacher->id;
+            $lesson->assignment_id = $assignment->id;
+            $lesson->class_module_id = $validated['class_module_id']; // ✅ إلزامي
             $lesson->class_section_id = $validated['class_section_id'];
-            $lesson->subject_id       = $validated['subject_id'];
-            $lesson->title            = $validated['title'];
-            $lesson->status           = $validated['status'];
+            $lesson->subject_id = $validated['subject_id'];
+            $lesson->title = $validated['title'];
+            $lesson->status = $validated['status'];
 
             // ✅ أول مرة ينشر فقط
-            if ($validated['status'] === 'published' && ! $lesson->published_at) {
+            if ($validated['status'] === 'published' && !$lesson->published_at) {
                 $lesson->published_at = now();
             }
 
@@ -147,16 +148,16 @@ class LessonController extends Controller
             foreach ($blocks as $index => $blockData) {
 
                 $pos = isset($blockData['position'])
-                    ? (int) $blockData['position']
+                    ? (int)$blockData['position']
                     : ($index + 1);
 
                 $block = new LessonBlock();
                 $block->setConnection('app_mysql');
 
                 $block->lesson_id = $lesson->id;
-                $block->type      = $blockData['type'];
-                $block->body      = $blockData['body'] ?? null;
-                $block->caption   = $blockData['caption'] ?? null;
+                $block->type = $blockData['type'];
+                $block->body = $blockData['body'] ?? null;
+                $block->caption = $blockData['caption'] ?? null;
 
                 // ✅ نخزن path فقط
                 $block->media_path = $blockData['media_path'] ?? null;
@@ -164,8 +165,8 @@ class LessonController extends Controller
                 // ✅ لا نخزن media_url
                 $block->media_url = null;
 
-                $block->media_mime     = $blockData['media_mime'] ?? null;
-                $block->media_size     = $blockData['media_size'] ?? null;
+                $block->media_mime = $blockData['media_mime'] ?? null;
+                $block->media_size = $blockData['media_size'] ?? null;
                 $block->media_duration = $blockData['media_duration'] ?? null;
 
                 // ✅ ترتيب ثابت
@@ -175,9 +176,25 @@ class LessonController extends Controller
 
                 // ✅ المرحلة الأولى: لا تقسيم داخلي
                 $block->module_id = null;
-                $block->topic_id  = null;
+                $block->topic_id = null;
 
                 $block->save();
+            }
+
+            // ✅ التوليد التلقائي للتمارين عند النشر
+            if ($validated['status'] === 'published') {
+                try {
+                    // استدعاء داخلي لتوليد التمارين
+                    app(AiController::class)->generateExercises(new Request([
+                        'lesson_id' => $lessonId,
+                        'count' => 5,
+                        'difficulty' => 'medium'
+                    ]));
+                }
+                catch (\Exception $e) {
+                    // لا نريد إيقاف حفظ الدرس إذا فشل الـ AI
+                    \Log::error("AI Exercise Generation failed: " . $e->getMessage());
+                }
             }
         });
 
@@ -188,11 +205,11 @@ class LessonController extends Controller
             ->where('id', $lessonId)
             ->where('teacher_id', $teacher->id)
             ->with(['blocks' => function ($q) {
-                $q->orderBy('position');
-            }])
+            $q->orderBy('position');
+        }])
             ->first();
 
-        if (! $lessonRow) {
+        if (!$lessonRow) {
             return response()->json([
                 'success' => false,
                 'message' => 'Lesson saved but not found',
@@ -202,7 +219,7 @@ class LessonController extends Controller
         // ✅ توليد media_url للعرض فقط
         $blocksPayload = ($lessonRow->blocks ?? collect())->map(function ($b) {
             $path = $b->media_path;
-            $url  = null;
+            $url = null;
 
             if (is_string($path) && $path !== '') {
                 $p = ltrim($path, '/');
@@ -213,31 +230,42 @@ class LessonController extends Controller
             }
 
             return [
-                'id'             => $b->id,
-                'lesson_id'       => $b->lesson_id,
-                'module_id'       => null, // ✅ مرحلة 1
-                'topic_id'        => null, // ✅ مرحلة 1
-                'type'            => $b->type,
-                'body'            => $b->body,
-                'caption'         => $b->caption,
-                'media_path'      => $b->media_path,
-                'media_url'       => $url,
-                'media_mime'      => $b->media_mime,
-                'media_size'      => $b->media_size,
-                'media_duration'  => $b->media_duration,
-                'position'        => $b->position,
-                'meta'            => $b->meta,
-                'created_at'      => $b->created_at,
-                'updated_at'      => $b->updated_at,
+            'id' => $b->id,
+            'lesson_id' => $b->lesson_id,
+            'module_id' => null, // ✅ مرحلة 1
+            'topic_id' => null, // ✅ مرحلة 1
+            'type' => $b->type,
+            'body' => $b->body,
+            'caption' => $b->caption,
+            'media_path' => $b->media_path,
+            'media_url' => $url,
+            'media_mime' => $b->media_mime,
+            'media_size' => $b->media_size,
+            'media_duration' => $b->media_duration,
+            'position' => $b->position,
+            'meta' => $b->meta,
+            'created_at' => $b->created_at,
+            'updated_at' => $b->updated_at,
             ];
         })->values();
 
         $lessonPayload = $lessonRow->toArray();
         $lessonPayload['blocks'] = $blocksPayload;
 
+        // Log notification to dashboard
+        $actionTitle = !empty($validated['lesson_id']) ? 'تحديث درس' : 'إضافة درس جديد';
+        $statusAr = ($validated['status'] === 'published') ? 'ونشره' : 'كـ مسودة';
+        \App\Models\DashboardNotification::logEvent(
+            'teacher_event',
+            $actionTitle,
+            "قام المعلم {$teacher->full_name} بحفظ الدرس \"{$validated['title']}\" {$statusAr}.",
+            $teacher->full_name,
+            'bi-journal-plus'
+        );
+
         return response()->json([
             'success' => true,
-            'lesson'  => $lessonPayload,
+            'lesson' => $lessonPayload,
         ]);
     }
 
@@ -251,11 +279,11 @@ class LessonController extends Controller
     public function index(Request $request)
     {
         $validated = $request->validate([
-            'teacher_code'     => 'required|string',
-            'assignment_id'    => 'nullable|integer',
+            'teacher_code' => 'required|string',
+            'assignment_id' => 'nullable|integer',
             'class_section_id' => 'nullable|integer',
-            'subject_id'       => 'nullable|integer',
-            'class_module_id'  => 'nullable|integer',
+            'subject_id' => 'nullable|integer',
+            'class_module_id' => 'nullable|integer',
         ]);
 
         $teacher = Teacher::where('teacher_code', $validated['teacher_code'])->firstOrFail();
@@ -263,19 +291,19 @@ class LessonController extends Controller
         $query = Lesson::on('app_mysql')
             ->where('teacher_id', $teacher->id);
 
-        if (! empty($validated['assignment_id'])) {
+        if (!empty($validated['assignment_id'])) {
             $query->where('assignment_id', $validated['assignment_id']);
         }
 
-        if (! empty($validated['class_section_id'])) {
+        if (!empty($validated['class_section_id'])) {
             $query->where('class_section_id', $validated['class_section_id']);
         }
 
-        if (! empty($validated['subject_id'])) {
+        if (!empty($validated['subject_id'])) {
             $query->where('subject_id', $validated['subject_id']);
         }
 
-        if (! empty($validated['class_module_id'])) {
+        if (!empty($validated['class_module_id'])) {
             $query->where('class_module_id', $validated['class_module_id']);
         }
 
@@ -301,7 +329,7 @@ class LessonController extends Controller
         ]);
 
         $teacher = Teacher::where('teacher_code', $validated['teacher_code'])->first();
-        if (! $teacher) {
+        if (!$teacher) {
             return response()->json([
                 'success' => false,
                 'message' => 'Teacher not found',
@@ -312,11 +340,11 @@ class LessonController extends Controller
             ->where('id', $lesson)
             ->where('teacher_id', $teacher->id)
             ->with(['blocks' => function ($q) {
-                $q->orderBy('position');
-            }])
+            $q->orderBy('position');
+        }])
             ->first();
 
-        if (! $lessonRow) {
+        if (!$lessonRow) {
             return response()->json([
                 'success' => false,
                 'message' => 'Lesson not found',
@@ -336,22 +364,22 @@ class LessonController extends Controller
             }
 
             return [
-                'id'             => $b->id,
-                'lesson_id'       => $b->lesson_id,
-                'module_id'       => null,
-                'topic_id'        => null,
-                'type'            => $b->type,
-                'body'            => $b->body,
-                'caption'         => $b->caption,
-                'media_path'      => $b->media_path,
-                'media_url'       => $url,
-                'media_mime'      => $b->media_mime,
-                'media_size'      => $b->media_size,
-                'media_duration'  => $b->media_duration,
-                'position'        => $b->position,
-                'meta'            => $b->meta,
-                'created_at'      => $b->created_at,
-                'updated_at'      => $b->updated_at,
+            'id' => $b->id,
+            'lesson_id' => $b->lesson_id,
+            'module_id' => null,
+            'topic_id' => null,
+            'type' => $b->type,
+            'body' => $b->body,
+            'caption' => $b->caption,
+            'media_path' => $b->media_path,
+            'media_url' => $url,
+            'media_mime' => $b->media_mime,
+            'media_size' => $b->media_size,
+            'media_duration' => $b->media_duration,
+            'position' => $b->position,
+            'meta' => $b->meta,
+            'created_at' => $b->created_at,
+            'updated_at' => $b->updated_at,
             ];
         })->values();
 
@@ -360,7 +388,7 @@ class LessonController extends Controller
 
         return response()->json([
             'success' => true,
-            'lesson'  => $lessonPayload,
+            'lesson' => $lessonPayload,
         ]);
     }
 
@@ -378,7 +406,7 @@ class LessonController extends Controller
         ]);
 
         $teacher = Teacher::where('teacher_code', $validated['teacher_code'])->first();
-        if (! $teacher) {
+        if (!$teacher) {
             return response()->json([
                 'success' => false,
                 'message' => 'Teacher not found',
@@ -390,7 +418,7 @@ class LessonController extends Controller
             ->where('teacher_id', $teacher->id)
             ->first();
 
-        if (! $lessonRow) {
+        if (!$lessonRow) {
             return response()->json([
                 'success' => false,
                 'message' => 'Lesson not found',
@@ -420,13 +448,13 @@ class LessonController extends Controller
     public function bulkDelete(Request $request)
     {
         $validated = $request->validate([
-            'teacher_code'  => 'required|string',
-            'lesson_ids'    => 'required|array',
-            'lesson_ids.*'  => 'integer',
+            'teacher_code' => 'required|string',
+            'lesson_ids' => 'required|array',
+            'lesson_ids.*' => 'integer',
         ]);
 
         $teacher = Teacher::where('teacher_code', $validated['teacher_code'])->first();
-        if (! $teacher) {
+        if (!$teacher) {
             return response()->json([
                 'success' => false,
                 'message' => 'Teacher not found',

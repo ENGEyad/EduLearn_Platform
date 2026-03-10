@@ -27,13 +27,13 @@ class StudentLessonController extends Controller
     {
         $validated = $request->validate([
             'academic_id' => 'required|string',
-            'subject_id'  => 'required|integer',
+            'subject_id' => 'required|integer',
         ]);
 
         // 🧑‍🎓 الطالب من قاعدة edulearn_db (الافتراضية)
         $student = Student::where('academic_id', $validated['academic_id'])->first();
 
-        if (! $student) {
+        if (!$student) {
             return response()->json([
                 'success' => false,
                 'message' => 'Student not found',
@@ -42,7 +42,7 @@ class StudentLessonController extends Controller
 
         $classSectionId = $student->class_section_id;
 
-        if (! $classSectionId) {
+        if (!$classSectionId) {
             return response()->json([
                 'success' => false,
                 'message' => 'Student has no class_section_id',
@@ -89,28 +89,28 @@ class StudentLessonController extends Controller
             // إذا ما في سجل -> not_started
             $status = $p ? ($p->status ?? 'draft') : 'not_started'; // not_started | draft | completed
 
-            if (! in_array($status, ['not_started', 'draft', 'completed'], true)) {
+            if (!in_array($status, ['not_started', 'draft', 'completed'], true)) {
                 $status = 'draft';
             }
 
             $moduleTitle = optional($lesson->classModule)->title ?? 'Lessons';
 
             return [
-                'id'               => $lesson->id,
-                'title'            => $lesson->title,
+            'id' => $lesson->id,
+            'title' => $lesson->title,
 
-                // ✅ أكثر أمانًا من $lesson->meta['duration_label'] إذا meta ليست array
-                'duration_label'   => data_get($lesson->meta, 'duration_label'),
+            // ✅ أكثر أمانًا من $lesson->meta['duration_label'] إذا meta ليست array
+            'duration_label' => data_get($lesson->meta, 'duration_label'),
 
-                'status'           => $status,
-                'number'           => $index + 1,
+            'status' => $status,
+            'number' => $index + 1,
 
-                // ✅ مفاتيح ثابتة للواجهة (Grouping by ClassModule)
-                'class_module_id'    => $lesson->class_module_id,
-                'class_module_title' => $moduleTitle,
+            // ✅ مفاتيح ثابتة للواجهة (Grouping by ClassModule)
+            'class_module_id' => $lesson->class_module_id,
+            'class_module_title' => $moduleTitle,
 
-                // ✅ Alias مؤقت لتوافق أي شاشة قديمة كانت تقرأ module_title
-                'module_title'     => $moduleTitle,
+            // ✅ Alias مؤقت لتوافق أي شاشة قديمة كانت تقرأ module_title
+            'module_title' => $moduleTitle,
             ];
         });
 
@@ -141,14 +141,14 @@ class StudentLessonController extends Controller
 
         // 🧑‍🎓 الطالب من قاعدة edulearn_db (الافتراضية)
         $student = Student::where('academic_id', $validated['academic_id'])->first();
-        if (! $student) {
+        if (!$student) {
             return response()->json([
                 'success' => false,
                 'message' => 'Student not found',
             ], 404);
         }
 
-        if (! $student->class_section_id) {
+        if (!$student->class_section_id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Student has no class_section_id',
@@ -164,14 +164,14 @@ class StudentLessonController extends Controller
          */
         $lessonRow = Lesson::on('app_mysql')
             ->with([
-                'classModule',
-                'blocks' => function ($q) {
-                    $q->orderBy('position');
-                },
-            ])
+            'classModule',
+            'blocks' => function ($q) {
+            $q->orderBy('position');
+        },
+        ])
             ->find($lesson);
 
-        if (! $lessonRow) {
+        if (!$lessonRow) {
             return response()->json([
                 'success' => false,
                 'message' => 'Lesson not found',
@@ -179,7 +179,7 @@ class StudentLessonController extends Controller
         }
 
         // ✅ حماية: الدرس لنفس شعبة الطالب
-        if ((int) $lessonRow->class_section_id !== (int) $student->class_section_id) {
+        if ((int)$lessonRow->class_section_id !== (int)$student->class_section_id) {
             return response()->json([
                 'success' => false,
                 'message' => 'This lesson does not belong to the student class section',
@@ -203,7 +203,7 @@ class StudentLessonController extends Controller
          */
         $blocksPayload = collect($lessonRow->blocks ?? [])->map(function ($b) {
             $path = $b->media_path;
-            $url  = null;
+            $url = null;
 
             if (is_string($path) && $path !== '') {
                 $p = ltrim($path, '/');
@@ -217,30 +217,30 @@ class StudentLessonController extends Controller
             }
 
             return [
-                'id'             => $b->id,
-                'lesson_id'       => $b->lesson_id,
+            'id' => $b->id,
+            'lesson_id' => $b->lesson_id,
 
-                // ✅ المرحلة الأولى: لا تقسيم داخلي
-                'module_id'       => null,
-                'topic_id'        => null,
+            // ✅ المرحلة الأولى: لا تقسيم داخلي
+            'module_id' => null,
+            'topic_id' => null,
 
-                'type'            => $b->type,
-                'body'            => $b->body,
-                'caption'         => $b->caption,
+            'type' => $b->type,
+            'body' => $b->body,
+            'caption' => $b->caption,
 
-                // ✅ الترتيب الصحيح
-                'position'        => (int) ($b->position ?? 0),
+            // ✅ الترتيب الصحيح
+            'position' => (int)($b->position ?? 0),
 
-                // ✅ الميديا
-                'media_path'      => $b->media_path,
-                'media_url'       => $url,
-                'media_mime'      => $b->media_mime,
-                'media_size'      => $b->media_size,
-                'media_duration'  => $b->media_duration,
+            // ✅ الميديا
+            'media_path' => $b->media_path,
+            'media_url' => $url,
+            'media_mime' => $b->media_mime,
+            'media_size' => $b->media_size,
+            'media_duration' => $b->media_duration,
 
-                'meta'            => $b->meta,
-                'created_at'      => $b->created_at,
-                'updated_at'      => $b->updated_at,
+            'meta' => $b->meta,
+            'created_at' => $b->created_at,
+            'updated_at' => $b->updated_at,
             ];
         })->values();
 
@@ -255,7 +255,7 @@ class StudentLessonController extends Controller
             ->first();
 
         $status = $p ? ($p->status ?? 'draft') : 'not_started';
-        if (! in_array($status, ['not_started', 'draft', 'completed'], true)) {
+        if (!in_array($status, ['not_started', 'draft', 'completed'], true)) {
             $status = 'draft';
         }
 
@@ -263,25 +263,25 @@ class StudentLessonController extends Controller
 
         return response()->json([
             'success' => true,
-            'lesson'  => [
-                'id'                => $lessonRow->id,
-                'title'             => $lessonRow->title,
-                'status'            => $status,
-                'duration_label'    => data_get($lessonRow->meta, 'duration_label'),
-                'published_at'      => $lessonRow->published_at,
+            'lesson' => [
+                'id' => $lessonRow->id,
+                'title' => $lessonRow->title,
+                'status' => $status,
+                'duration_label' => data_get($lessonRow->meta, 'duration_label'),
+                'published_at' => $lessonRow->published_at,
 
-                'subject_id'        => $lessonRow->subject_id,
-                'class_section_id'  => $lessonRow->class_section_id,
+                'subject_id' => $lessonRow->subject_id,
+                'class_section_id' => $lessonRow->class_section_id,
 
                 // ✅ للتجميع في واجهة الطالب
-                'class_module_id'    => $lessonRow->class_module_id,
+                'class_module_id' => $lessonRow->class_module_id,
                 'class_module_title' => $moduleTitle,
 
                 // ✅ Alias مؤقت (إن كانت شاشة قديمة تعتمد module_title)
-                'module_title'      => $moduleTitle,
+                'module_title' => $moduleTitle,
 
                 // ✅ Blocks مرتبة على position
-                'blocks'            => $blocksPayload,
+                'blocks' => $blocksPayload,
             ],
         ]);
     }
@@ -298,21 +298,21 @@ class StudentLessonController extends Controller
     {
         $validated = $request->validate([
             'academic_id' => 'required|string',
-            'lesson_id'   => 'required|integer',
-            'status'      => 'required|in:not_started,draft,completed',
+            'lesson_id' => 'required|integer',
+            'status' => 'required|in:not_started,draft,completed',
         ]);
 
         // الطالب (edulearn_db الافتراضية)
         $student = Student::where('academic_id', $validated['academic_id'])->first();
 
-        if (! $student) {
+        if (!$student) {
             return response()->json([
                 'success' => false,
                 'message' => 'Student not found',
             ], 404);
         }
 
-        if (! $student->class_section_id) {
+        if (!$student->class_section_id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Student has no class_section_id',
@@ -321,7 +321,7 @@ class StudentLessonController extends Controller
 
         // الدرس من app_mysql
         $lesson = Lesson::on('app_mysql')->find($validated['lesson_id']);
-        if (! $lesson) {
+        if (!$lesson) {
             return response()->json([
                 'success' => false,
                 'message' => 'Lesson not found',
@@ -329,7 +329,7 @@ class StudentLessonController extends Controller
         }
 
         // ✅ حماية: الدرس يجب أن يكون لنفس شعبة الطالب
-        if ((int) $lesson->class_section_id !== (int) $student->class_section_id) {
+        if ((int)$lesson->class_section_id !== (int)$student->class_section_id) {
             return response()->json([
                 'success' => false,
                 'message' => 'This lesson does not belong to the student class section',
@@ -355,7 +355,7 @@ class StudentLessonController extends Controller
 
             return response()->json([
                 'success' => true,
-                'status'  => 'not_started',
+                'status' => 'not_started',
             ]);
         }
 
@@ -368,26 +368,110 @@ class StudentLessonController extends Controller
         if ($status === 'draft' && $existing && $existing->status === 'completed') {
             return response()->json([
                 'success' => true,
-                'status'  => 'completed',
+                'status' => 'completed',
                 'message' => 'Lesson already completed',
             ]);
         }
 
         $progress = StudentLessonProgress::on('app_mysql')->updateOrCreate(
-            [
-                'lesson_id'  => $lesson->id,
-                'student_id' => $student->id,
-            ],
-            [
-                'status'         => $status,
-                'last_opened_at' => now(),
-                'completed_at'   => $status === 'completed' ? now() : null,
-            ]
+        [
+            'lesson_id' => $lesson->id,
+            'student_id' => $student->id,
+        ],
+        [
+            'status' => $status,
+            'last_opened_at' => now(),
+            'completed_at' => $status === 'completed' ? now() : null,
+        ]
         );
+
+        if ($status === 'completed') {
+            \App\Models\DashboardNotification::logEvent(
+                'student_event',
+                'إكمال درس',
+                "أتم الطالب {$student->full_name} دراسة الدرس \"{$lesson->title}\".",
+                $student->full_name,
+                'bi-check-circle-fill'
+            );
+        }
 
         return response()->json([
             'success' => true,
-            'status'  => $progress->status,
+            'status' => $progress->status,
+        ]);
+    }
+
+    /**
+     * ============================================================
+     * 🔹 تحديث وقت تتبع الدراسة للطالب
+     * ============================================================
+     *
+     * POST /api/student/lessons/{lesson}/progress
+     * body: { academic_id, time_spent_seconds, status }
+     */
+    public function saveProgress(Request $request, $lesson)
+    {
+        $validated = $request->validate([
+            'academic_id' => 'required|string',
+            'time_spent_seconds' => 'required|integer|min:0',
+            'status' => 'required|in:draft,completed',
+        ]);
+
+        $student = Student::where('academic_id', $validated['academic_id'])->first();
+        if (!$student) {
+            return response()->json(['success' => false, 'message' => 'Student not found'], 404);
+        }
+
+        $lessonObj = Lesson::on('app_mysql')->find($lesson);
+        if (!$lessonObj) {
+            return response()->json(['success' => false, 'message' => 'Lesson not found'], 404);
+        }
+
+        if ((int)$lessonObj->class_section_id !== (int)$student->class_section_id) {
+            return response()->json(['success' => false, 'message' => 'Lesson does not belong to student section'], 403);
+        }
+
+        if (($lessonObj->status ?? null) !== 'published') {
+            return response()->json(['success' => false, 'message' => 'Lesson is not published'], 403);
+        }
+
+        // 1. Update Lesson Progress Time Spent
+        $progress = StudentLessonProgress::on('app_mysql')->firstOrCreate(
+        ['lesson_id' => $lessonObj->id, 'student_id' => $student->id],
+        ['status' => 'draft', 'last_opened_at' => now(), 'time_spent_seconds' => 0]
+        );
+
+        $progress->time_spent_seconds += $validated['time_spent_seconds'];
+        $progress->last_opened_at = now();
+
+        $newlyCompleted = false;
+        if ($validated['status'] === 'completed' && $progress->status !== 'completed') {
+            $progress->status = 'completed';
+            $progress->completed_at = now();
+            $newlyCompleted = true;
+        }
+        $progress->save();
+
+        // 2. Update Student Total Study Time
+        $student->total_study_time_seconds += $validated['time_spent_seconds'];
+        $student->save();
+
+        // 3. Log Event if newly completed
+        if ($newlyCompleted) {
+            \App\Models\DashboardNotification::logEvent(
+                'student_event',
+                'إكمال درس',
+                "أتم الطالب {$student->full_name} دراسة الدرس \"{$lessonObj->title}\". وقت الدراسة المستغرق: " . floor($progress->time_spent_seconds / 60) . " دقيقة.",
+                $student->full_name,
+                'bi-check-circle-fill'
+            );
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Progress saved successfully',
+            'total_study_time' => $student->total_study_time_seconds,
+            'lesson_time_spent' => $progress->time_spent_seconds,
         ]);
     }
 }

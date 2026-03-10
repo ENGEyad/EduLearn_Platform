@@ -102,4 +102,30 @@ class StudentService {
       throw Exception(data['message'] ?? 'Failed to update lesson status');
     }
   }
+  static Future<void> saveStudentLessonProgress({
+    required String academicId,
+    required int lessonId,
+    required int timeSpentSeconds,
+    required String status,
+  }) async {
+    final url = Uri.parse('$baseUrl/student/lessons/$lessonId/progress');
+
+    final response = await http.post(
+      url,
+      headers: {'Accept': 'application/json'},
+      body: {
+        'academic_id': academicId,
+        'time_spent_seconds': timeSpentSeconds.toString(),
+        'status': status,
+      },
+    );
+
+    final data = ApiHelpers.decodeJsonAsMap(response.body);
+
+    if (response.statusCode < 200 ||
+        response.statusCode >= 300 ||
+        data['success'] != true) {
+      throw Exception(data['message'] ?? 'Failed to save lesson progress');
+    }
+  }
 }

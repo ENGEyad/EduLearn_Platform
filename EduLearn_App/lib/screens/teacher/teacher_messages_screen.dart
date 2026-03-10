@@ -1110,9 +1110,27 @@ class _TeacherChatScreenState extends State<TeacherChatScreen>
     }
   }
 
-  Future<void> _sendMessage() async {
-    final text = _textController.text.trim();
+  Future<void> _sendMessage({String? overrideText}) async {
+    final text = (overrideText ?? _textController.text).trim();
     if (text.isEmpty) return;
+
+    final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
+    final tempMsg = {
+      'id': tempId,
+      'body': text,
+      'sender_type': 'teacher',
+      'sent_at': DateTime.now().toUtc().toIso8601String(),
+      'is_temp': true,
+    };
+
+    if (mounted) {
+      setState(() {
+        _messageIds.add(tempId);
+        _messages.add(tempMsg);
+      });
+      _textController.clear();
+      _scrollToBottom();
+    }
 
     try {
       final sent = await ChatService.sendMessageAsTeacher(
@@ -1125,19 +1143,32 @@ class _TeacherChatScreenState extends State<TeacherChatScreen>
 
       if (!mounted) return;
       setState(() {
-        if (idStr.isNotEmpty) _messageIds.add(idStr);
-        _messages.add(sent);
+        // حذف الرسالة المؤقتة واستبدالها بالرسالة الحقيقية من السيرفر
+        _messages.removeWhere((m) => m['id'] == tempId);
+        _messageIds.remove(tempId);
+
+        if (idStr.isNotEmpty && !_messageIds.contains(idStr)) {
+          _messageIds.add(idStr);
+          _messages.add(sent);
+        }
       });
 
-      _textController.clear();
       _scrollToBottom();
     } catch (e) {
       debugPrint('Failed to send message: $e');
       if (!mounted) return;
+
+      // في حال الفشل
+      setState(() {
+        _messages.removeWhere((m) => m['id'] == tempId);
+        _messageIds.remove(tempId);
+        _textController.text = text;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            e.toString(),
+            'فشل الإرسال: $e',
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -1306,6 +1337,7 @@ class _TeacherChatScreenState extends State<TeacherChatScreen>
                                 isMe: isTeacher,
                                 text: body,
                                 timeLabel: createdTimeLabel,
+                                isTemp: m['is_temp'] == true,
                               ),
                             ],
                           );
@@ -1326,16 +1358,17 @@ class _TeacherChatScreenState extends State<TeacherChatScreen>
                         color: const Color(0xFFF5F7FB),
                         borderRadius: BorderRadius.circular(24),
                       ),
-                      child: TextField(
-                        controller: _textController,
-                        minLines: 1,
-                        maxLines: 4,
-                        decoration: const InputDecoration(
-                          hintText: 'Type a message...',
-                          border: InputBorder.none,
+                        child: TextField(
+                          controller: _textController,
+                          minLines: 1,
+                          maxLines: 4,
+                          textInputAction: TextInputAction.send,
+                          onSubmitted: (val) => _sendMessage(),
+                          decoration: const InputDecoration(
+                            hintText: 'Type a message...',
+                            border: InputBorder.none,
+                          ),
                         ),
-                        textInputAction: TextInputAction.newline,
-                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -1399,11 +1432,13 @@ class _ChatBubble extends StatelessWidget {
   final bool isMe;
   final String text;
   final String timeLabel;
+  final bool isTemp;
 
   const _ChatBubble({
     required this.isMe,
     required this.text,
     required this.timeLabel,
+    this.isTemp = false,
   });
 
   @override
@@ -1422,32 +1457,35 @@ class _ChatBubble extends StatelessWidget {
                 isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
             children: [
               Flexible(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: bgColor,
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(20),
-                      topRight: const Radius.circular(20),
-                      bottomLeft: Radius.circular(isMe ? 20 : 6),
-                      bottomRight: Radius.circular(isMe ? 6 : 20),
+                child: Opacity(
+                  opacity: isTemp ? 0.6 : 1.0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        offset: const Offset(0, 1),
-                        blurRadius: 3,
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(20),
+                        topRight: const Radius.circular(20),
+                        bottomLeft: Radius.circular(isMe ? 20 : 6),
+                        bottomRight: Radius.circular(isMe ? 6 : 20),
                       ),
-                    ],
-                  ),
-                  child: Text(
-                    text,
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 14,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          offset: const Offset(0, 1),
+                          blurRadius: 3,
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      text,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ),
@@ -1455,19 +1493,24 @@ class _ChatBubble extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 2),
-          if (timeLabel.isNotEmpty)
+          if (timeLabel.isNotEmpty || isTemp)
             Row(
               mainAxisAlignment:
                   isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
               children: [
+                if (isTemp)
+                   const Padding(
+                     padding: EdgeInsets.only(left: 4),
+                     child: SizedBox(width: 8, height: 8, child: CircularProgressIndicator(strokeWidth: 1)),
+                   ),
                 Text(
-                  timeLabel,
+                  isTemp ? 'Sending...' : timeLabel,
                   style: const TextStyle(
                     fontSize: 11,
                     color: EduTheme.textMuted,
                   ),
                 ),
-                if (isMe) ...[
+                if (isMe && !isTemp) ...[
                   const SizedBox(width: 4),
                   Icon(
                     Icons.done_all_rounded,

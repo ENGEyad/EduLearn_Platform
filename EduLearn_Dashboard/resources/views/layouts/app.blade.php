@@ -262,6 +262,10 @@
     <span class="icon-wrap"><i class="bi bi-bar-chart"></i></span>
     <span>التقارير</span>
   </a>
+  <a href="{{ url('/notifications') }}" class="{{ request()->is('notifications*') ? 'active' : '' }}">
+    <span class="icon-wrap"><i class="bi bi-bell"></i></span>
+    <span>التنبيهات</span>
+  </a>
   <a href="{{ url('/settings') }}" class="{{ request()->is('settings*') ? 'active' : '' }}">
     <span class="icon-wrap"><i class="bi bi-gear"></i></span>
     <span>الإعدادات</span>
@@ -287,14 +291,63 @@
         <small class="text-muted" id="pageSubtitle">{{ $pageSubtitle ?? 'أهلاً بك، مدير النظام!' }}</small>
       </div>
       <div class="right-area d-flex align-items-center gap-3">
-        <button class="btn btn-light border-0" id="timeFilterBtn">
-          هذا الأسبوع
-          <i class="bi bi-chevron-down"></i>
-        </button>
-        <button class="btn position-relative btn-link text-dark">
-          <i class="bi bi-bell fs-5"></i>
-          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">3</span>
-        </button>
+        <div class="dropdown">
+          <button class="btn btn-light border-0 dropdown-toggle" type="button" id="timeFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+            {{ $periodLabel ?? 'هذا الأسبوع' }}
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="timeFilterBtn">
+            <li><a class="dropdown-item small" href="#" onclick="updateFilter('today')">اليوم</a></li>
+            <li><a class="dropdown-item small" href="#" onclick="updateFilter('week')">هذا الأسبوع</a></li>
+            <li><a class="dropdown-item small" href="#" onclick="updateFilter('month')">هذا الشهر</a></li>
+            <li><a class="dropdown-item small" href="#" onclick="updateFilter('year')">هذا العام</a></li>
+          </ul>
+        </div>
+        <div class="dropdown">
+          <button class="btn position-relative btn-link text-dark border-0 p-0" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-bell fs-5"></i>
+            @if($unreadNotificationsCount > 0)
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.25em 0.5em;">
+                {{ $unreadNotificationsCount > 9 ? '9+' : $unreadNotificationsCount }}
+              </span>
+            @endif
+          </button>
+          
+          <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-0 notification-dropdown" aria-labelledby="notificationDropdown">
+            <div class="dropdown-header border-bottom bg-light px-3 py-2 d-flex justify-content-between align-items-center rounded-top">
+              <span class="fw-bold text-dark">التنبيهات الأخيرة</span>
+              <a href="{{ route('notifications.markAllRead') }}" class="text-decoration-none small text-primary" onclick="event.preventDefault(); document.getElementById('mark-all-read-form-mini').submit();">تحديد الكل كمقروء</a>
+              <form id="mark-all-read-form-mini" action="{{ route('notifications.markAllRead') }}" method="POST" style="display: none;">@csrf</form>
+            </div>
+            
+            <div class="notification-scroll-area" style="max-height: 350px; overflow-y: auto;">
+              @if($headerNotifications->isEmpty())
+                <div class="p-4 text-center">
+                  <i class="bi bi-bell-slash text-muted opacity-50 display-6 d-block mb-2"></i>
+                  <small class="text-muted">لا توجد تنبيهات حالياً</small>
+                </div>
+              @else
+                @foreach($headerNotifications as $notif)
+                  <a href="{{ route('notifications.index') }}" class="dropdown-item px-3 py-2 border-bottom {{ $notif->is_read ? 'text-muted' : 'bg-primary-subtle' }}">
+                    <div class="d-flex align-items-start gap-2">
+                       <i class="bi {{ $notif->icon ?? 'bi-info-circle' }} p-1 {{ $notif->is_read ? 'text-secondary' : 'text-primary' }}" style="font-size: 1.1rem;"></i>
+                       <div class="flex-grow-1 overflow-hidden">
+                          <div class="d-flex justify-content-between align-items-center">
+                             <div class="fw-semibold small text-truncate" style="max-width: 140px;">{{ $notif->title }}</div>
+                             <small class="text-muted opacity-75" style="font-size: 0.65rem;">{{ $notif->created_at->diffForHumans() }}</small>
+                          </div>
+                          <p class="mb-0 text-muted text-truncate mini-notif-msg" style="font-size: 0.75rem;">{{ $notif->message }}</p>
+                       </div>
+                    </div>
+                  </a>
+                @endforeach
+              @endif
+            </div>
+            
+            <div class="p-2 border-top text-center rounded-bottom bg-light">
+              <a href="{{ route('notifications.index') }}" class="text-primary text-decoration-none small fw-bold">عرض الكل</a>
+            </div>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -303,9 +356,33 @@
     </main>
   </div>
 
+  <style>
+    .notification-dropdown {
+      width: 320px;
+      margin-top: 10px;
+      border-radius: 14px!important;
+    }
+    .dropdown-item:active {
+      background-color: #f8f9fa;
+      color: var(--text);
+    }
+    .mini-notif-msg {
+      max-width: 250px;
+    }
+    .notification-scroll-area::-webkit-scrollbar { width: 4px; }
+    .notification-scroll-area::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+  </style>
+
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    function updateFilter(period) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('period', period);
+      window.location.href = url.toString();
+    }
+  </script>
   @stack('scripts')
 </body>
 </html>
