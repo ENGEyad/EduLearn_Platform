@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const classReportView = document.getElementById('classReportView');
   const studentReportView = document.getElementById('studentReportView');
   const subjectReportView = document.getElementById('subjectReportView');
+  const classCardsView = document.getElementById('classCardsView');
 
   /* ========== List/Table UI ========== */
   const tBody = document.querySelector('#classesTable tbody');
@@ -58,6 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const statPassRateEl = classReportView?.querySelector('.js-pass-rate');
   const statAttendanceEl = classReportView?.querySelector('.js-attendance');
   const statStudyTimeEl = classReportView?.querySelector('.js-study-time');
+  const studentCardsContainer = document.getElementById('studentCardsContainer');
+  const cardsClassTitleEl = document.querySelector('.js-cards-class-title');
 
   let gradeChart, progressChart, timeChart, completionChart, testsChart;
   const safeDestroy = (c) => { try { c?.destroy?.(); } catch (e) { } };
@@ -457,6 +460,93 @@ document.addEventListener('DOMContentLoaded', () => {
     studentReportView.style.display = 'none';
     subjectReportView.style.display = '';
   }
+
+  /* ===== Student Cards Report (NEW) ===== */
+  async function openClassCardsReport() {
+    if (!currentGrade || !currentSection) return;
+
+    // We can reuse the class data if we want, but let's fetch fresh or use the last one
+    const res = await fetch(urlClass(currentGrade, currentSection));
+    if (!res.ok) { alert('Failed to load class report for cards'); return; }
+    const json = await res.json();
+
+    cardsClassTitleEl && (cardsClassTitleEl.textContent = `${json.grade} - Section ${json.section}`);
+    
+    if (studentCardsContainer) {
+        studentCardsContainer.innerHTML = '';
+        const currentYear = new Date().getFullYear();
+        const academicYear = `${currentYear}-${currentYear + 1}`;
+
+        (json.students || []).forEach(s => {
+            const col = document.createElement('div');
+            col.className = 'col-md-4 col-sm-6 mb-4';
+            
+            // Generate initials for avatar if no image
+            const initials = s.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+            const avatarHtml = s.photo_url 
+                ? `<img src="${s.photo_url}" class="card-avatar" alt="${s.name}">`
+                : `<div class="card-avatar d-flex align-items-center justify-content-center bg-light text-primary fw-bold" style="font-size: 24px;">${initials}</div>`;
+
+            col.innerHTML = `
+                <div class="student-id-card">
+                    <div class="card-header-accent">
+                        <div class="card-logo">EduLearn Platform</div>
+                    </div>
+                    <div class="card-body-content">
+                        <div class="card-avatar-wrap">
+                            ${avatarHtml}
+                        </div>
+                        <div class="card-name">${s.name}</div>
+                        <div class="card-id">#${s.academic_id || 'ID-TBA'}</div>
+                        
+                        <div class="card-info-grid">
+                            <div class="info-item">
+                                <div class="label">Grade</div>
+                                <div class="value">${json.grade}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="label">Section</div>
+                                <div class="value">${json.section}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="label">Stage</div>
+                                <div class="value">Elementary</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="label">Academic Year</div>
+                                <div class="value">${academicYear}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            studentCardsContainer.appendChild(col);
+        });
+    }
+
+    // Switch views
+    reportsListView.style.display = 'none';
+    classReportView.style.display = 'none';
+    studentReportView.style.display = 'none';
+    subjectReportView.style.display = 'none';
+    classCardsView.style.display = 'block';
+  }
+
+  // Back from cards to class report
+  document.querySelector('.js-back-to-class-report')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    classCardsView.style.display = 'none';
+    classReportView.style.display = 'block';
+  });
+
+  // Open cards report from class report
+  document.querySelector('.js-view-cards')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openClassCardsReport();
+  });
+
+  // Print cards
+  document.querySelector('.js-print-cards')?.addEventListener('click', () => window.print());
 
   // Back from subject to student
   document.querySelector('.js-back-to-student')?.addEventListener('click', (e) => {

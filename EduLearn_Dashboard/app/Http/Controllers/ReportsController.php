@@ -149,6 +149,7 @@ class ReportsController extends Controller
             'name' => $s->full_name,
             'academic_id' => $s->academic_id,
             'section' => $s->class_section,
+            'photo_url' => $s->photo_path ? asset('storage/' . $s->photo_path) : null,
             'score' => null,
             'attendance' => null,
             ]);
@@ -228,7 +229,7 @@ class ReportsController extends Controller
                 'class' => $student->grade,
                 'section' => $student->class_section,
                 'academic_id' => $student->academic_id,
-                'photo_url' => $student->photo_path ? asset($student->photo_path) : null,
+                'photo_url' => $student->photo_path ? asset('storage/' . $student->photo_path) : null,
                 'status' => 'ON TRACK',
             ],
             'stats' => [

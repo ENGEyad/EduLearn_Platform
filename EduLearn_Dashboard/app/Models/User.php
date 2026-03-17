@@ -21,7 +21,24 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'school_id',
+        'role',
     ];
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    public function isSuperAdmin()
+    {
+        return $this->role === 'super_admin';
+    }
+
+    public function isSchoolAdmin()
+    {
+        return $this->role === 'school_admin';
+    }
 
     /**
      * The attributes that should be hidden for serialization.

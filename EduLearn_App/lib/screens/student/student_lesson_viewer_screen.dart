@@ -9,8 +9,7 @@ import '../../theme.dart';
 import 'ai_tutor_screen.dart';
 import 'lesson_completion_screen.dart';
 import '../../services/student_service.dart';
-
-
+import 'lesson_exercises_section.dart';
 
 class StudentLessonViewerScreen extends StatefulWidget {
   final int lessonId;
@@ -46,6 +45,7 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
 
   List<Map<String, dynamic>> _blocks = [];
   Map<String, dynamic>? _quizData;
+  Map<String, dynamic>? _exercisePack;
 
   // ===== UX helpers =====
   final ScrollController _scrollController = ScrollController();
@@ -255,6 +255,14 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
       _quizData = Map<String, dynamic>.from(q);
     } else {
       _quizData = null;
+    }
+
+    // exercises (اختياري)
+    final ep = lesson['exercise_pack'];
+    if (ep is Map) {
+      _exercisePack = Map<String, dynamic>.from(ep);
+    } else {
+      _exercisePack = null;
     }
   } catch (e) {
     _error = e.toString().replaceFirst('Exception: ', '');
@@ -483,6 +491,21 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
             // Blocks
             for (int i = 0; i < _blocks.length; i++) ...[
               _buildBlock(_blocks[i], index: i),
+              const SizedBox(height: 16),
+            ],
+
+            // Exercises
+            if (_exercisePack != null && _exercisePack!['questions'] != null) ...[
+              const SizedBox(height: 16),
+              LessonExercisesSection(
+                academicId: widget.academicId,
+                lessonId: widget.lessonId,
+                exercisePack: _exercisePack!,
+                onCompleted: () {
+                  // يمكن إظهار رسالة أو تحديث نقطة معينة إن أردت
+                  _showSnack('Excellent work completing the exercises!');
+                },
+              ),
               const SizedBox(height: 16),
             ],
 

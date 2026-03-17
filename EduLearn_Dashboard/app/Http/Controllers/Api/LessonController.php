@@ -7,6 +7,9 @@ use App\Models\Lesson;
 use App\Models\LessonBlock;
 use App\Models\Teacher;
 use App\Models\TeacherClassSubject;
+use App\Models\LessonExercise;
+use App\Models\LessonExerciseQuestion;
+use App\Models\LessonExerciseOption;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -48,6 +51,9 @@ class LessonController extends Controller
      */
             'modules' => 'nullable|array',
             'topics' => 'nullable|array',
+
+            // Exercises
+            'exercises' => 'nullable|array',
 
             // Blocks فقط
             'blocks' => 'nullable|array',
@@ -181,6 +187,45 @@ class LessonController extends Controller
                 $block->save();
             }
 
+            // ============================================================
+            // ✅ Manual Exercises processing (Teacher's manual exercises)
+            // ============================================================
+            if (isset($validated['exercises']) && is_array($validated['exercises'])) {
+                $exercise = LessonExercise::firstOrCreate(
+                    ['lesson_id' => $lesson->id],
+                    ['version' => clone $lesson->version ?? 1, 'is_active' => true] 
+                );
+
+                // Increment version if updating an existing exercise to break cache
+                if (!$exercise->wasRecentlyCreated) {
+                    $exercise->increment('version');
+                }
+
+                // Delete old questions to rebuild them easily 
+                $exercise->questions()->delete();
+
+                foreach ($validated['exercises'] as $index => $qData) {
+                    $question = LessonExerciseQuestion::create([
+                        'exercise_id' => $exercise->id,
+                        'type' => $qData['type'],
+                        'question_text' => $qData['question_text'],
+                        'position' => $qData['position'] ?? ($index + 1),
+                        'correct_bool' => isset($qData['correct_bool']) ? (bool)$qData['correct_bool'] : null,
+                    ]);
+
+                    if ($qData['type'] === 'mcq' && isset($qData['options']) && is_array($qData['options'])) {
+                        foreach ($qData['options'] as $idx => $oData) {
+                            LessonExerciseOption::create([
+                                'question_id' => $question->id,
+                                'option_text' => $oData['text'] ?? $oData['option_text'] ?? '',
+                                'is_correct' => isset($oData['is_correct']) ? (bool)$oData['is_correct'] : false,
+                                'position' => $oData['position'] ?? ($idx + 1),
+                            ]);
+                        }
+                    }
+                }
+            }
+
             // ✅ التوليد التلقائي للتمارين عند النشر
             if ($validated['status'] === 'published') {
                 try {
@@ -205,8 +250,8 @@ class LessonController extends Controller
             ->where('id', $lessonId)
             ->where('teacher_id', $teacher->id)
             ->with(['blocks' => function ($q) {
-            $q->orderBy('position');
-        }])
+                $q->orderBy('position');
+            }, 'exercise.questions.options'])
             ->first();
 
         if (!$lessonRow) {
@@ -340,8 +385,8 @@ class LessonController extends Controller
             ->where('id', $lesson)
             ->where('teacher_id', $teacher->id)
             ->with(['blocks' => function ($q) {
-            $q->orderBy('position');
-        }])
+                $q->orderBy('position');
+            }, 'exercise.questions.options'])
             ->first();
 
         if (!$lessonRow) {
@@ -385,6 +430,23 @@ class LessonController extends Controller
 
         $lessonPayload = $lessonRow->toArray();
         $lessonPayload['blocks'] = $blocks;
+        $lessonPayload['exercises'] = $lessonRow->exercise ? $lessonRow->exercise->questions->map(function ($q) {
+            return [
+                'id' => $q->id,
+                'type' => $q->type,
+                'question_text' => $q->question_text,
+                'position' => $q->position,
+                'correct_bool' => $q->correct_bool,
+                'options' => $q->options->map(function ($o) {
+                    return [
+                        'id' => $o->id,
+                        'text' => $o->option_text,
+                        'is_correct' => (bool)$o->is_correct,
+                        'position' => $o->position,
+                    ];
+                })->values()
+            ];
+        })->values() : null;
 
         return response()->json([
             'success' => true,

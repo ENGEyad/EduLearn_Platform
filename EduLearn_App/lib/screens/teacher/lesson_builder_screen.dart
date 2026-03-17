@@ -16,6 +16,8 @@ import '../../services/lesson_service.dart';
 import '../../services/api_helpers.dart';
 import '../../services/auth_service.dart';
 
+import 'exercises_builder_widget.dart';
+
 // ✅ AI Question Model
 class GeneratedQuestion {
   final String id;
@@ -102,6 +104,9 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   // 🔹 AI Generated Questions
   List<GeneratedQuestion> _aiQuestions = [];
   bool _isGeneratingAI = false;
+
+  // 🔹 Interactive Exercises
+  List<Map<String, dynamic>> _exercises = [];
 
   // ========= Draft autosave debounce =========
   DateTime? _lastDraftSaveAt;
@@ -238,6 +243,15 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       _selectedModule = _modules.first;
 
       _blocks.clear();
+
+      final fetchedExercises = (lesson['exercises'] as List?) ?? [];
+      _exercises = fetchedExercises.map((e) {
+        final m = Map<String, dynamic>.from(e);
+        if (m['options'] != null && m['options'] is List) {
+          m['options'] = (m['options'] as List).map((o) => Map<String, dynamic>.from(o)).toList();
+        }
+        return m;
+      }).toList();
 
       final blocks = (lesson['blocks'] as List?) ?? [];
       for (final raw in blocks) {
@@ -903,6 +917,7 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
         modules: modulesPayload,
         topics: topicsPayload,
         blocks: blocksPayload,
+        exercises: _exercises,
       );
 
       _showSnack(publish ? 'Lesson published.' : 'Lesson saved as draft.');
@@ -1073,8 +1088,31 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
                         const SizedBox(height: 24),
 
-                        // 3️⃣ Step 3: AI Assessment Review
-                        _buildSectionHeader(context, "Step 3: AI Assessment Review"),
+                        // 3️⃣ Step 3: Interactive Exercises
+                        _buildSectionHeader(context, "Step 3: Interactive Exercises"),
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E1E2C), // Dark theme to match the inner widget
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: const [
+                              BoxShadow(color: Color(0x11000000), blurRadius: 10, offset: Offset(0, 4)),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(16),
+                          child: ExercisesBuilderWidget(
+                            initialExercises: _exercises,
+                            onChanged: (exercises) {
+                              _exercises = exercises;
+                              _markDirtyAndMaybeAutosave();
+                            },
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // 4️⃣ Step 4: AI Assessment Review
+                        _buildSectionHeader(context, "Step 4: AI Assessment Review"),
                         _buildAIQuestionsSection(),
                       ],
                     ),

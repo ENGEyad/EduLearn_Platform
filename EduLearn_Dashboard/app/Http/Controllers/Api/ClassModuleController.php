@@ -22,6 +22,7 @@ class ClassModuleController extends Controller
      */
     public function index(Request $request)
     {
+        \Illuminate\Support\Facades\Log::info('API Request to class-modules: ', $request->all());
         $validated = $request->validate([
             'teacher_code'     => 'required|string',
             'assignment_id'    => 'required|integer',

@@ -78,6 +78,7 @@
         <div class="d-flex gap-2 no-print">
           <button class="btn btn-outline-secondary js-refresh-class" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
           <button class="btn btn-outline-secondary js-back-to-list"><i class="bi bi-arrow-left me-1"></i>Back to List</button>
+          <button class="btn btn-info text-white js-view-cards"><i class="bi bi-person-badge me-1"></i>Student Cards Report</button>
           <button class="btn-ghost js-print"><i class="bi bi-printer me-1"></i>Print</button>
           <button class="btn-cta js-export"><i class="bi bi-download me-1"></i>Export CSV / PDF</button>
         </div>
@@ -287,7 +288,119 @@
     </div>
   </div>
 
+  {{-- ===== View 5: Student Cards Report ===== --}}
+  <div id="classCardsView" style="display:none;">
+    <div class="page">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <div class="title">Student ID Cards: <span class="js-cards-class-title">---</span></div>
+                <div class="subtitle">Official student identification cards for the selected class.</div>
+            </div>
+            <div class="d-flex gap-2 no-print">
+                <button class="btn btn-outline-secondary js-back-to-class-report"><i class="bi bi-arrow-left me-1"></i>Back to Report</button>
+                <button class="btn btn-primary js-print-cards"><i class="bi bi-printer me-1"></i>Print All Cards</button>
+            </div>
+        </div>
+
+        <div class="row g-4" id="studentCardsContainer">
+            <!-- Cards will be injected here -->
+        </div>
+    </div>
+  </div>
+
 </div>
+
+<style>
+/* Student Card Styling */
+.student-id-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+    height: 100%;
+}
+.card-header-accent {
+    height: 60px;
+    background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+    position: relative;
+}
+.card-logo {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    color: rgba(255,255,255,0.8);
+    font-weight: 800;
+    font-size: 14px;
+}
+.card-body-content {
+    padding: 15px;
+    padding-top: 40px;
+    position: relative;
+    text-align: center;
+}
+.card-avatar-wrap {
+    position: absolute;
+    top: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.card-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: #f5f5f5;
+    object-fit: cover;
+}
+.card-name {
+    font-weight: 700;
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 2px;
+}
+.card-id {
+    font-family: monospace;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 15px;
+}
+.card-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    text-align: left;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 12px;
+}
+.info-item .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #999;
+    letter-spacing: 0.5px;
+}
+.info-item .value {
+    font-size: 12px;
+    font-weight: 600;
+    color: #444;
+}
+
+@media print {
+    .no-print { display: none !important; }
+    .page-wrapper, .sidebar, .navbar { display: none !important; }
+    #classCardsView { display: block !important; padding: 0 !important; }
+    .student-id-card { 
+        break-inside: avoid; 
+        box-shadow: none !important; 
+        border: 1px solid #ddd !important;
+        margin-bottom: 20px;
+    }
+}
+</style>
+
 @endsection
 
 @push('scripts')

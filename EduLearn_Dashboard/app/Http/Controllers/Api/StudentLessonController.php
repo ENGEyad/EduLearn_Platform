@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Lesson;
 use App\Models\Student;
 use App\Models\StudentLessonProgress;
+use App\Models\LessonExercise;
 use Illuminate\Http\Request;
 
 class StudentLessonController extends Controller
@@ -164,11 +165,12 @@ class StudentLessonController extends Controller
          */
         $lessonRow = Lesson::on('app_mysql')
             ->with([
-            'classModule',
-            'blocks' => function ($q) {
-            $q->orderBy('position');
-        },
-        ])
+                'classModule',
+                'blocks' => function ($q) {
+                    $q->orderBy('position');
+                },
+                'exercise.questions.options'
+            ])
             ->find($lesson);
 
         if (!$lessonRow) {
@@ -261,28 +263,58 @@ class StudentLessonController extends Controller
 
         $moduleTitle = optional($lessonRow->classModule)->title ?? 'Lessons';
 
+        // ✅ استخراج التمارين بدون الإجابات الصحيحة للطالب
+        $exercisePack = null;
+        if ($lessonRow->exercise) {
+            $exercisePack = [
+                'version' => $lessonRow->exercise->version,
+                'questions' => $lessonRow->exercise->questions->map(function ($q) {
+                    return [
+                        'id' => $q->id,
+                        'type' => $q->type,
+                        'question_text' => $q->question_text,
+                        'position' => $q->position,
+                        // متعمدين: لا نرسل correct_bool
+                        'options' => $q->options->map(function ($o) {
+                            return [
+                                'id' => $o->id,
+                                'text' => $o->option_text,
+                                'position' => $o->position,
+                                // متعمدين: لا نرسل is_correct
+                            ];
+                        })->values()
+                    ];
+                })->values()
+            ];
+        }
+
+        // بناء استجابة الدرس
+        $lessonData = [
+            'id' => $lessonRow->id,
+            'title' => $lessonRow->title,
+            'class_section_id' => $lessonRow->class_section_id,
+            'subject_id' => $lessonRow->subject_id,
+            'status' => $lessonRow->status,
+            'published_at' => $lessonRow->published_at,
+            'created_at' => $lessonRow->created_at,
+            'updated_at' => $lessonRow->updated_at,
+            
+            // ✅ module_title كما هو مفهوم للمرحلة الأولى
+            'module_title' => $lessonRow->classModule->title ?? 'Lessons',
+            
+            // التقدّم الحالي
+            'progress_status' => $p ? ($p->status ?? 'draft') : 'not_started',
+            
+            // ✅ إرفاق مصفوفة Blocks
+            'blocks' => $blocksPayload,
+            
+            // ✅ إرفاق التمارين المعدلة
+            'exercise_pack' => $exercisePack,
+        ];
+
         return response()->json([
             'success' => true,
-            'lesson' => [
-                'id' => $lessonRow->id,
-                'title' => $lessonRow->title,
-                'status' => $status,
-                'duration_label' => data_get($lessonRow->meta, 'duration_label'),
-                'published_at' => $lessonRow->published_at,
-
-                'subject_id' => $lessonRow->subject_id,
-                'class_section_id' => $lessonRow->class_section_id,
-
-                // ✅ للتجميع في واجهة الطالب
-                'class_module_id' => $lessonRow->class_module_id,
-                'class_module_title' => $moduleTitle,
-
-                // ✅ Alias مؤقت (إن كانت شاشة قديمة تعتمد module_title)
-                'module_title' => $moduleTitle,
-
-                // ✅ Blocks مرتبة على position
-                'blocks' => $blocksPayload,
-            ],
+            'lesson' => $lessonData,
         ]);
     }
 

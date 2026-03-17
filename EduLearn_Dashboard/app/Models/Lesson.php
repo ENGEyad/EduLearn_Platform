@@ -62,6 +62,11 @@ class Lesson extends Model
         return $this->hasMany(LessonBlock::class)->orderBy('position');
     }
 
+    public function exercise()
+    {
+        return $this->hasOne(LessonExercise::class, 'lesson_id');
+    }
+
     /**
      * ============================================================
      * ⚠️ علاقات مستقبلية (ليست جزءًا من المرحلة الأولى)

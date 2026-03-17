@@ -1,0 +1,176 @@
+PROMPT INSTRUCTION FOR AI DEVELOPMENT
+Role: Act as a Senior Flutter Architect with 15 years of experience. Your task is to generate the complete code and architectural setup for two user settings screens: one for a Teacher and one for a Student. You must strictly adhere to the architectural philosophy and requirements outlined in the attached analysis document (تحليل عام لصفحة الاعدادات.docx).
+
+Primary Objective: To build the screens as functional, integrated components of a larger application, not just static UI skeletons. They must be ready for connection to a backend API and a global application state.
+
+Project Context & Core Requirements
+We are building an educational application. The Settings/Profile screens are a central hub for user management. The analysis document details a screen that currently acts as a Profile + Settings Skeleton. Your job is to build the final, functional version based on that analysis.
+
+You must build two screens:
+
+TeacherSettingsScreen
+
+StudentSettingsScreen
+
+While they will display different data, they must share the same core architecture, folder structure, and logic for theme/language management as defined below.
+
+Part 1: Core Architectural Principles (Must Follow)
+Presentation Screen, Not Fetching Screen: The screen should receive pre-fetched user data via a constructor or a provider (e.g., from a Cubit/Bloc/Provider). It should not contain API call logic to fetch its own data. Assume data is provided by a parent widget or a state management container.
+
+Global State for App Settings: Theme (Dark/Light) and Language are Application-wide settings. The screen must interact with a Global State Management system (e.g., ThemeCubit, LocaleCubit) to read and update these values. Do not manage theme/locale locally within the screen.
+
+Local-First, Server-Sync (for Preferences): When a user toggles Dark Mode or changes Language:
+
+The change must be immediate in the UI.
+
+The preference must be saved locally (e.g., SharedPreferences).
+
+Background Sync: After saving locally, the app should attempt to sync this preference to the backend user profile in the background. The screen should not wait for this sync to complete.
+
+Centralized Localization: All text strings must be pulled from a centralized localization system (e.g., AppLocalizations.of(context)!.settings_title). Hard-coded strings are strictly forbidden.
+
+Theming: All colors and styles must be derived from the main Theme.of(context) and colorScheme. Hard-coded colors are strictly forbidden. The UI must respond correctly to both Light and Dark themes.
+
+Modular Navigation: The screen is a Hub. Tapping on any tile (e.g., "Change Password", "Edit Profile") should navigate to a dedicated, separate screen. Do not implement the detailed logic (e.g., the password change form) inside this screen.
+
+Part 2: Detailed Screen Structure & Logic
+2.1: Data Models (Expected Input)
+Create or assume the existence of the following data models. The screen will receive instances of these models.
+
+UserModel (Base Class): Contains common fields.
+
+String id
+
+String fullName
+
+String email
+
+String? phone
+
+String? imageUrl
+
+String? preferredLanguage (e.g., 'en', 'ar')
+
+bool? isDarkMode
+
+Map<String, dynamic>? notificationSettings
+
+TeacherModel (extends UserModel):
+
+String teacherCode
+
+String? subjectSpecialization
+
+String? department
+
+List<Assignment>? assignments (Use this to show a summary tile, e.g., "My Classes (3)")
+
+int? totalAssignedStudents (Display this as a stat, e.g., in a small card in the header).
+
+StudentModel (extends UserModel):
+
+String studentId / studentCode
+
+String? gradeLevel
+
+String? parentName
+
+String? parentPhone
+
+List<Course>? enrolledCourses (Use this for a summary like "Enrolled Courses (5)")
+
+2.2: UI Components & Functionality (Based on Analysis)
+The screen is divided into four distinct visual and functional sections.
+
+Section A: User Identity Header (Dynamic)
+
+Teacher View: Display image (with a placeholder), fullName, and teacherCode.
+
+Enhancement: If totalAssignedStudents is available, display it as a small, subtle statistic under the code or in a parallel column. If assignments.isNotEmpty, display a small tile showing the count (e.g., "3 Active Classes").
+
+Student View: Display image, fullName, and studentId.
+
+Enhancement: Display gradeLevel under the name. If enrolledCourses is available, show a summary (e.g., "Enrolled in 5 courses").
+
+Section B: Account Settings (Navigational Hub)
+
+A list of tiles that navigate to new screens. Must include:
+
+Edit Profile: Navigates to EditProfileScreen.
+
+Email Address: Displays current email as a subtitle, navigates to ManageEmailScreen.
+
+Change Password: Navigates to ChangePasswordScreen.
+
+Notifications: Navigates to NotificationPreferencesScreen.
+
+Section C: Application Settings (Global State Interaction)
+
+Dark Mode Tile:
+
+Contains a Switch.
+
+The switch's value is read from the Global Theme State (e.g., context.read<ThemeCubit>().state.isDarkMode).
+
+Logic: onChanged calls a method in the Global Theme State (e.g., context.read<ThemeCubit>().toggleTheme()). This method should:
+
+Update the in-memory state.
+Save the new value to SharedPreferences.
+Trigger a background sync to the user's profile on the server.
+Language Tile:
+
+Displays the currently active language (e.g., "English (US)" or "العربية").
+
+Logic: On tap, it opens a dialog or navigates to a LanguageSelectionScreen.
+
+Upon language selection:
+
+Call a method in the Global Locale State (e.g., context.read<LocaleCubit>().setLocale(Locale('ar'))).
+This method should update the app's locale, triggering a full rebuild with new translations and correct RTL/LTR layout.
+Save the selection to SharedPreferences.
+Trigger a background sync to the user's profile.
+Section D: Session Management
+
+Logout Tile:
+
+Tapping this shows a confirmation dialog.
+
+On confirm:
+
+Clear user session data from the app (state management, secure storage).
+Navigate the user to the LoginScreen and clear the navigation stack.
+Part 3: Implementation Constraints & Acceptance Criteria
+Localization: All text must use a AppLocalizations class. Provide a simple implementation or stub for it. Create .arb files or a simple Dart map for en and ar as examples.
+
+Theming: Define a light and dark ColorScheme in your main theme. Demonstrate that the screen's colors (background, cards, text, icons) change correctly when the global theme state is toggled.
+
+State Management: Use a pattern like Provider + ChangeNotifier or Cubit for the global Theme and Locale states. Provide the full code for these classes.
+
+Data Flow:
+
+Show an example of how a parent widget would fetch TeacherModel data from an API repository and pass it to TeacherSettingsScreen.
+
+The screen should handle a null or loading state gracefully (e.g., show a shimmer effect for the header).
+
+Routing: Create placeholder, empty screens for all navigational targets (e.g., EditProfileScreen, ChangePasswordScreen). Implement the navigation logic using a named router or Navigator.push.
+
+Local Storage: Use SharedPreferences to save theme and language selections. Create a simple service class (e.g., LocalStorageService) to manage this.
+
+Deliverable:
+Generate the complete, production-ready Dart code for:
+
+TeacherSettingsScreen
+
+StudentSettingsScreen
+
+ThemeCubit (or equivalent state management class)
+
+LocaleCubit (or equivalent)
+
+LocalStorageService
+
+Example usage of how to provide the TeacherModel to the screen.
+
+Include all necessary placeholder screens for navigation.
+
+The final output must be a fully functional implementation that adheres to the architectural deep-dive provided in the analysis document. The code should be clean, well-commented (in English), and ready for integration.
