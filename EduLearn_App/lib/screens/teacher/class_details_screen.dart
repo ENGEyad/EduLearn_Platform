@@ -58,6 +58,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
   final Set<int> _selectedLessonIds = {};
 
   void _showSnack(String msg) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(msg)),
     );
@@ -84,7 +85,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
             rawCount is int ? rawCount : int.tryParse('$rawCount') ?? 0;
 
         return _LessonModule(
-          id: m['id'] as int,
+          id: int.tryParse(m['id'].toString()) ?? 0,
           title: (m['title'] ?? '').toString(),
           lessonsCount: intCount,
         );
@@ -118,7 +119,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
 
       _lessons = lessons
           .map((l) => _LessonSummary(
-                id: l['id'] as int,
+                id: int.tryParse(l['id'].toString()) ?? 0,
                 title: (l['title'] ?? '').toString(),
                 status: (l['status'] ?? 'published').toString(),
               ))
@@ -223,7 +224,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
       );
 
       final newModule = _LessonModule(
-        id: created['id'] as int,
+        id: int.tryParse(created['id'].toString()) ?? 0,
         title: (created['title'] ?? title).toString(),
         lessonsCount: 0,
       );

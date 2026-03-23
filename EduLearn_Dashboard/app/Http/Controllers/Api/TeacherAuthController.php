@@ -7,11 +7,19 @@ use App\Models\Teacher;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class TeacherAuthController extends Controller
 {
     public function auth(Request $request)
     {
+        Log::info('Login attempt received', [
+            'full_name' => $request->full_name,
+            'teacher_code' => $request->teacher_code,
+            'ip' => $request->ip(),
+            'method' => $request->method(),
+        ]);
+
         $validated = $request->validate([
             'full_name'    => 'required|string|max:255',
             'teacher_code' => 'required|string|max:255',

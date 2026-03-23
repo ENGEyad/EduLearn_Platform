@@ -21,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoading = false;
 
   Future<void> _handleLogin() async {
+    print('🔵 LOGIN BUTTON CLICKED: isStudent=$isStudent');
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => isLoading = true);

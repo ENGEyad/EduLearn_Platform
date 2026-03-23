@@ -8,7 +8,9 @@ class AppConfig {
     if (envIp.isNotEmpty) return envIp;
 
     if (kIsWeb) return '127.0.0.1';
-    if (Platform.isAndroid) return '10.0.2.2'; // الـ IP الثابت لمحاكي الأندرويد للوصول للكمبيوتر
+    
+    // ✅ نستخدم الـ IP الخاص بجهازك المسجل في الشبكة ليدعم المحاكي والجوال الحقيقي معاً
+    if (Platform.isAndroid) return '192.168.1.108'; 
     return '127.0.0.1'; // محاكي iOS أو بيئة أخرى
   }
 

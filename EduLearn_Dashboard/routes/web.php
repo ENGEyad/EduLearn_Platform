@@ -33,7 +33,6 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('/dashboard', [DashboardController::class , 'index'])->middleware(['auth', 'school.active'])->name('dashboard');
-Route::get('/dashboard', [DashboardController::class , 'index'])->middleware(['auth', 'school.active'])->name('dashboard.index');
 
 // AI Features
 Route::group(['prefix' => 'api/ai'], function () {

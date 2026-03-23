@@ -97,9 +97,13 @@ class ReverbService {
 
       // أنشئ عميل إذا مش موجود
       if (_client == null) {
+        // ✅ DEBUG: Log EXACT host and port being used
+        print('📡 REVERB INIT: host=${backendUri.host}, port=$port, useTLS=false');
+
         _client = ReverbClient.instance(
           host: backendUri.host,
           port: port,
+          useTLS: false, // ✅ Important: Disable SSL for local dev (reverb:start --port=8080)
           appKey: AuthService.pusherApiKey,
           authEndpoint: _buildAuthEndpoint(),
           authorizer: (channelName, socketId) async {

@@ -211,9 +211,9 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                 mediaPath: (m['media_path'] ?? '').toString(),
                 remoteUrl: '',
                 mime: m['media_mime']?.toString(),
-                size: m['media_size'] is int
-                    ? m['media_size'] as int
-                    : (m['media_size'] is num ? (m['media_size'] as num).toInt() : null),
+                size: m['media_size'] != null
+                    ? (int.tryParse(m['media_size'].toString()) ?? 0)
+                    : null,
                 status: _MediaStatus.ready,
               ),
             ));
@@ -273,9 +273,9 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
         final mediaValue = ApiHelpers.pickMediaValueFromBlock(block);
         final mediaPath = ApiHelpers.extractMediaPath(mediaValue);
         final mime = block['media_mime']?.toString();
-        final size = block['media_size'] is int
-            ? block['media_size'] as int
-            : (block['media_size'] is num ? (block['media_size'] as num).toInt() : null);
+        final size = block['media_size'] != null
+            ? (int.tryParse(block['media_size'].toString()) ?? 0)
+            : null;
 
         final id = _id();
         _blocks.add(
@@ -652,11 +652,9 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       final mediaPath = (uploadRes['media_path'] ?? '').toString().trim();
       final mediaUrl = (uploadRes['media_url'] ?? '').toString().trim();
       final mime = uploadRes['media_mime']?.toString();
-      final size = uploadRes['media_size'] is int
-          ? uploadRes['media_size'] as int
-          : (uploadRes['media_size'] is num
-              ? (uploadRes['media_size'] as num).toInt()
-              : null);
+      final size = uploadRes['media_size'] != null
+          ? (int.tryParse(uploadRes['media_size'].toString()) ?? 0)
+          : null;
 
       if (!mounted) return;
 

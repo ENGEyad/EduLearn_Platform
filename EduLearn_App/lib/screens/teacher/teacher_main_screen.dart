@@ -49,14 +49,21 @@ class _TeacherMainScreenState extends State<TeacherMainScreen> {
       ),
       TeacherSettingsScreen(
         teacher: TeacherModel(
-          id: widget.teacher['id'].toString(),
-          fullName: widget.teacher['name'] ?? '',
+          id: widget.teacher['id']?.toString() ?? '0',
+          fullName: widget.teacher['full_name'] ?? widget.teacher['name'] ?? '',
           email: widget.teacher['email'] ?? '',
-          imageUrl: widget.teacher['photo'] != null 
-              ? 'http://172.21.108.44:8000/storage/${widget.teacher['photo']}' 
-              : null,
+          imageUrl: widget.teacher['image'] != null
+              ? 'http://192.168.1.108:8000/storage/${widget.teacher['image']}'
+              : widget.teacher['photo'] != null
+                  ? 'http://192.168.1.108:8000/storage/${widget.teacher['photo']}'
+                  : null,
           teacherCode: widget.teacher['teacher_code'] ?? 'TCH-${widget.teacher['id']}',
-          assignments: widget.assignments.map((a) => Assignment(id: a['subject_id'].toString(), name: '${a['class_name']} - ${a['subject_name']}')).toList(),
+          assignments: widget.assignments
+              .map((a) => Assignment(
+                    id: a['subject_id']?.toString() ?? a['assignment_id']?.toString() ?? '0',
+                    name: '${a['class_grade'] ?? ''} ${a['class_section'] ?? ''} - ${a['subject_name'] ?? 'Unknown'}'.trim(),
+                  ))
+              .toList(),
           totalAssignedStudents: widget.totalAssignedStudents,
         ),
       ),

@@ -54,15 +54,22 @@ class _StudentMainScreenState extends State<StudentMainScreen> {
       // 👇 دمجنا صفحة الاعدادات/البروفايل
       StudentSettingsScreen(
         student: StudentModel(
-          id: widget.student['id'].toString(),
-          fullName: widget.student['name'] ?? '',
+          id: widget.student['id']?.toString() ?? '0',
+          fullName: widget.student['full_name'] ?? widget.student['name'] ?? '',
           email: widget.student['email'] ?? '',
-          imageUrl: widget.student['photo'] != null 
-              ? 'http://172.21.108.44:8000/storage/${widget.student['photo']}' 
-              : null,
-          studentId: widget.student['academic_id'] ?? widget.student['id'].toString(),
-          gradeLevel: widget.student['grade_level'],
-          enrolledCourses: widget.assignedSubjects.map((s) => Course(id: s['id'].toString(), title: s['name'])).toList(),
+          imageUrl: widget.student['image'] != null
+              ? 'http://192.168.1.108:8000/storage/${widget.student['image']}'
+              : widget.student['photo'] != null
+                  ? 'http://192.168.1.108:8000/storage/${widget.student['photo']}'
+                  : null,
+          studentId: widget.student['academic_id']?.toString() ?? widget.student['id']?.toString() ?? '',
+          gradeLevel: widget.student['grade_level']?.toString(),
+          enrolledCourses: widget.assignedSubjects
+              .map((s) => Course(
+                    id: s['id']?.toString() ?? '0',
+                    title: s['name']?.toString() ?? s['subject_name']?.toString() ?? 'Unknown',
+                  ))
+              .toList(),
         ),
       ),
     ];

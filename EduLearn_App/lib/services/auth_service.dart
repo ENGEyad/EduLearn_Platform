@@ -55,33 +55,54 @@ class AuthService {
     String? password,
   }) async {
     final url = Uri.parse('$baseUrl/teacher/auth');
+    
+    // ✅ DEBUG LOG
+    print('📡 AUTH REQUEST: $url');
+    print('📡 BODY: {full_name: $fullName, teacher_code: $teacherCode}');
 
-    final response = await http.post(
-      url,
-      headers: {'Accept': 'application/json'},
-      body: {
-        'full_name': fullName,
-        'teacher_code': teacherCode,
-        if (email != null && email.isNotEmpty) 'email': email,
-        if (password != null && password.isNotEmpty) 'password': password,
-      },
-    );
+    http.Response? response;
+    Map<String, dynamic>? data;
 
-    late final Map<String, dynamic> data;
     try {
-      data = ApiHelpers.decodeJsonAsMap(response.body);
-    } catch (_) {
-      throw Exception('Invalid server response.');
+      response = await http.post(
+        url,
+        headers: {'Accept': 'application/json'},
+        body: {
+          'full_name': fullName,
+          'teacher_code': teacherCode,
+          if (email != null && email.isNotEmpty) 'email': email,
+          if (password != null && password.isNotEmpty) 'password': password,
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response != null) {
+        print('📡 RESPONSE STATUS: ${response.statusCode}');
+        print('📡 RESPONSE BODY: ${response.body}');
+
+        try {
+          data = ApiHelpers.decodeJsonAsMap(response.body);
+        } catch (e) {
+          print('❌ JSON DECODE ERROR: $e');
+          throw Exception('Invalid server response.');
+        }
+      } else {
+        throw Exception('Server did not respond in time.');
+      }
+    } catch (e) {
+      print('❌ AUTH ERROR: $e');
+      rethrow;
     }
 
-    if (response.statusCode >= 200 &&
+    if (response != null &&
+        response.statusCode >= 200 &&
         response.statusCode < 300 &&
+        data != null &&
         data['success'] == true &&
         data['teacher'] is Map<String, dynamic>) {
       await saveSession(data, 'teacher');
       return data;
     } else {
-      final msg = data['message']?.toString() ?? 'Auth failed';
+      final msg = data?['message']?.toString() ?? 'Auth failed';
       throw Exception(msg);
     }
   }
