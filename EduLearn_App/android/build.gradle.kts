@@ -30,7 +30,7 @@ subprojects {
                 useVersion("1.9.3")
                 because("Force androidx.activity version compatible with AGP 8.7.0")
             }
-        }
+        }   
     }
 }
 

@@ -1,16 +1,10 @@
 import 'dart:convert';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pusher_reverb_flutter/pusher_reverb_flutter.dart';
 
-import '../../theme.dart';
-
-// ✅ APIs
 import '../../services/chat_service.dart';
 import '../../services/api_helpers.dart';
-
-// ✅ Reverb service (مشترك)
 import '../../services/reverb_service.dart';
 
 /// ========= Helpers عامة للتواريخ/الأوقات =========
@@ -20,7 +14,6 @@ DateTime? _parseUtcDate(String value) {
     if (value.trim().isEmpty) return null;
     var v = value.trim();
 
-    // مثلاً لو جاك "2025-12-06 18:20:00" نحولها لصيغة ISO
     if (!v.contains('T') && v.length >= 19) {
       v = v.substring(0, 19).replaceFirst(' ', 'T') + 'Z';
     }
@@ -114,9 +107,6 @@ String _formatConversationTime(DateTime local) {
   }
 }
 
-/// دالة عامة لتنسيق الوقت:
-/// - forConversation = true  -> تستخدم لشاشة قائمة المحادثات
-/// - forConversation = false -> تستخدم لفقاعات الشات داخل المحادثة
 String _formatTimeLabel(String raw, {bool forConversation = false}) {
   final dt = _parseUtcDate(raw);
   if (dt == null) return raw;
@@ -130,6 +120,32 @@ String _formatTimeLabel(String raw, {bool forConversation = false}) {
 
 bool _isSameCalendarDate(DateTime a, DateTime b) {
   return a.year == b.year && a.month == b.month && a.day == b.day;
+}
+
+String _formatDateDivider(DateTime date) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final target = DateTime(date.year, date.month, date.day);
+  final diff = today.difference(target).inDays;
+
+  if (diff == 0) return 'Today';
+  if (diff == 1) return 'Yesterday';
+
+  const monthNames = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  return '${monthNames[date.month - 1]} ${date.day}, ${date.year}';
 }
 
 /// ======================================================================
@@ -164,15 +180,11 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
   /// conversationId -> teacherCode
   final Map<int, String> _teacherCodeByConversationId = {};
 
-  /// Reverb
   ReverbClient? _reverbClient;
-
-  /// القنوات المشترك بها (private-conversation.{id})
   final Map<int, Channel> _conversationChannels = {};
 
   String get _studentFullName => (widget.student['full_name'] ?? '').toString();
 
-  /// نحاول نجيب رقم الطالب من أكثر من key احتياطاً
   String get _academicId {
     final dynamic raw = widget.student['academic_id'] ??
         widget.student['academicId'] ??
@@ -191,7 +203,6 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // ✅ عند الرجوع للتطبيق (أو بعد قطع الشبكة) أعد تثبيت الاشتراكات
     if (state == AppLifecycleState.resumed) {
       _ensureReverbClient().then((_) => _resubscribeToConversationChannels());
     }
@@ -201,8 +212,6 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
 
-    // ✅ لا نعمل disconnect هنا (لأننا نستخدم ReverbService كعميل واحد للتطبيق)
-    // فقط نفك الاشتراكات.
     try {
       for (final ch in _conversationChannels.values) {
         try {
@@ -215,7 +224,6 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
     super.dispose();
   }
 
-  /// ✅ showLoading=false لتجنب “الدائرة الصغيرة” اللي تشوفها عند الرجوع من المحادثة
   Future<void> _loadStudentConversations({required bool showLoading}) async {
     if (_academicId.isEmpty) return;
 
@@ -256,11 +264,10 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
 
         final String lastPreview = (c['last_message'] ?? '').toString();
         final String rawTime = (c['last_message_at'] ?? '').toString();
-        
+
         final bool isGroup = c['is_group'] == true;
         final String? groupName = c['group_name'];
 
-        // ✅ عادات الطالب: نفضل unread_for_student إن توفر، وإلا fallback على unread_count
         final int unread = int.tryParse(
               (c['unread_for_student'] ?? c['unread_count'] ?? '0').toString(),
             ) ??
@@ -307,7 +314,6 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
     } catch (e) {
       debugPrint('Failed to load student conversations: $e');
 
-      // ✅ إذا showLoading=false (بعد الرجوع من المحادثة) لا نزعج المستخدم بسناك بار
       if (showLoading && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -320,17 +326,16 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
         );
       }
     } finally {
-      if (showLoading && mounted) setState(() => _loadingConversations = false);
+      if (showLoading && mounted) {
+        setState(() => _loadingConversations = false);
+      }
     }
   }
-
-  /// ===================== Reverb (Private Channels) =====================
 
   Future<void> _ensureReverbClient() async {
     if (_reverbClient != null) return;
 
     try {
-      // ✅ عميل واحد عبر ReverbService (الآن فيه await connect داخليًا)
       _reverbClient = await ReverbService.getStudentClient(
         academicId: _academicId,
         port: 8080,
@@ -350,13 +355,14 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
       final channelName = 'private-conversation.$conversationId';
       final ch = _reverbClient!.subscribeToChannel(channelName);
 
-      // ✅ listen قبل subscribe
       ch.stream.listen(
         (ChannelEvent event) {
           _handleConversationChannelEvent(conversationId, event);
         },
         onError: (e) {
-          debugPrint('StudentMessagesScreen: error on channel $conversationId: $e');
+          debugPrint(
+            'StudentMessagesScreen: error on channel $conversationId: $e',
+          );
         },
       );
 
@@ -446,10 +452,6 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
 
       final isOpen = _StudentChatState.currentConversationId == conversationId;
 
-      // ✅ unread للطالب:
-      // - لو المحادثة مفتوحة -> 0
-      // - لو الرسالة من الطالب نفسه -> 0
-      // - غير ذلك -> unread_for_student إن وصل من السيرفر، وإلا +1 محلي
       int unreadClient;
       if (isOpen) {
         unreadClient = 0;
@@ -480,6 +482,8 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
               : (old?.lastMessageTimeLabel ?? ''),
           lastMessageAt: lastAt ?? old?.lastMessageAt,
           unreadCount: unreadClient,
+          isGroup: old?.isGroup ?? false,
+          groupName: old?.groupName,
         );
       });
     } catch (e) {
@@ -563,6 +567,8 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
           lastMessageTimeLabel: meta.lastMessageTimeLabel,
           lastMessageAt: meta.lastMessageAt,
           unreadCount: 0,
+          isGroup: meta.isGroup,
+          groupName: meta.groupName,
         );
       });
     }
@@ -582,8 +588,6 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
       _StudentChatState.currentConversationId = null;
     }
 
-    // ✅ بدل “reload دائري مزعج” بعد الرجوع:
-    // تحديث صامت فقط لضمان الالتقاط لو فاتنا شيء أثناء قطع الشبكة
     await _loadStudentConversations(showLoading: false);
   }
 
@@ -621,16 +625,18 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
               style: GoogleFonts.orbitron(
                 color: const Color(0xFF00E5FF),
                 fontWeight: FontWeight.w800,
-                fontSize: 24,
-                letterSpacing: 2,
-                shadows: [
-                  const Shadow(color: Color(0xFF00E5FF), blurRadius: 8),
+                fontSize: 22,
+                letterSpacing: 1.8,
+                shadows: const [
+                  Shadow(color: Color(0x6600E5FF), blurRadius: 10),
                 ],
               ),
             ),
             const SizedBox(height: 4),
             Text(
               _studentFullName.toUpperCase(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.orbitron(
                 color: Colors.white54,
                 fontSize: 10,
@@ -646,7 +652,10 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
               child: SizedBox(
                 width: 18,
                 height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF00E5FF)),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Color(0xFF00E5FF),
+                ),
               ),
             )
           else
@@ -660,53 +669,52 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
         ],
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              const Color(0xFF0A0E1A),
-              const Color(0xFF161B22),
+              Color(0xFF0A0E1A),
+              Color(0xFF101826),
+              Color(0xFF161B22),
             ],
           ),
         ),
         child: orderedTeachers.isEmpty
-            ? Center(
-                child: Text(
-                  'NO ACTIVE CHANNELS',
-                  style: GoogleFonts.orbitron(
-                    color: Colors.white24,
-                    fontSize: 12,
-                    letterSpacing: 2,
-                  ),
-                ),
-              )
+            ? const _EmptyConversationsState()
             : ListView.separated(
-                padding: const EdgeInsets.only(top: 16, bottom: 20, left: 16, right: 16),
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                 itemCount: orderedTeachers.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final t = orderedTeachers[index];
                   final meta = _metaByTeacherCode[t.teacherCode];
-                  
+
                   final isGroup = meta?.isGroup ?? false;
-                  final displayName = isGroup ? (meta?.groupName ?? 'Class Group') : t.name;
+                  final displayName =
+                      isGroup ? (meta?.groupName ?? 'Class Group') : t.name;
 
-                  final avatarText = displayName.isNotEmpty ? displayName[0].toUpperCase() : '?';
+                  final avatarText =
+                      displayName.isNotEmpty ? displayName[0].toUpperCase() : '?';
 
-                  final subtitle = isGroup ? 'Teacher: ${t.name}' : 'Personal Chat';
+                  final subtitle = isGroup ? 'Teacher: ${t.name}' : 'Personal chat';
 
-                  final displayPreview = (meta?.lastMessagePreview?.isNotEmpty ?? false)
-                      ? meta!.lastMessagePreview!
-                      : subtitle;
+                  final displayPreview =
+                      (meta?.lastMessagePreview?.isNotEmpty ?? false)
+                          ? meta!.lastMessagePreview!
+                          : subtitle;
 
                   final displayTime = meta?.lastMessageTimeLabel ?? '';
 
-                  final unreadCount = (meta?.unreadCount != null && meta!.unreadCount! > 0)
-                      ? meta.unreadCount
-                      : null;
+                  final unreadCount =
+                      (meta?.unreadCount != null && meta!.unreadCount! > 0)
+                          ? meta.unreadCount
+                          : null;
 
-                  final avatarImageUrl = (!isGroup && t.imageUrl != null && t.imageUrl!.isNotEmpty)
+                  final avatarImageUrl = (!isGroup &&
+                          t.imageUrl != null &&
+                          t.imageUrl!.isNotEmpty)
                       ? ApiHelpers.buildFullMediaUrl(t.imageUrl!)
                       : null;
 
@@ -728,7 +736,6 @@ class _StudentMessagesScreenState extends State<StudentMessagesScreen>
   }
 }
 
-/// موديل بسيط للأستاذ في شاشة الدردشات
 class _ChatTeacher {
   final String teacherCode;
   final String name;
@@ -763,6 +770,73 @@ class _ConversationMeta {
   });
 }
 
+class _EmptyConversationsState extends StatelessWidget {
+  const _EmptyConversationsState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.03),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withOpacity(0.06)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.18),
+              blurRadius: 18,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF00E5FF).withOpacity(0.10),
+                border: Border.all(
+                  color: const Color(0xFF00E5FF).withOpacity(0.22),
+                ),
+              ),
+              child: const Icon(
+                Icons.chat_bubble_outline_rounded,
+                color: Color(0xFF00E5FF),
+                size: 28,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'NO ACTIVE CHANNELS',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.orbitron(
+                color: Colors.white70,
+                fontSize: 12,
+                letterSpacing: 1.8,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Your active conversations will appear here.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.nunito(
+                color: Colors.white38,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _MessageItem extends StatelessWidget {
   final String avatarText;
   final String? avatarImageUrl;
@@ -790,118 +864,181 @@ class _MessageItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool hasUnread = unreadCount != null && unreadCount! > 0;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.03),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: hasUnread
-                ? const Color(0xFF00E5FF).withOpacity(0.3)
-                : Colors.white.withOpacity(0.05),
-          ),
-        ),
-        child: Row(
-          children: [
-            Stack(
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: isGroup ? const Color(0xFF9C27B0).withOpacity(0.2) : const Color(0xFF00E5FF).withOpacity(0.1),
-                  backgroundImage: avatarImageUrl != null ? NetworkImage(avatarImageUrl!) : null,
-                  child: avatarImageUrl == null
-                      ? Text(
-                          avatarText,
-                          style: GoogleFonts.orbitron(
-                            color: isGroup ? const Color(0xFF9C27B0) : const Color(0xFF00E5FF),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        )
-                      : null,
-                ),
-                if (isGroup)
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF9C27B0),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.group, size: 10, color: Colors.white),
-                    ),
-                  ),
-              ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(22),
+        child: Ink(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.035),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: hasUnread
+                  ? const Color(0xFF00E5FF).withOpacity(0.28)
+                  : Colors.white.withOpacity(0.05),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.orbitron(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                      if (time.isNotEmpty)
-                        Text(
-                          time,
-                          style: GoogleFonts.nunito(
-                            color: hasUnread ? const Color(0xFF00E5FF) : Colors.white38,
-                            fontSize: 10,
-                            fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    preview,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.nunito(
-                      color: hasUnread ? Colors.white : Colors.white54,
-                      fontSize: 13,
-                      fontWeight: hasUnread ? FontWeight.w600 : FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (hasUnread) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF00E5FF),
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(color: const Color(0xFF00E5FF).withOpacity(0.3), blurRadius: 6),
-                  ],
-                ),
-                child: Text(
-                  unreadCount.toString(),
-                  style: const TextStyle(color: Color(0xFF0A0E1A), fontSize: 10, fontWeight: FontWeight.bold),
-                ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.16),
+                blurRadius: 14,
+                offset: const Offset(0, 8),
               ),
             ],
-          ],
+          ),
+          child: Row(
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isGroup
+                            ? const Color(0xFF9C27B0).withOpacity(0.25)
+                            : const Color(0xFF00E5FF).withOpacity(0.18),
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: 28,
+                      backgroundColor: isGroup
+                          ? const Color(0xFF9C27B0).withOpacity(0.18)
+                          : const Color(0xFF00E5FF).withOpacity(0.10),
+                      backgroundImage: avatarImageUrl != null
+                          ? NetworkImage(avatarImageUrl!)
+                          : null,
+                      child: avatarImageUrl == null
+                          ? Text(
+                              avatarText,
+                              style: GoogleFonts.orbitron(
+                                color: isGroup
+                                    ? const Color(0xFFD86CFF)
+                                    : const Color(0xFF00E5FF),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            )
+                          : null,
+                    ),
+                  ),
+                  if (isGroup)
+                    Positioned(
+                      bottom: -2,
+                      right: -2,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF9C27B0),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: const Color(0xFF0A0E1A),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.group,
+                          size: 10,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.orbitron(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13.5,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                        ),
+                        if (time.isNotEmpty) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            time,
+                            style: GoogleFonts.nunito(
+                              color: hasUnread
+                                  ? const Color(0xFF00E5FF)
+                                  : Colors.white38,
+                              fontSize: 10,
+                              fontWeight: hasUnread
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      metaLine,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.nunito(
+                        color: Colors.white38,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      preview,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.nunito(
+                        color: hasUnread ? Colors.white : Colors.white60,
+                        fontSize: 13,
+                        fontWeight:
+                            hasUnread ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (hasUnread) ...[
+                const SizedBox(width: 10),
+                Container(
+                  constraints: const BoxConstraints(minWidth: 22),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00E5FF),
+                    borderRadius: BorderRadius.circular(999),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF00E5FF).withOpacity(0.28),
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    unreadCount! > 99 ? '99+' : unreadCount.toString(),
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.nunito(
+                      color: const Color(0xFF0A0E1A),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
@@ -949,12 +1086,8 @@ class _StudentChatScreenState extends State<StudentChatScreen>
           '')
       .toString();
 
-  String get _studentName => (widget.student['full_name'] ?? '').toString();
-
   String get _teacherName => (widget.teacher['full_name'] ?? '').toString();
-  String get _teacherCode => (widget.teacher['teacher_code'] ?? '').toString();
-  String? get _teacherImage =>
-      (widget.teacher['image'] as String?)?.toString();
+  String? get _teacherImage => (widget.teacher['image'] as String?)?.toString();
 
   @override
   void initState() {
@@ -967,7 +1100,6 @@ class _StudentChatScreenState extends State<StudentChatScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // ✅ عند الرجوع للتطبيق: أعد الاشتراك (في حال انقطع الاتصال)
     if (state == AppLifecycleState.resumed) {
       _initReverb();
     }
@@ -999,8 +1131,9 @@ class _StudentChatScreenState extends State<StudentChatScreen>
         _messages.add(m);
       }
 
+      if (!mounted) return;
       setState(() => _initialLoaded = true);
-      _scrollToBottom();
+      _scrollToBottom(jump: true);
     } catch (e) {
       debugPrint('Failed to load messages: $e');
       if (!mounted) return;
@@ -1029,7 +1162,6 @@ class _StudentChatScreenState extends State<StudentChatScreen>
 
       final channelName = 'private-conversation.${widget.conversationId}';
 
-      // ✅ لو كنا مشتركين سابقاً، افصل القديم قبل إعادة الاشتراك (مهم مع reconnect/resume)
       try {
         _channel?.unsubscribe();
       } catch (_) {}
@@ -1037,7 +1169,6 @@ class _StudentChatScreenState extends State<StudentChatScreen>
 
       _channel = _reverbClient!.subscribeToChannel(channelName);
 
-      // ✅ listen قبل subscribe
       _channel!.stream.listen(
         (ChannelEvent event) {
           if (!_isMessageSentEvent(event.eventName)) return;
@@ -1126,7 +1257,6 @@ class _StudentChatScreenState extends State<StudentChatScreen>
 
       if (!mounted) return;
       setState(() {
-        // حذف الرسالة المؤقتة واستبدالها بالرسالة الحقيقية من السيرفر
         _messages.removeWhere((m) => m['id'] == tempId);
         _messageIds.remove(tempId);
 
@@ -1141,11 +1271,13 @@ class _StudentChatScreenState extends State<StudentChatScreen>
       debugPrint('Failed to send message: $e');
       if (!mounted) return;
 
-      // في حال الفشل، نحذف الرسالة المؤقتة وننبه المستخدم
       setState(() {
         _messages.removeWhere((m) => m['id'] == tempId);
         _messageIds.remove(tempId);
-        _textController.text = text; // إعادة النص للتحكم
+        _textController.text = text;
+        _textController.selection = TextSelection.fromPosition(
+          TextPosition(offset: _textController.text.length),
+        );
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1160,14 +1292,24 @@ class _StudentChatScreenState extends State<StudentChatScreen>
     }
   }
 
-  void _scrollToBottom() {
+  void _scrollToBottom({bool jump = false}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scrollController.hasClients) return;
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent + 80,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOut,
-      );
+      final target = _scrollController.position.maxScrollExtent + 80;
+      if (jump) {
+        _scrollController.jumpTo(
+          target.clamp(
+            _scrollController.position.minScrollExtent,
+            _scrollController.position.maxScrollExtent,
+          ),
+        );
+      } else {
+        _scrollController.animateTo(
+          target,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
 
@@ -1182,7 +1324,6 @@ class _StudentChatScreenState extends State<StudentChatScreen>
     _textController.dispose();
     _scrollController.dispose();
 
-    // ✅ لا نعمل disconnect — فقط unsubscribe لقناة المحادثة
     try {
       _channel?.unsubscribe();
     } catch (_) {}
@@ -1203,18 +1344,48 @@ class _StudentChatScreenState extends State<StudentChatScreen>
         backgroundColor: Colors.transparent,
         titleSpacing: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF00E5FF)),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Color(0xFF00E5FF),
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Row(
           children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: Colors.white10,
-              backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
-              child: avatarUrl == null
-                  ? const Icon(Icons.person, color: Color(0xFF00E5FF), size: 20)
-                  : null,
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Colors.white10,
+                  backgroundImage:
+                      avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                  child: avatarUrl == null
+                      ? Icon(
+                          widget.isGroup ? Icons.group : Icons.person,
+                          color: const Color(0xFF00E5FF),
+                          size: 20,
+                        )
+                      : null,
+                ),
+                if (widget.isGroup)
+                  Positioned(
+                    bottom: -2,
+                    right: -2,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF9C27B0),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: const Color(0xFF0A0E1A),
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -1223,14 +1394,16 @@ class _StudentChatScreenState extends State<StudentChatScreen>
                 children: [
                   Text(
                     _teacherName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.orbitron(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
                   Text(
-                    'SECURE CHANNEL',
+                    widget.isGroup ? 'GROUP CHANNEL' : 'SECURE CHANNEL',
                     style: GoogleFonts.orbitron(
                       fontSize: 8,
                       color: const Color(0xFF00E5FF),
@@ -1254,36 +1427,81 @@ class _StudentChatScreenState extends State<StudentChatScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF0A0E1A), Color(0xFF0F172A)],
+            colors: [
+              Color(0xFF0A0E1A),
+              Color(0xFF0F172A),
+              Color(0xFF101827),
+            ],
           ),
         ),
         child: Column(
           children: [
             Expanded(
               child: _loading && !_initialLoaded
-                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF00E5FF)))
-                  : ListView.builder(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.only(top: 100, left: 12, right: 12, bottom: 20),
-                      itemCount: _messages.length,
-                      itemBuilder: (context, index) {
-                        final m = _messages[index];
-                        final senderType = (m['sender_type'] ?? '').toString();
-                        final isMe = senderType == 'student';
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF00E5FF),
+                      ),
+                    )
+                  : _messages.isEmpty
+                      ? const _EmptyChatState()
+                      : ListView.builder(
+                          controller: _scrollController,
+                          physics: const BouncingScrollPhysics(),
+                          padding: const EdgeInsets.only(
+                            top: 100,
+                            left: 12,
+                            right: 12,
+                            bottom: 20,
+                          ),
+                          itemCount: _messages.length,
+                          itemBuilder: (context, index) {
+                            final m = _messages[index];
+                            final senderType =
+                                (m['sender_type'] ?? '').toString();
+                            final isMe = senderType == 'student';
 
-                        final body = (m['body'] ?? '').toString();
-                        final time = (m['sent_at'] ?? '').toString();
-                        final timeLabel = time.isEmpty ? '' : _formatTimeLabel(time);
+                            final body = (m['body'] ?? '').toString();
+                            final time = (m['sent_at'] ?? '').toString();
+                            final timeLabel =
+                                time.isEmpty ? '' : _formatTimeLabel(time);
 
-                        return _ChatBubble(
-                          isMe: isMe,
-                          text: body,
-                          timeLabel: timeLabel,
-                          senderName: widget.isGroup ? (m['sender_name'] ?? (isMe ? null : 'Teacher')) : null,
-                          isTemp: m['is_temp'] == true,
-                        );
-                      },
-                    ),
+                            final currentDate = _parseUtcDate(time)?.toLocal();
+                            final previousTime = index > 0
+                                ? (_messages[index - 1]['sent_at'] ?? '')
+                                    .toString()
+                                : '';
+                            final previousDate =
+                                _parseUtcDate(previousTime)?.toLocal();
+
+                            final showDateDivider = currentDate != null &&
+                                (index == 0 ||
+                                    previousDate == null ||
+                                    !_isSameCalendarDate(
+                                      currentDate,
+                                      previousDate,
+                                    ));
+
+                            return Column(
+                              children: [
+                                if (showDateDivider)
+                                  _DateDivider(
+                                    label: _formatDateDivider(currentDate),
+                                  ),
+                                _ChatBubble(
+                                  isMe: isMe,
+                                  text: body,
+                                  timeLabel: timeLabel,
+                                  senderName: widget.isGroup
+                                      ? (m['sender_name'] ??
+                                          (isMe ? null : 'Teacher'))
+                                      : null,
+                                  isTemp: m['is_temp'] == true,
+                                ),
+                              ],
+                            );
+                          },
+                        ),
             ),
             _buildInput(),
           ],
@@ -1293,53 +1511,176 @@ class _StudentChatScreenState extends State<StudentChatScreen>
   }
 
   Widget _buildInput() {
-    return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
-          border: Border(top: BorderSide(color: Colors.white.withOpacity(0.1))),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0D1320),
+        border: Border(
+          top: BorderSide(color: Colors.white.withOpacity(0.08)),
         ),
-        child: SafeArea(
-          top: false,
-          child: Row(
-            children: [
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const Color(0xFF00E5FF).withOpacity(0.2)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF141C2B),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: const Color(0xFF00E5FF).withOpacity(0.18),
                   ),
-                  child: TextField(
-                    controller: _textController,
-                    style: const TextStyle(color: Colors.white),
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (val) => _sendMessage(),
-                    decoration: const InputDecoration(
-                      hintText: 'Encrypt data...',
-                      hintStyle: TextStyle(color: Colors.white38),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                ),
+                child: TextField(
+                  controller: _textController,
+                  minLines: 1,
+                  maxLines: 4,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  cursorColor: const Color(0xFF00E5FF),
+                  style: GoogleFonts.nunito(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    height: 1.35,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Write a message...',
+                    hintStyle: GoogleFonts.nunito(
+                      color: Colors.white54,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    border: InputBorder.none,
+                    isCollapsed: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
-              GestureDetector(
-                onTap: _sendMessage,
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(colors: [Color(0xFF00E5FF), Color(0xFF00B8D4)]),
+            ),
+            const SizedBox(width: 12),
+            ValueListenableBuilder<TextEditingValue>(
+              valueListenable: _textController,
+              builder: (context, value, _) {
+                final canSend = value.text.trim().isNotEmpty;
+                return AnimatedOpacity(
+                  duration: const Duration(milliseconds: 180),
+                  opacity: canSend ? 1 : 0.55,
+                  child: GestureDetector(
+                    onTap: canSend ? _sendMessage : null,
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF00E5FF),
+                            Color(0xFF00B8D4),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF00E5FF).withOpacity(0.22),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.send_rounded,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    ),
                   ),
-                  child: const Icon(Icons.send_rounded, color: Colors.white, size: 22),
-                ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyChatState extends StatelessWidget {
+  const _EmptyChatState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.03),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withOpacity(0.05)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.mark_chat_unread_rounded,
+              color: Color(0xFF00E5FF),
+              size: 30,
+            ),
+            const SizedBox(height: 14),
+            Text(
+              'No messages yet',
+              style: GoogleFonts.orbitron(
+                color: Colors.white70,
+                fontSize: 12,
+                letterSpacing: 1.5,
+                fontWeight: FontWeight.w700,
               ),
-            ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Start the conversation by sending your first message.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.nunito(
+                color: Colors.white38,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DateDivider extends StatelessWidget {
+  final String label;
+
+  const _DateDivider({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 10),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.06),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: Colors.white.withOpacity(0.06)),
+          ),
+          child: Text(
+            label,
+            style: GoogleFonts.nunito(
+              color: Colors.white54,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ),
@@ -1364,56 +1705,93 @@ class _ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bubbleColor = isMe
+        ? const Color(0xFF00E5FF).withOpacity(0.85)
+        : Colors.white.withOpacity(0.08);
+
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Opacity(
-        opacity: isTemp ? 0.6 : 1.0,
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 4),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: isMe ? const Color(0xFF00E5FF).withOpacity(0.8) : Colors.white10,
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(16),
-              topRight: const Radius.circular(16),
-              bottomLeft: Radius.circular(isMe ? 16 : 4),
-              bottomRight: Radius.circular(isMe ? 4 : 16),
-            ),
-            border: Border.all(color: Colors.white10),
+        opacity: isTemp ? 0.72 : 1,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.76,
           ),
-          child: Column(
-            crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-            children: [
-              if (senderName != null && !isMe) ...[
-                Text(
-                  senderName!,
-                  style: const TextStyle(color: Color(0xFF00E5FF), fontSize: 10, fontWeight: FontWeight.bold),
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: bubbleColor,
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(18),
+                topRight: const Radius.circular(18),
+                bottomLeft: Radius.circular(isMe ? 18 : 6),
+                bottomRight: Radius.circular(isMe ? 6 : 18),
+              ),
+              border: Border.all(
+                color: isMe
+                    ? const Color(0x4000E5FF)
+                    : Colors.white.withOpacity(0.08),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.12),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
-                const SizedBox(height: 4),
               ],
-              Text(
-                text,
-                style: TextStyle(color: isMe ? Colors.black : Colors.white, fontSize: 14),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
+            ),
+            child: Column(
+              crossAxisAlignment:
+                  isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              children: [
+                if (senderName != null && !isMe) ...[
                   Text(
-                    timeLabel,
-                    style: TextStyle(color: isMe ? Colors.black54 : Colors.white30, fontSize: 9),
-                  ),
-                  if (isTemp && isMe) ...[
-                    const SizedBox(width: 4),
-                    const SizedBox(
-                      width: 8,
-                      height: 8,
-                      child: CircularProgressIndicator(strokeWidth: 1, color: Colors.black54),
+                    senderName!,
+                    style: GoogleFonts.nunito(
+                      color: const Color(0xFF00E5FF),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
                     ),
-                  ],
+                  ),
+                  const SizedBox(height: 4),
                 ],
-              ),
-            ],
+                Text(
+                  text,
+                  style: GoogleFonts.nunito(
+                    color: isMe ? Colors.black : Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      isTemp ? 'Sending...' : timeLabel,
+                      style: GoogleFonts.nunito(
+                        color: isMe ? Colors.black54 : Colors.white38,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (isTemp && isMe) ...[
+                      const SizedBox(width: 6),
+                      const SizedBox(
+                        width: 9,
+                        height: 9,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.2,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
