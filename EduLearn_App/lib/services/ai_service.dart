@@ -4,7 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import '../config/config.dart';
 
 class AIService {
-  static const String baseUrl = AppConfig.aiBaseUrl;
+  static String get baseUrl => AppConfig.aiBaseUrl;
 
   /// Uploads a PDF file to the AI backend for extraction and chunking
   static Future<Map<String, dynamic>?> uploadPDF(PlatformFile file) async {
@@ -69,7 +69,7 @@ class AIService {
   static Future<Map<String, dynamic>?> getAdaptiveExercises(int studentId, String topic) async {
     try {
       // Use dashboard API because it tracks database history
-      final dashboardUrl = "http://192.168.1.5:8000/api/ai/adaptive-exercises";
+      final String dashboardUrl = "${AppConfig.baseUrl}/api/ai/adaptive-exercises";
       final response = await http.post(
         Uri.parse(dashboardUrl),
         headers: {'Content-Type': 'application/json'},
@@ -97,7 +97,7 @@ class AIService {
     double? timeTaken,
   }) async {
     try {
-      final dashboardUrl = "http://192.168.1.5:8000/api/ai/submit-response";
+      final String dashboardUrl = "${AppConfig.baseUrl}/api/ai/submit-response";
       final response = await http.post(
         Uri.parse(dashboardUrl),
         headers: {'Content-Type': 'application/json'},

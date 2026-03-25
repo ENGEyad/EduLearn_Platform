@@ -4,7 +4,8 @@ import '../../theme.dart';
 import 'student_home_screen.dart';
 import 'student_subjects_screen.dart';
 import 'student_messages_screen.dart';
-import 'student_profile_screen.dart';
+import '../settings/student_settings_screen.dart';
+import '../../models/user_models.dart';
 
 class StudentMainScreen extends StatefulWidget {
   final Map<String, dynamic> student;          // 👈 بيانات الطالب من الـ API
@@ -50,9 +51,26 @@ class _StudentMainScreenState extends State<StudentMainScreen> {
       StudentMessagesScreen(
         student: widget.student,
       ),
-      // لو بروفايل يحتاج بيانات الطالب عدله كذا:
-      StudentProfileScreen(
-        student: widget.student,
+      // 👇 دمجنا صفحة الاعدادات/البروفايل
+      StudentSettingsScreen(
+        student: StudentModel(
+          id: widget.student['id']?.toString() ?? '0',
+          fullName: widget.student['full_name'] ?? widget.student['name'] ?? '',
+          email: widget.student['email'] ?? '',
+          imageUrl: widget.student['image'] != null
+              ? 'http://192.168.1.108:8000/storage/${widget.student['image']}'
+              : widget.student['photo'] != null
+                  ? 'http://192.168.1.108:8000/storage/${widget.student['photo']}'
+                  : null,
+          studentId: widget.student['academic_id']?.toString() ?? widget.student['id']?.toString() ?? '',
+          gradeLevel: widget.student['grade_level']?.toString(),
+          enrolledCourses: widget.assignedSubjects
+              .map((s) => Course(
+                    id: s['id']?.toString() ?? '0',
+                    title: s['name']?.toString() ?? s['subject_name']?.toString() ?? 'Unknown',
+                  ))
+              .toList(),
+        ),
       ),
     ];
 
@@ -84,8 +102,8 @@ class _StudentMainScreenState extends State<StudentMainScreen> {
               label: 'Messages',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person_rounded),
-              label: 'Profile',
+              icon: Icon(Icons.settings_rounded),
+              label: 'Settings',
             ),
           ],
           onTap: (index) {

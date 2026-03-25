@@ -10,10 +10,29 @@ use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\ClassSectionController;
 use App\Http\Controllers\ClassSectionSubjectController;
 use App\Http\Controllers\TeacherClassSubjectController;
+use App\Http\Controllers\SchoolRegistrationController;
+use App\Http\Controllers\SuperAdminController;
+use App\Http\Controllers\Auth\LoginController;
 
-// الهوم -> الداشبورد
-Route::get('/', [DashboardController::class , 'index'])->name('dashboard');
-Route::get('/dashboard', [DashboardController::class , 'index'])->name('dashboard.index');
+// الهوم -> توجيه لصفحة التسجيل أو الداشبورد بناءً على التوكن
+Route::get('/', function (\Illuminate\Http\Request $request) {
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+    
+    if ($request->hasCookie('school_setup_completed')) {
+        return redirect()->route('login'); // If setup is done, go to login
+    }
+    
+    return redirect()->route('register-school.index');
+});
+
+// Auth Routes
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+Route::get('/dashboard', [DashboardController::class , 'index'])->middleware(['auth', 'school.active'])->name('dashboard');
 
 // AI Features
 Route::group(['prefix' => 'api/ai'], function () {
@@ -71,6 +90,18 @@ Route::get('/reports/list', [ReportsController::class , 'list'])->name('reports.
 Route::get('/reports/class/{grade}/{section}', [ReportsController::class , 'class'])->name('reports.class');
 Route::get('/reports/student/{student}', [ReportsController::class , 'student'])->name('reports.student');
 Route::get('/reports/student/{student}/subject/{subject}', [ReportsController::class , 'subject'])->name('reports.subject');
+
+// School Registration
+Route::get('/register-school', [SchoolRegistrationController::class, 'showRegistrationForm'])->name('register-school.index');
+Route::post('/register-school', [SchoolRegistrationController::class, 'register'])->name('register-school.post');
+
+// Super Admin Area
+Route::group(['prefix' => 'super-admin', 'middleware' => ['super_admin']], function () {
+    Route::get('/', [SuperAdminController::class, 'index'])->name('super-admin.dashboard');
+    Route::post('/schools/{school}/activate', [SuperAdminController::class, 'activate'])->name('super-admin.schools.activate');
+    Route::post('/schools/{school}/suspend', [SuperAdminController::class, 'suspend'])->name('super-admin.schools.suspend');
+    Route::post('/schools/{school}/notify', [SuperAdminController::class, 'notify'])->name('super-admin.schools.notify');
+});
 
 Route::view('/settings', 'placeholder', [
     'pageTitle' => 'Settings',

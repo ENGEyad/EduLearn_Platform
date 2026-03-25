@@ -225,6 +225,7 @@ class LessonService {
     List<Map<String, dynamic>> modules = const [],
     List<Map<String, dynamic>> topics = const [],
     required List<Map<String, dynamic>> blocks,
+    List<Map<String, dynamic>> exercises = const [],
   }) async {
     final url = Uri.parse('$baseUrl/teacher/lessons/save');
 
@@ -276,6 +277,7 @@ class LessonService {
       'modules': modules,
       'topics': topics,
       'blocks': normalizedBlocks,
+      'exercises': exercises,
     };
 
     final response = await http.post(

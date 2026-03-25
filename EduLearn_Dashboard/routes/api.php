@@ -10,7 +10,7 @@ use App\Http\Controllers\Api\LessonMediaController;
 use App\Http\Controllers\Api\StudentLessonController;
 use App\Http\Controllers\Api\ClassModuleController;
 use App\Http\Controllers\Api\ChatController;
-use App\Http\Controllers\Api\BroadcastAuthController;
+// use App\Http\Controllers\Api\BroadcastAuthController;
 
 /* |-------------------------------------------------------------------------- | API Routes |-------------------------------------------------------------------------- */
 
@@ -26,7 +26,7 @@ Route::post('/teacher/auth', [TeacherAuthController::class , 'auth']);
 
 // ==================== Broadcasting Auth (Reverb / Pusher protocol) ====================
 // ✅ هذا هو المسار الذي Flutter يستخدمه: /api/broadcasting/auth
-Route::post('/broadcasting/auth', [BroadcastAuthController::class , 'auth']);
+// Route::post('/broadcasting/auth', [BroadcastAuthController::class , 'auth']);
 
 // ==================== دروس الأستاذ ====================
 Route::post('/teacher/lessons/save', [LessonController::class , 'save']);
@@ -49,6 +49,7 @@ Route::get('/teacher/class-modules/{module}/lessons', [ClassModuleController::cl
 // ==================== دروس الطالب ====================
 Route::get('/student/lessons', [StudentLessonController::class , 'index']);
 Route::get('/student/lessons/{lesson}', [StudentLessonController::class , 'show']);
+Route::post('/student/lessons/{lesson}/exercises/check', [StudentLessonController::class , 'checkExercises']);
 Route::post('/student/lessons/update-status', [StudentLessonController::class , 'updateStatus']);
 Route::post('/student/lessons/{lesson}/progress', [StudentLessonController::class , 'saveProgress']);
 
@@ -74,5 +75,5 @@ Route::group(['prefix' => 'chat'], function () {
     Route::post('/conversations/{conversation}/messages', [ChatController::class , 'sendMessage']);
 
     // ✅ (اختياري للتوافق) إذا كان عندك أي جزء قديم يستخدم /api/chat/broadcasting/auth
-    Route::post('/broadcasting/auth', [BroadcastAuthController::class , 'auth']);
+    // Route::post('/broadcasting/auth', [BroadcastAuthController::class , 'auth']);
 });

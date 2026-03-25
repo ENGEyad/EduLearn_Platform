@@ -45,6 +45,12 @@
                                 Register
                             </a>
                         @endif
+
+                        <a
+                            href="{{ route('register-school.index') }}"
+                            class="inline-block px-5 py-1.5 dark:text-white bg-primary text-white border border-transparent hover:opacity-90 rounded-sm text-sm leading-normal">
+                            Register School
+                        </a>
                     @endauth
                 </nav>
             @endif

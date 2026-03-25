@@ -26,50 +26,60 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
-    final session = await AuthService.getSession();
-    final type = await AuthService.getUserType();
+    try {
+      final session = await AuthService.getSession();
+      final type = await AuthService.getUserType();
 
-    if (session != null && type != null) {
-      if (type == 'student') {
-        final student = session['student'] as Map<String, dynamic>;
-        final assignedSubjects = (student['assigned_subjects'] as List?) ?? [];
+      if (session != null && type != null) {
+        if (type == 'student' && session['student'] != null) {
+          final student = session['student'] as Map<String, dynamic>;
+          final assignedSubjects = (student['assigned_subjects'] as List?) ?? [];
 
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => StudentMainScreen(
-              student: student,
-              assignedSubjects: assignedSubjects,
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => StudentMainScreen(
+                student: student,
+                assignedSubjects: assignedSubjects,
+              ),
             ),
-          ),
-        );
+          );
+        } else if (type == 'teacher' && session['teacher'] != null) {
+          final teacher = session['teacher'] as Map<String, dynamic>;
+          final assignments = (teacher['assignments'] as List?) ?? [];
+
+          final int totalAssignedStudents = assignments.fold<int>(0, (sum, item) {
+            if (item is! Map<String, dynamic>) return sum;
+            final dynamic count = item['students_count'];
+            if (count is int) return sum + count;
+            if (count is num) return sum + count.toInt();
+            if (count is String) return sum + (int.tryParse(count) ?? 0);
+            return sum;
+          });
+
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => TeacherMainScreen(
+                teacher: teacher,
+                assignments: assignments,
+                totalAssignedStudents: totalAssignedStudents,
+              ),
+            ),
+          );
+        } else {
+          // بيانات غير مكتملة
+          throw Exception('Incomplete session');
+        }
       } else {
-        final teacher = session['teacher'] as Map<String, dynamic>;
-        final assignments = (teacher['assignments'] as List?) ?? [];
-
-        // Calculate total students (same logic as in RegisterScreen)
-        final int totalAssignedStudents = assignments.fold<int>(0, (sum, item) {
-          if (item is! Map<String, dynamic>) return sum;
-          final dynamic count = item['students_count'];
-          if (count is int) return sum + count;
-          if (count is num) return sum + count.toInt();
-          if (count is String) return sum + (int.tryParse(count) ?? 0);
-          return sum;
-        });
-
+        // لا يوجد جلسة
+        throw Exception('No session');
+      }
+    } catch (e) {
+      print('DEBUG: Session Check Failed or No Session: $e');
+      if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => TeacherMainScreen(
-              teacher: teacher,
-              assignments: assignments,
-              totalAssignedStudents: totalAssignedStudents,
-            ),
-          ),
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
       }
-    } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
     }
   }
 

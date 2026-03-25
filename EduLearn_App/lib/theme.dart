@@ -79,4 +79,36 @@ class EduTheme {
       ),
     );
   }
+
+  static ThemeData dark() {
+    final base = ThemeData.dark();
+    return base.copyWith(
+      scaffoldBackgroundColor: const Color(0xFF121212),
+      primaryColor: primary,
+      colorScheme: base.colorScheme.copyWith(
+        primary: primary,
+        secondary: primary,
+        surface: const Color(0xFF1E1E1E),
+      ),
+      textTheme: GoogleFonts.nunitoTextTheme(
+        base.textTheme,
+      ).copyWith(
+        bodyMedium: GoogleFonts.nunito(
+          color: Colors.white70,
+          fontSize: 14,
+        ),
+      ),
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        backgroundColor: const Color(0xFF121212),
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        titleTextStyle: GoogleFonts.nunito(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
 }

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'api_config.dart';
 import 'api_helpers.dart';
@@ -126,6 +127,36 @@ class StudentService {
         response.statusCode >= 300 ||
         data['success'] != true) {
       throw Exception(data['message'] ?? 'Failed to save lesson progress');
+    }
+  }
+
+  static Future<List<dynamic>> checkLessonExercises({
+    required String academicId,
+    required int lessonId,
+    required List<Map<String, dynamic>> answers,
+  }) async {
+    final url = Uri.parse('$baseUrl/student/lessons/$lessonId/exercises/check');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'academic_id': academicId,
+        'answers': answers,
+      }),
+    );
+
+    final data = ApiHelpers.decodeJsonAsMap(response.body);
+
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300 &&
+        data['success'] == true) {
+      return (data['results'] as List?) ?? <dynamic>[];
+    } else {
+      throw Exception(data['message'] ?? 'Failed to check exercises');
     }
   }
 }

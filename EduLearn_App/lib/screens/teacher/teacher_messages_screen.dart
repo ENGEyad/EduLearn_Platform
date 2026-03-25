@@ -506,7 +506,7 @@ class _TeacherMessagesScreenState extends State<TeacherMessagesScreen>
           teacherCode: _teacherCode,
           academicId: s.academicId,
           classSectionId: s.raw['class_section_id'] is int
-              ? s.raw['class_section_id'] as int
+              ? (int.tryParse(s.raw['class_section_id'].toString()) ?? 0)
               : int.tryParse((s.raw['class_section_id'] ?? '').toString()),
           subjectId: null,
         );

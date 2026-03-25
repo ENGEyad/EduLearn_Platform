@@ -4,7 +4,8 @@ import '../../theme.dart';
 import 'teacher_home_screen.dart';
 import 'teacher_classes_screen.dart';
 import 'teacher_messages_screen.dart';
-import 'teacher_profile_screen.dart';
+import '../settings/teacher_settings_screen.dart';
+import '../../models/user_models.dart';
 
 class TeacherMainScreen extends StatefulWidget {
   final Map<String, dynamic> teacher;
@@ -46,10 +47,25 @@ class _TeacherMainScreenState extends State<TeacherMainScreen> {
         assignments: widget.assignments,
         totalAssignedStudents: widget.totalAssignedStudents,
       ),
-      TeacherProfileScreen(
-        teacher: widget.teacher,
-        assignments: widget.assignments,
-        totalAssignedStudents: widget.totalAssignedStudents,
+      TeacherSettingsScreen(
+        teacher: TeacherModel(
+          id: widget.teacher['id']?.toString() ?? '0',
+          fullName: widget.teacher['full_name'] ?? widget.teacher['name'] ?? '',
+          email: widget.teacher['email'] ?? '',
+          imageUrl: widget.teacher['image'] != null
+              ? 'http://192.168.1.108:8000/storage/${widget.teacher['image']}'
+              : widget.teacher['photo'] != null
+                  ? 'http://192.168.1.108:8000/storage/${widget.teacher['photo']}'
+                  : null,
+          teacherCode: widget.teacher['teacher_code'] ?? 'TCH-${widget.teacher['id']}',
+          assignments: widget.assignments
+              .map((a) => Assignment(
+                    id: a['subject_id']?.toString() ?? a['assignment_id']?.toString() ?? '0',
+                    name: '${a['class_grade'] ?? ''} ${a['class_section'] ?? ''} - ${a['subject_name'] ?? 'Unknown'}'.trim(),
+                  ))
+              .toList(),
+          totalAssignedStudents: widget.totalAssignedStudents,
+        ),
       ),
     ];
   }

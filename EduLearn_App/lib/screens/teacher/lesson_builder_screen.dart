@@ -16,6 +16,8 @@ import '../../services/lesson_service.dart';
 import '../../services/api_helpers.dart';
 import '../../services/auth_service.dart';
 
+import 'exercises_builder_widget.dart';
+
 // ✅ AI Question Model
 class GeneratedQuestion {
   final String id;
@@ -102,6 +104,9 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   // 🔹 AI Generated Questions
   List<GeneratedQuestion> _aiQuestions = [];
   bool _isGeneratingAI = false;
+
+  // 🔹 Interactive Exercises
+  List<Map<String, dynamic>> _exercises = [];
 
   // ========= Draft autosave debounce =========
   DateTime? _lastDraftSaveAt;
@@ -206,9 +211,9 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                 mediaPath: (m['media_path'] ?? '').toString(),
                 remoteUrl: '',
                 mime: m['media_mime']?.toString(),
-                size: m['media_size'] is int
-                    ? m['media_size'] as int
-                    : (m['media_size'] is num ? (m['media_size'] as num).toInt() : null),
+                size: m['media_size'] != null
+                    ? (int.tryParse(m['media_size'].toString()) ?? 0)
+                    : null,
                 status: _MediaStatus.ready,
               ),
             ));
@@ -239,6 +244,15 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
       _blocks.clear();
 
+      final fetchedExercises = (lesson['exercises'] as List?) ?? [];
+      _exercises = fetchedExercises.map((e) {
+        final m = Map<String, dynamic>.from(e);
+        if (m['options'] != null && m['options'] is List) {
+          m['options'] = (m['options'] as List).map((o) => Map<String, dynamic>.from(o)).toList();
+        }
+        return m;
+      }).toList();
+
       final blocks = (lesson['blocks'] as List?) ?? [];
       for (final raw in blocks) {
         if (raw is! Map) continue;
@@ -259,9 +273,9 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
         final mediaValue = ApiHelpers.pickMediaValueFromBlock(block);
         final mediaPath = ApiHelpers.extractMediaPath(mediaValue);
         final mime = block['media_mime']?.toString();
-        final size = block['media_size'] is int
-            ? block['media_size'] as int
-            : (block['media_size'] is num ? (block['media_size'] as num).toInt() : null);
+        final size = block['media_size'] != null
+            ? (int.tryParse(block['media_size'].toString()) ?? 0)
+            : null;
 
         final id = _id();
         _blocks.add(
@@ -638,11 +652,9 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       final mediaPath = (uploadRes['media_path'] ?? '').toString().trim();
       final mediaUrl = (uploadRes['media_url'] ?? '').toString().trim();
       final mime = uploadRes['media_mime']?.toString();
-      final size = uploadRes['media_size'] is int
-          ? uploadRes['media_size'] as int
-          : (uploadRes['media_size'] is num
-              ? (uploadRes['media_size'] as num).toInt()
-              : null);
+      final size = uploadRes['media_size'] != null
+          ? (int.tryParse(uploadRes['media_size'].toString()) ?? 0)
+          : null;
 
       if (!mounted) return;
 
@@ -903,6 +915,7 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
         modules: modulesPayload,
         topics: topicsPayload,
         blocks: blocksPayload,
+        exercises: _exercises,
       );
 
       _showSnack(publish ? 'Lesson published.' : 'Lesson saved as draft.');
@@ -1073,8 +1086,31 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
                         const SizedBox(height: 24),
 
-                        // 3️⃣ Step 3: AI Assessment Review
-                        _buildSectionHeader(context, "Step 3: AI Assessment Review"),
+                        // 3️⃣ Step 3: Interactive Exercises
+                        _buildSectionHeader(context, "Step 3: Interactive Exercises"),
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E1E2C), // Dark theme to match the inner widget
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: const [
+                              BoxShadow(color: Color(0x11000000), blurRadius: 10, offset: Offset(0, 4)),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(16),
+                          child: ExercisesBuilderWidget(
+                            initialExercises: _exercises,
+                            onChanged: (exercises) {
+                              _exercises = exercises;
+                              _markDirtyAndMaybeAutosave();
+                            },
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // 4️⃣ Step 4: AI Assessment Review
+                        _buildSectionHeader(context, "Step 4: AI Assessment Review"),
                         _buildAIQuestionsSection(),
                       ],
                     ),
