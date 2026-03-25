@@ -9,3 +9,45 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+
+/* shell of table */
+.table-shell{
+    background: #fff;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+/* scroll area */
+#studentsTable{
+    margin-bottom:0;
+}
+
+/* body scroll */
+.table-shell tbody{
+    display:block;
+    max-height:420px; /* ارتفاع الجدول */
+    overflow-y:auto;
+}
+
+/* header fixed */
+.table-shell thead,
+.table-shell tbody tr{
+    display:table;
+    width:100%;
+    table-layout:fixed;
+}
+
+/* sticky header */
+.table-shell thead{
+    position:sticky;
+    top:0;
+    background:#fff;
+    z-index:2;
+}
+
+/* align columns */
+.table-shell th,
+.table-shell td{
+    vertical-align:middle;
+}

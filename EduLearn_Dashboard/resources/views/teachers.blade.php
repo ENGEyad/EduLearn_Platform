@@ -49,19 +49,27 @@
           </div>
         </div>
 
-        <table class="table align-middle" id="teachersTable">
-          <thead>
-            <tr>
-              <th>الاسم الكامل</th>
-              <th>رمز المعلم</th>
-              <th>المواد المدرسة</th>
-              <th>الطلاب</th>
-              <th>الحالة</th>
-              <th class="text-end">إجراءات</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+        <!-- Scrollable table container with fixed height -->
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px;">
+          <table class="table align-middle mb-0" id="teachersTable">
+            <thead style="position: sticky; top: 0; background-color: white; z-index: 10;">
+              <tr>
+                <th>الاسم الكامل</th>
+                <th>رمز المعلم</th>
+                <th>المواد المدرسة</th>
+                <th>الطلاب</th>
+                <th>الحالة</th>
+                <th class="text-end">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <!-- Optional: Show record count -->
+        <div class="mt-2 text-muted small" id="recordCount">
+          جاري تحميل المعلمين...
+        </div>
       </div>
     </div>
 
@@ -217,6 +225,39 @@
 </div>
 
 <input type="file" id="importTeachersInput" class="d-none" />
+
+<style>
+  /* Ensure the page layout remains stable */
+  .table-shell {
+    height: 100%;
+  }
+  
+  /* Custom scrollbar styling for better visibility (optional) */
+  div[style*="overflow-y: auto"]::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  div[style*="overflow-y: auto"]::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+  
+  div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+  
+  /* Keep table header sticky and visible */
+  .table thead th {
+    background-color: white;
+    border-bottom: 2px solid #dee2e6;
+  }
+</style>
 
 @endsection
 
