@@ -112,10 +112,9 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
         final String moduleIdKey =
             rawModuleId == null ? 'default' : rawModuleId.toString();
 
-        final String moduleTitle = (raw['module_title'] ??
-                raw['class_module_title'] ??
-                'Lessons')
-            .toString();
+        final String moduleTitle =
+            (raw['module_title'] ?? raw['class_module_title'] ?? 'Lessons')
+                .toString();
 
         if (!moduleMap.containsKey(moduleIdKey)) {
           moduleMap[moduleIdKey] = _StudentLessonModule(
@@ -192,33 +191,50 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
   @override
   Widget build(BuildContext context) {
     final subjectIcon = _iconForSubject(widget.subjectName);
+    final theme = Theme.of(context);
+    final bool isDarkMode = theme.brightness == Brightness.dark;
+
+    final Color pageBackground = theme.scaffoldBackgroundColor;
+    final Color cardColor = theme.cardColor;
+    final Color titleColor = theme.colorScheme.onSurface;
+    final Color mutedColor =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
+        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+    final Color softBoxColor =
+        isDarkMode ? EduTheme.darkSurface : const Color(0xFFE5F2FF);
+    final Color progressBackground =
+        isDarkMode ? const Color(0xFF2A3441) : const Color(0xFFE3E7F3);
+    final Color shadowColor = isDarkMode
+        ? Colors.black.withValues(alpha: 0.18)
+        : const Color(0x11000000);
 
     return Scaffold(
-      backgroundColor: EduTheme.background,
+      backgroundColor: pageBackground,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: EduTheme.background,
+        backgroundColor: pageBackground,
+        surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_rounded,
-            color: EduTheme.primaryDark,
+            color: titleColor,
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         centerTitle: true,
         title: Text(
           widget.subjectName,
-          style: const TextStyle(
-            color: EduTheme.primaryDark,
+          style: TextStyle(
+            color: titleColor,
             fontWeight: FontWeight.w800,
           ),
         ),
         actions: [
           IconButton(
             onPressed: () {},
-            icon: const Icon(
+            icon: Icon(
               Icons.more_vert_rounded,
-              color: EduTheme.primaryDark,
+              color: titleColor,
             ),
           ),
         ],
@@ -234,13 +250,13 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
                 ),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardColor,
                     borderRadius: BorderRadius.circular(24),
-                    boxShadow: const [
+                    boxShadow: [
                       BoxShadow(
-                        color: Color(0x11000000),
+                        color: shadowColor,
                         blurRadius: 10,
-                        offset: Offset(0, 4),
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -251,7 +267,7 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
                         width: 52,
                         height: 52,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE5F2FF),
+                          color: softBoxColor,
                           borderRadius: BorderRadius.circular(18),
                         ),
                         child: Icon(
@@ -267,35 +283,36 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
                           children: [
                             Text(
                               widget.subjectName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
-                                color: EduTheme.primaryDark,
+                                color: titleColor,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               widget.teacherName ?? 'Your teacher',
-                              style: const TextStyle(
-                                color: EduTheme.textMuted,
+                              style: TextStyle(
+                                color: mutedColor,
                                 fontSize: 13,
                               ),
                             ),
                             const SizedBox(height: 10),
                             Row(
-                              children: const [
+                              children: [
                                 Expanded(
                                   child: LinearProgressIndicator(
                                     value: 0.75,
                                     minHeight: 6,
-                                    backgroundColor: Color(0xFFE3E7F3),
-                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                    backgroundColor: progressBackground,
+                                    valueColor:
+                                        const AlwaysStoppedAnimation<Color>(
                                       EduTheme.primary,
                                     ),
                                   ),
                                 ),
-                                SizedBox(width: 8),
-                                Text(
+                                const SizedBox(width: 8),
+                                const Text(
                                   '75%',
                                   style: TextStyle(
                                     fontWeight: FontWeight.w700,
@@ -318,7 +335,7 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
                 TabBar(
                   controller: _tabController,
                   labelColor: EduTheme.primary,
-                  unselectedLabelColor: EduTheme.textMuted,
+                  unselectedLabelColor: mutedColor,
                   indicatorColor: EduTheme.primary,
                   labelStyle: const TextStyle(
                     fontWeight: FontWeight.w700,
@@ -343,7 +360,8 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
             ),
             _buildPlaceholderTab(
               title: 'Question bank is empty',
-              subtitle: 'Practice questions will appear here once they are added.',
+              subtitle:
+                  'Practice questions will appear here once they are added.',
             ),
           ],
         ),
@@ -354,6 +372,20 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
   // ==================== تبويب الدروس (مع الوحدات) ====================
 
   Widget _buildLessonsTab() {
+    final theme = Theme.of(context);
+    final bool isDarkMode = theme.brightness == Brightness.dark;
+
+    final Color cardColor = theme.cardColor;
+    final Color titleColor = theme.colorScheme.onSurface;
+    final Color mutedColor =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
+        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+    final Color softBoxColor =
+        isDarkMode ? EduTheme.darkSurface : const Color(0xFFE8F3FF);
+    final Color shadowColor = isDarkMode
+        ? Colors.black.withValues(alpha: 0.18)
+        : const Color(0x11000000);
+
     // ✅ Pull to refresh بدون تغيير التصميم العام
     return RefreshIndicator(
       onRefresh: _loadLessons,
@@ -374,19 +406,19 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text(
+                        Text(
                           'Error loading lessons',
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
-                            color: EduTheme.primaryDark,
+                            color: titleColor,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           _lessonsError!,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: EduTheme.textMuted,
+                          style: TextStyle(
+                            color: mutedColor,
                             fontSize: 13,
                           ),
                         ),
@@ -406,16 +438,16 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
           if (!_modulesLoaded || _modules.isEmpty) {
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              children: const [
-                SizedBox(height: 90),
+              children: [
+                const SizedBox(height: 90),
                 Center(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 32),
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
                     child: Text(
                       'No lessons available yet.\nYour teacher will add lessons for this subject.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: EduTheme.textMuted,
+                        color: mutedColor,
                         fontSize: 13,
                       ),
                     ),
@@ -445,13 +477,13 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardColor,
                         borderRadius: BorderRadius.circular(18),
-                        boxShadow: const [
+                        boxShadow: [
                           BoxShadow(
-                            color: Color(0x11000000),
+                            color: shadowColor,
                             blurRadius: 8,
-                            offset: Offset(0, 3),
+                            offset: const Offset(0, 3),
                           ),
                         ],
                       ),
@@ -465,12 +497,12 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE8F3FF),
+                              color: softBoxColor,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(
                               Icons.folder_open_rounded,
-                              color: EduTheme.primaryDark,
+                              color: EduTheme.primary,
                               size: 20,
                             ),
                           ),
@@ -481,26 +513,26 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
                               children: [
                                 Text(
                                   module.title,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 15,
-                                    color: EduTheme.primaryDark,
+                                    color: titleColor,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   '${module.lessons.length} lesson(s)',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13,
-                                    color: EduTheme.textMuted,
+                                    color: mutedColor,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const Icon(
+                          Icon(
                             Icons.chevron_right_rounded,
-                            color: EduTheme.textMuted,
+                            color: mutedColor,
                           ),
                         ],
                       ),
@@ -525,7 +557,10 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
             children: [
               // شريط علوي: رجوع + اسم الوحدة
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8.0,
+                  vertical: 4.0,
+                ),
                 child: Row(
                   children: [
                     IconButton(
@@ -535,9 +570,9 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
                           _activeModule = null;
                         });
                       },
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.arrow_back_ios_new_rounded,
-                        color: EduTheme.primaryDark,
+                        color: titleColor,
                         size: 18,
                       ),
                     ),
@@ -545,10 +580,10 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
                     Expanded(
                       child: Text(
                         module.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
-                          color: EduTheme.primaryDark,
+                          color: titleColor,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -570,16 +605,17 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
                 child: module.lessons.isEmpty
                     ? ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        children: const [
-                          SizedBox(height: 70),
+                        children: [
+                          const SizedBox(height: 70),
                           Center(
                             child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 32),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 32),
                               child: Text(
                                 'No lessons yet for this unit.',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  color: EduTheme.textMuted,
+                                  color: mutedColor,
                                   fontSize: 13,
                                 ),
                               ),
@@ -607,7 +643,8 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
                                     lessonId: lesson.id,
                                     academicId: widget.academicId,
                                     initialTitle: lesson.title,
-                                    initialDurationLabel: lesson.durationLabel,
+                                    initialDurationLabel:
+                                        lesson.durationLabel,
                                     initialStatus: lesson.status,
                                   ),
                                 ),
@@ -615,7 +652,9 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
 
                               // ✅ تحديث الحالة محلياً (وسريع)
                               if (result is String &&
-                                  (result == 'completed' || result == 'draft' || result == 'not_started')) {
+                                  (result == 'completed' ||
+                                      result == 'draft' ||
+                                      result == 'not_started')) {
                                 setState(() {
                                   lesson.status = result;
                                 });
@@ -644,6 +683,14 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
     required String title,
     required String subtitle,
   }) {
+    final theme = Theme.of(context);
+    final bool isDarkMode = theme.brightness == Brightness.dark;
+
+    final Color titleColor = theme.colorScheme.onSurface;
+    final Color mutedColor =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
+        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -653,9 +700,9 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w700,
-                color: EduTheme.primaryDark,
+                color: titleColor,
                 fontSize: 16,
               ),
             ),
@@ -663,8 +710,8 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: EduTheme.textMuted,
+              style: TextStyle(
+                color: mutedColor,
                 fontSize: 13,
               ),
             ),
@@ -680,6 +727,18 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
     required String duration,
     required String status, // not_started | draft | completed
   }) {
+    final theme = Theme.of(context);
+    final bool isDarkMode = theme.brightness == Brightness.dark;
+
+    final Color cardColor = theme.cardColor;
+    final Color titleColor = theme.colorScheme.onSurface;
+    final Color mutedColor =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
+        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+    final Color shadowColor = isDarkMode
+        ? Colors.black.withValues(alpha: 0.18)
+        : const Color(0x11000000);
+
     // ✅ حسب الاتفاق: not_started ليس مقفل — فقط “ابدأ”
     Color circleColor;
     IconData trailingIcon;
@@ -692,7 +751,7 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
       trailingIcon = Icons.play_circle_fill_rounded;
     } else {
       // not_started
-      circleColor = EduTheme.primaryDark.withOpacity(0.35);
+      circleColor = titleColor.withValues(alpha: 0.35);
       trailingIcon = Icons.play_circle_outline_rounded;
     }
 
@@ -700,13 +759,13 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
       margin: const EdgeInsets.symmetric(vertical: 6),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x11000000),
+            color: shadowColor,
             blurRadius: 6,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -716,7 +775,7 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: circleColor.withOpacity(0.12),
+              color: circleColor.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -736,18 +795,18 @@ class _StudentSubjectDetailScreenState extends State<StudentSubjectDetailScreen>
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    color: EduTheme.primaryDark,
+                    color: titleColor,
                     fontSize: 15,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   duration,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: EduTheme.textMuted,
+                    color: mutedColor,
                   ),
                 ),
               ],
@@ -782,7 +841,7 @@ class _TabBarHeaderDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     return Container(
-      color: EduTheme.background,
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: tabBar,
     );
   }

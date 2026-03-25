@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../theme.dart';
 
 import 'teacher_home_screen.dart';
 import 'teacher_classes_screen.dart';
@@ -30,6 +29,7 @@ class _TeacherMainScreenState extends State<TeacherMainScreen> {
   @override
   void initState() {
     super.initState();
+
     _pages = [
       TeacherHomeScreen(
         teacher: widget.teacher,
@@ -55,23 +55,23 @@ class _TeacherMainScreenState extends State<TeacherMainScreen> {
   }
 
   Future<bool> _onWillPop() async {
-    // لو مش في الـ Dashboard → رجعه للـ Dashboard
     if (_currentIndex != 0) {
       setState(() {
         _currentIndex = 0;
       });
-      return false; // لا تخرج من الشاشة
+      return false;
     }
-    // في الـ Dashboard → اسمح بالرجوع (يرجع لشاشة التسجيل/تسجيل الدخول)
     return true;
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        backgroundColor: EduTheme.background,
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: IndexedStack(
           index: _currentIndex,
           children: _pages,
@@ -79,14 +79,29 @@ class _TeacherMainScreenState extends State<TeacherMainScreen> {
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: EduTheme.primary,
-          unselectedItemColor: EduTheme.textMuted,
           showUnselectedLabels: true,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
+
+          backgroundColor:
+              theme.bottomNavigationBarTheme.backgroundColor ?? theme.cardColor,
+
+          selectedItemColor:
+              theme.bottomNavigationBarTheme.selectedItemColor ??
+              theme.colorScheme.primary,
+
+          unselectedItemColor:
+              theme.bottomNavigationBarTheme.unselectedItemColor ??
+              theme.colorScheme.onSurface.withValues(alpha: 0.6),
+
+          selectedLabelStyle:
+              theme.bottomNavigationBarTheme.selectedLabelStyle ??
+              const TextStyle(fontWeight: FontWeight.w700),
+
+          unselectedLabelStyle:
+              theme.bottomNavigationBarTheme.unselectedLabelStyle ??
+              const TextStyle(fontWeight: FontWeight.w500),
+
+          elevation: theme.bottomNavigationBarTheme.elevation ?? 8,
+
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.grid_view_rounded),
@@ -105,6 +120,14 @@ class _TeacherMainScreenState extends State<TeacherMainScreen> {
               label: 'Profile',
             ),
           ],
+
+          onTap: (index) {
+            if (_currentIndex == index) return;
+
+            setState(() {
+              _currentIndex = index;
+            });
+          },
         ),
       ),
     );

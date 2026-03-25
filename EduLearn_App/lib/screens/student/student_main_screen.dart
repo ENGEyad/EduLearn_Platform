@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../theme.dart';
 
 import 'student_home_screen.dart';
 import 'student_subjects_screen.dart';
@@ -7,8 +6,8 @@ import 'student_messages_screen.dart';
 import 'student_profile_screen.dart';
 
 class StudentMainScreen extends StatefulWidget {
-  final Map<String, dynamic> student;          // 👈 بيانات الطالب من الـ API
-  final List<dynamic> assignedSubjects;        // 👈 المواد من الـ API
+  final Map<String, dynamic> student;
+  final List<dynamic> assignedSubjects;
 
   const StudentMainScreen({
     super.key,
@@ -24,19 +23,19 @@ class _StudentMainScreenState extends State<StudentMainScreen> {
   int _currentIndex = 0;
 
   Future<bool> _onWillPop() async {
-    // لو هو في أي تبويب غير الهوم، رجّعه للهوم بدلاً من الخروج
     if (_currentIndex != 0) {
       setState(() {
         _currentIndex = 0;
       });
       return false;
     }
-    // لو هو في الهوم، نسمح بالرجوع (خروج من التطبيق / رجوع للشاشة السابقة)
     return true;
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     final pages = [
       StudentHomeScreen(
         student: widget.student,
@@ -46,20 +45,19 @@ class _StudentMainScreenState extends State<StudentMainScreen> {
         student: widget.student,
         assignedSubjects: widget.assignedSubjects,
       ),
-      // 👇 هنا التعديل المهم
       StudentMessagesScreen(
         student: widget.student,
       ),
-      // لو بروفايل يحتاج بيانات الطالب عدله كذا:
       StudentProfileScreen(
         student: widget.student,
+        assignedSubjects: widget.assignedSubjects,
       ),
     ];
 
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        backgroundColor: EduTheme.background,
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: IndexedStack(
           index: _currentIndex,
           children: pages,
@@ -67,9 +65,21 @@ class _StudentMainScreenState extends State<StudentMainScreen> {
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: EduTheme.primary,
-          unselectedItemColor: EduTheme.textMuted,
           showUnselectedLabels: true,
+          backgroundColor:
+              theme.bottomNavigationBarTheme.backgroundColor ?? theme.cardColor,
+          selectedItemColor: theme.bottomNavigationBarTheme.selectedItemColor ??
+              theme.colorScheme.primary,
+          unselectedItemColor:
+              theme.bottomNavigationBarTheme.unselectedItemColor ??
+                  theme.colorScheme.onSurface.withValues(alpha: 0.6),
+          selectedLabelStyle:
+              theme.bottomNavigationBarTheme.selectedLabelStyle ??
+                  const TextStyle(fontWeight: FontWeight.w700),
+          unselectedLabelStyle:
+              theme.bottomNavigationBarTheme.unselectedLabelStyle ??
+                  const TextStyle(fontWeight: FontWeight.w500),
+          elevation: theme.bottomNavigationBarTheme.elevation ?? 8,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_filled),
@@ -89,6 +99,7 @@ class _StudentMainScreenState extends State<StudentMainScreen> {
             ),
           ],
           onTap: (index) {
+            if (_currentIndex == index) return;
             setState(() {
               _currentIndex = index;
             });

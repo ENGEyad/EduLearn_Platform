@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme.dart';
 import 'lesson_builder_screen.dart';
-
-// ✅ بدل api_service.dart
 import '../../services/lesson_service.dart';
 
 class ClassDetailsScreen extends StatefulWidget {
@@ -14,7 +12,6 @@ class ClassDetailsScreen extends StatefulWidget {
   final int studentsCount;
   final List<dynamic> students;
 
-  // 🔹 بيانات الربط الحقيقية مع الـ API
   final String teacherCode;
   final int assignmentId;
   final int classSectionId;
@@ -40,30 +37,133 @@ class ClassDetailsScreen extends StatefulWidget {
 }
 
 class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
-  int _tabIndex = 0; // 0: Students, 1: Lessons, 2: Assignments
+  int _tabIndex = 0;
 
-  // ======== حالة تبويب الدروس ========
   bool _isLoadingLessons = false;
   bool _modulesLoaded = false;
 
-  // الوحدات (Modules = Units) = ClassModules في النظام الجديد
   List<_LessonModule> _modules = [];
-  // دروس الوحدة الحالية
   List<_LessonSummary> _lessons = [];
   _LessonModule? _activeModule;
   bool _inModuleLessonsView = false;
 
-  // وضع التحديد للدروس
   bool _isLessonSelectionMode = false;
   final Set<int> _selectedLessonIds = {};
 
-  void _showSnack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg)),
-    );
+  void _showSnack(
+    String msg, {
+    bool isError = false,
+    bool isSuccess = false,
+    IconData? icon,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final backgroundColor = isError
+        ? (isDark ? const Color(0xFF5A2630) : const Color(0xFFFFE5E8))
+        : isSuccess
+            ? (isDark ? const Color(0xFF1F3A2A) : const Color(0xFFEAF8EF))
+            : (isDark ? theme.cardColor : Colors.white);
+
+    final foregroundColor = isError
+        ? (isDark ? const Color(0xFFFFC7CF) : const Color(0xFFB42318))
+        : isSuccess
+            ? (isDark ? const Color(0xFFB7F0C5) : const Color(0xFF067647))
+            : theme.colorScheme.onSurface;
+
+    final borderColor = isError
+        ? (isDark ? const Color(0xFF7A3240) : const Color(0xFFF7B5BE))
+        : isSuccess
+            ? (isDark ? const Color(0xFF2B5138) : const Color(0xFFB7E3C5))
+            : theme.dividerColor;
+
+    final snackIcon = icon ??
+        (isError
+            ? Icons.error_outline_rounded
+            : isSuccess
+                ? Icons.check_circle_outline_rounded
+                : Icons.info_outline_rounded);
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          content: Container(
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: borderColor),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                Icon(snackIcon, color: foregroundColor, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    msg,
+                    style: TextStyle(
+                      color: foregroundColor,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
   }
 
-  // ======== تحميل الوحدات من الـ API ========
+  Future<void> _handleBackAction() async {
+    if (_tabIndex == 1 && _isLessonSelectionMode) {
+      setState(() {
+        _isLessonSelectionMode = false;
+        _selectedLessonIds.clear();
+      });
+      return;
+    }
+
+    if (_tabIndex == 1 && _inModuleLessonsView) {
+      _backToModules();
+      return;
+    }
+
+    if (mounted) {
+      Navigator.of(context).maybePop();
+    }
+  }
+
+  Future<bool> _onWillPop() async {
+    if (_tabIndex == 1 && _isLessonSelectionMode) {
+      setState(() {
+        _isLessonSelectionMode = false;
+        _selectedLessonIds.clear();
+      });
+      return false;
+    }
+
+    if (_tabIndex == 1 && _inModuleLessonsView) {
+      _backToModules();
+      return false;
+    }
+
+    return true;
+  }
+
   Future<void> _loadModules() async {
     if (_isLoadingLessons) return;
     setState(() {
@@ -92,7 +192,10 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
 
       _modulesLoaded = true;
     } catch (e) {
-      _showSnack(e.toString().replaceFirst('Exception: ', ''));
+      _showSnack(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -102,7 +205,6 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     }
   }
 
-  // ======== تحميل دروس وحدة معيّنة ========
   Future<void> _loadLessonsForModule(_LessonModule module) async {
     if (_isLoadingLessons) return;
     setState(() {
@@ -129,7 +231,10 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
         _modules[idx].lessonsCount = _lessons.length;
       }
     } catch (e) {
-      _showSnack(e.toString().replaceFirst('Exception: ', ''));
+      _showSnack(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -139,7 +244,6 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     }
   }
 
-  // ======== فتح وحدة لعرض دروسها ========
   Future<void> _openModule(_LessonModule module) async {
     setState(() {
       _activeModule = module;
@@ -148,7 +252,6 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     await _loadLessonsForModule(module);
   }
 
-  // ======== الرجوع من دروس الوحدة إلى قائمة الوحدات ========
   void _backToModules() {
     setState(() {
       _inModuleLessonsView = false;
@@ -159,7 +262,6 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     });
   }
 
-  // ======== زر الـ FAB في تبويب الدروس ========
   void _onLessonsFabPressed() {
     if (!_inModuleLessonsView) {
       _showAddModuleDialog();
@@ -168,7 +270,6 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     }
   }
 
-  // ======== Popup إضافة وحدة ========
   Future<void> _showAddModuleDialog() async {
     final TextEditingController controller = TextEditingController();
     bool canSave = false;
@@ -176,30 +277,80 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) {
+        final theme = Theme.of(ctx);
         return StatefulBuilder(
           builder: (ctx, setStateDialog) {
             return AlertDialog(
-              title: const Text('إضافة وحدة'),
-              content: TextField(
-                controller: controller,
-                autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: 'اسم الوحدة',
-                ),
-                onChanged: (val) {
-                  setStateDialog(() {
-                    canSave = val.trim().isNotEmpty;
-                  });
-                },
+              backgroundColor:
+                  theme.dialogTheme.backgroundColor ?? theme.cardColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+              contentPadding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+              actionsPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              title: Row(
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.create_new_folder_outlined,
+                      color: theme.colorScheme.primary,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Add Unit',
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                    ),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Enter the name of the new unit to add it to this class.',
+                    style: TextStyle(
+                      color: theme.textTheme.bodySmall?.color,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: controller,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Unit name',
+                      hintText: 'Example: Unit 1',
+                    ),
+                    onChanged: (val) {
+                      setStateDialog(() {
+                        canSave = val.trim().isNotEmpty;
+                      });
+                    },
+                  ),
+                ],
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(false),
-                  child: const Text('إلغاء'),
+                  child: const Text('Cancel'),
                 ),
-                TextButton(
+                ElevatedButton(
                   onPressed: canSave ? () => Navigator.of(ctx).pop(true) : null,
-                  child: const Text('حفظ'),
+                  child: const Text('Save'),
                 ),
               ],
             );
@@ -232,37 +383,61 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
         _modules.add(newModule);
       });
 
+      _showSnack(
+        'Unit added successfully.',
+        isSuccess: true,
+        icon: Icons.task_alt_rounded,
+      );
+
       await _openModule(newModule);
     } catch (e) {
-      _showSnack(e.toString().replaceFirst('Exception: ', ''));
+      _showSnack(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
     }
   }
 
-  // ======== تعديل اسم وحدة أو حذفها (ضغط مطوّل) ========
   void _onModuleLongPress(_LessonModule module) {
+    final theme = Theme.of(context);
+
     showModalBottomSheet(
       context: context,
+      backgroundColor: theme.cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
       builder: (ctx) {
+        final bottomTheme = Theme.of(ctx);
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.edit_rounded),
-                title: const Text('تعديل اسم الوحدة'),
+                leading: Icon(
+                  Icons.edit_rounded,
+                  color: bottomTheme.colorScheme.onSurface,
+                ),
+                title: Text(
+                  'Rename unit',
+                  style: TextStyle(
+                    color: bottomTheme.colorScheme.onSurface,
+                  ),
+                ),
                 onTap: () {
                   Navigator.of(ctx).pop();
                   _showRenameModuleDialog(module);
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.delete_forever_rounded),
-                title: const Text('حذف الوحدة مع جميع دروسها'),
-                textColor: Colors.red,
-                iconColor: Colors.red,
+                leading: const Icon(
+                  Icons.delete_forever_rounded,
+                  color: Colors.red,
+                ),
+                title: const Text(
+                  'Delete unit with all lessons',
+                  style: TextStyle(color: Colors.red),
+                ),
                 onTap: () {
                   Navigator.of(ctx).pop();
                   _confirmDeleteModule(module);
@@ -282,15 +457,21 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) {
+        final theme = Theme.of(ctx);
         return StatefulBuilder(
           builder: (ctx, setStateDialog) {
             return AlertDialog(
-              title: const Text('تعديل اسم الوحدة'),
+              backgroundColor:
+                  theme.dialogTheme.backgroundColor ?? theme.cardColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: const Text('Rename unit'),
               content: TextField(
                 controller: controller,
                 autofocus: true,
                 decoration: const InputDecoration(
-                  labelText: 'اسم الوحدة',
+                  labelText: 'Unit name',
                 ),
                 onChanged: (val) {
                   setStateDialog(() {
@@ -301,11 +482,11 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(false),
-                  child: const Text('إلغاء'),
+                  child: const Text('Cancel'),
                 ),
-                TextButton(
+                ElevatedButton(
                   onPressed: canSave ? () => Navigator.of(ctx).pop(true) : null,
-                  child: const Text('حفظ'),
+                  child: const Text('Save'),
                 ),
               ],
             );
@@ -328,9 +509,12 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
       setState(() {
         module.title = newTitle;
       });
-      _showSnack('تم تحديث اسم الوحدة.');
+      _showSnack('Unit name updated successfully.', isSuccess: true);
     } catch (e) {
-      _showSnack(e.toString().replaceFirst('Exception: ', ''));
+      _showSnack(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
     }
   }
 
@@ -338,19 +522,28 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) {
+        final theme = Theme.of(ctx);
         return AlertDialog(
-          title: const Text('تأكيد الحذف'),
+          backgroundColor:
+              theme.dialogTheme.backgroundColor ?? theme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text('Confirm deletion'),
           content: Text(
-            'هل تريد بالتأكيد حذف الوحدة "${module.title}" مع جميع الدروس التابعة لها؟',
+            'Are you sure you want to delete the unit "${module.title}" with all its lessons?',
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('إلغاء'),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('نعم'),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: Colors.red),
+              ),
             ),
           ],
         );
@@ -369,16 +562,18 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
         }
       });
 
-      _showSnack('تم حذف الوحدة بنجاح.');
+      _showSnack('Unit deleted successfully.', isSuccess: true);
     } catch (e) {
-      _showSnack(e.toString().replaceFirst('Exception: ', ''));
+      _showSnack(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
     }
   }
 
-  // ======== فتح LessonBuilder لدرس جديد ========
   Future<void> _openLessonBuilderForNewLesson() async {
     if (_activeModule == null) {
-      _showSnack('اختر وحدة أولاً أو أضف وحدة جديدة.');
+      _showSnack('Please select a unit first or add a new unit.');
       return;
     }
 
@@ -401,10 +596,14 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
 
     if (saved == true && mounted && _activeModule != null) {
       await _loadLessonsForModule(_activeModule!);
+      _showSnack(
+        'Lesson added successfully.',
+        isSuccess: true,
+        icon: Icons.menu_book_rounded,
+      );
     }
   }
 
-  // ======== فتح LessonBuilder لتعديل درس موجود ========
   Future<void> _openLessonBuilderForEdit(_LessonSummary lesson) async {
     if (_activeModule == null) return;
 
@@ -427,10 +626,14 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
 
     if (saved == true && mounted && _activeModule != null) {
       await _loadLessonsForModule(_activeModule!);
+      _showSnack(
+        'Lesson updated successfully.',
+        isSuccess: true,
+        icon: Icons.edit_note_rounded,
+      );
     }
   }
 
-  // ======== التحديد / الحذف للدروس ========
   void _toggleLessonSelection(_LessonSummary lesson) {
     setState(() {
       if (_selectedLessonIds.contains(lesson.id)) {
@@ -459,19 +662,28 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) {
+        final theme = Theme.of(ctx);
         return AlertDialog(
-          title: const Text('تأكيد الحذف'),
+          backgroundColor:
+              theme.dialogTheme.backgroundColor ?? theme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text('Confirm deletion'),
           content: Text(
-            'هل تريد بالتأكيد حذف ${_selectedLessonIds.length} من الدروس المحددة؟',
+            'Are you sure you want to delete ${_selectedLessonIds.length} selected lesson(s)?',
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('إلغاء'),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('نعم'),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: Colors.red),
+              ),
             ),
           ],
         );
@@ -500,65 +712,64 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
         _isLessonSelectionMode = false;
       });
 
-      _showSnack('تم حذف الدروس بنجاح.');
+      _showSnack('Lessons deleted successfully.', isSuccess: true);
     } catch (e) {
-      _showSnack(e.toString().replaceFirst('Exception: ', ''));
+      _showSnack(
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
     }
-  }
-
-  // ======== التعامل مع زر الرجوع (Back) في حالة التحديد للدروس ========
-  Future<bool> _onWillPop() async {
-    if (_tabIndex == 1 && _isLessonSelectionMode) {
-      setState(() {
-        _isLessonSelectionMode = false;
-        _selectedLessonIds.clear();
-      });
-      return false;
-    }
-    return true;
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final titleColor = theme.colorScheme.onSurface;
+
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        backgroundColor: EduTheme.background,
+        backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
-          title: const Text(
+          title: Text(
             'Class Details',
             style: TextStyle(
-              color: EduTheme.primaryDark,
+              color: titleColor,
               fontWeight: FontWeight.w700,
             ),
           ),
-          backgroundColor: EduTheme.background,
+          backgroundColor: theme.scaffoldBackgroundColor,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: EduTheme.primaryDark),
-            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: titleColor,
+            ),
+            onPressed: _handleBackAction,
           ),
           actions: [
             if (_tabIndex == 1 && _isLessonSelectionMode)
               IconButton(
-                icon: const Icon(Icons.delete_forever_rounded,
-                    color: Colors.red),
+                icon: const Icon(
+                  Icons.delete_forever_rounded,
+                  color: Colors.red,
+                ),
                 onPressed: _confirmDeleteSelectedLessons,
               )
             else
-              const Padding(
-                padding: EdgeInsets.only(right: 10),
+              Padding(
+                padding: const EdgeInsets.only(right: 10),
                 child: Icon(
                   Icons.more_vert_rounded,
-                  color: EduTheme.primaryDark,
+                  color: titleColor,
                 ),
               ),
           ],
         ),
         floatingActionButton: _tabIndex == 1
             ? FloatingActionButton(
-                backgroundColor: EduTheme.primary,
+                backgroundColor: theme.colorScheme.primary,
                 onPressed: _onLessonsFabPressed,
                 child: const Icon(Icons.add, color: Colors.white),
               )
@@ -597,7 +808,8 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
             const SizedBox(height: 4),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 child: _buildTabContent(),
               ),
             ),
@@ -608,18 +820,24 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
   }
 
   Widget _buildHeaderCard() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.16 : 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(
+          color: theme.dividerColor.withValues(alpha: isDark ? 0.35 : 0.65),
+        ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Column(
@@ -627,19 +845,19 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
         children: [
           Text(
             widget.classTitle,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w800,
-              color: EduTheme.primaryDark,
+              color: theme.colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'A course covering key topics in ${widget.subjectName}, '
-            'helping students build strong understanding and problem-solving skills.',
-            style: const TextStyle(
+            'A course covering key topics in ${widget.subjectName}, helping students build strong understanding and problem-solving skills.',
+            style: TextStyle(
               fontSize: 14,
-              color: EduTheme.textMuted,
+              color: theme.textTheme.bodySmall?.color ??
+                  (isDark ? EduTheme.darkTextMuted : EduTheme.textMuted),
               height: 1.4,
             ),
           ),
@@ -649,37 +867,45 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
   }
 
   Widget _buildStatCard({required String title, required String value}) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final mutedColor = theme.textTheme.bodySmall?.color ??
+        (isDark ? EduTheme.darkTextMuted : EduTheme.textMuted);
+
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withValues(alpha: isDark ? 0.16 : 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
+          border: Border.all(
+            color: theme.dividerColor.withValues(alpha: isDark ? 0.35 : 0.65),
+          ),
         ),
         child: Column(
           children: [
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: EduTheme.textMuted,
+                color: mutedColor,
                 fontWeight: FontWeight.w500,
               ),
             ),
             const SizedBox(height: 6),
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
-                color: EduTheme.primaryDark,
+                color: theme.colorScheme.onSurface,
               ),
             ),
           ],
@@ -689,10 +915,13 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
   }
 
   Widget _buildTabs() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFFE6ECF7),
+        color: isDark ? const Color(0xFF222E3E) : const Color(0xFFE6ECF7),
         borderRadius: BorderRadius.circular(20),
       ),
       padding: const EdgeInsets.all(4),
@@ -707,7 +936,17 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
   }
 
   Widget _buildTabButton(int index, String label) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final bool selected = _tabIndex == index;
+
+    final selectedColor = theme.cardColor;
+    final unselectedColor = Colors.transparent;
+
+    final selectedText = theme.colorScheme.onSurface;
+    final unselectedText = theme.textTheme.bodySmall?.color ??
+        (isDark ? EduTheme.darkTextMuted : EduTheme.textMuted);
+
     return Expanded(
       child: GestureDetector(
         onTap: () async {
@@ -719,7 +958,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: selected ? Colors.white : Colors.transparent,
+            color: selected ? selectedColor : unselectedColor,
             borderRadius: BorderRadius.circular(16),
           ),
           alignment: Alignment.center,
@@ -728,7 +967,7 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-              color: selected ? EduTheme.primaryDark : EduTheme.textMuted,
+              color: selected ? selectedText : unselectedText,
             ),
           ),
         ),
@@ -747,6 +986,8 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
   }
 
   Widget _buildStudentsTab() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final students = widget.students;
 
     if (students.isEmpty) {
@@ -754,7 +995,8 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
         child: Text(
           'No students found for this class.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: EduTheme.textMuted,
+                color: theme.textTheme.bodySmall?.color ??
+                    (isDark ? EduTheme.darkTextMuted : EduTheme.textMuted),
               ),
         ),
       );
@@ -775,32 +1017,38 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
           padding: const EdgeInsets.symmetric(vertical: 6),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: theme.cardColor,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
+                  color: Colors.black.withValues(alpha: isDark ? 0.16 : 0.03),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
               ],
+              border: Border.all(
+                color:
+                    theme.dividerColor.withValues(alpha: isDark ? 0.35 : 0.65),
+              ),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Row(
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: const Color(0xFFFFF2E4),
+                  backgroundColor: isDark
+                      ? EduTheme.darkSurface
+                      : const Color(0xFFFFF2E4),
                   backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
                       ? NetworkImage(imageUrl)
                       : null,
                   child: (imageUrl == null || imageUrl.isEmpty)
                       ? Text(
                           initial,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
-                            color: EduTheme.primaryDark,
+                            color: theme.colorScheme.onSurface,
                           ),
                         )
                       : null,
@@ -812,26 +1060,30 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                     children: [
                       Text(
                         name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 15,
-                          color: EduTheme.primaryDark,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         'ID: $academicId',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
-                          color: EduTheme.textMuted,
+                          color: theme.textTheme.bodySmall?.color ??
+                              (isDark
+                                  ? EduTheme.darkTextMuted
+                                  : EduTheme.textMuted),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.chevron_right_rounded,
-                  color: EduTheme.textMuted,
+                  color: theme.textTheme.bodySmall?.color ??
+                      (isDark ? EduTheme.darkTextMuted : EduTheme.textMuted),
                 ),
               ],
             ),
@@ -841,20 +1093,28 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
     );
   }
 
-  /// 🔹 تبويب الدروس بعد التعديل
   Widget _buildLessonsTab() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final mutedColor = theme.textTheme.bodySmall?.color ??
+        (isDark ? EduTheme.darkTextMuted : EduTheme.textMuted);
+
     if (_isLoadingLessons && !_modulesLoaded) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: CircularProgressIndicator(
+          color: theme.colorScheme.primary,
+        ),
+      );
     }
 
     if (!_inModuleLessonsView) {
       if (_modules.isEmpty) {
         return Center(
           child: Text(
-            'لا توجد وحدات مضافة بعد.\nاستخدم زر + لإضافة أول وحدة.',
+            'No units have been added yet.\nUse the + button to add your first unit.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: EduTheme.textMuted,
+                  color: mutedColor,
                 ),
           ),
         );
@@ -872,29 +1132,37 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
               onLongPress: () => _onModuleLongPress(module),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: theme.cardColor,
                   borderRadius: BorderRadius.circular(18),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
+                      color:
+                          Colors.black.withValues(alpha: isDark ? 0.16 : 0.03),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
                   ],
+                  border: Border.all(
+                    color: theme.dividerColor
+                        .withValues(alpha: isDark ? 0.35 : 0.65),
+                  ),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 child: Row(
                   children: [
                     Container(
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE8F3FF),
+                        color: isDark
+                            ? const Color(0xFF223246)
+                            : const Color(0xFFE8F3FF),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.folder_open_rounded,
-                        color: EduTheme.primaryDark,
+                        color: theme.colorScheme.onSurface,
                         size: 20,
                       ),
                     ),
@@ -905,26 +1173,26 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                         children: [
                           Text(
                             module.title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
-                              color: EduTheme.primaryDark,
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            '${module.lessonsCount} درس',
-                            style: const TextStyle(
+                            '${module.lessonsCount} lesson(s)',
+                            style: TextStyle(
                               fontSize: 13,
-                              color: EduTheme.textMuted,
+                              color: mutedColor,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.chevron_right_rounded,
-                      color: EduTheme.textMuted,
+                      color: mutedColor,
                     ),
                   ],
                 ),
@@ -940,20 +1208,20 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
           Row(
             children: [
               IconButton(
-                onPressed: _backToModules,
-                icon: const Icon(
+                onPressed: _handleBackAction,
+                icon: Icon(
                   Icons.arrow_back_ios_new_rounded,
-                  color: EduTheme.primaryDark,
+                  color: theme.colorScheme.onSurface,
                   size: 18,
                 ),
               ),
               const SizedBox(width: 4),
               Text(
                 _activeModule?.title ?? 'Unit',
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 16,
-                  color: EduTheme.primaryDark,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
             ],
@@ -961,15 +1229,20 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
           const SizedBox(height: 4),
           Expanded(
             child: _isLoadingLessons
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(
+                    child: CircularProgressIndicator(
+                      color: theme.colorScheme.primary,
+                    ),
+                  )
                 : _lessons.isEmpty
                     ? Center(
                         child: Text(
-                          'لا توجد دروس بعد لهذه الوحدة.\nاستخدم زر + لإضافة أول درس.',
+                          'No lessons have been added to this unit yet.\nUse the + button to add your first lesson.',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: EduTheme.textMuted,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: mutedColor,
+                                  ),
                         ),
                       )
                     : ListView.builder(
@@ -1000,25 +1273,33 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? const Color(0xFFE8F6FF)
-                                      : Colors.white,
+                                      ? theme.colorScheme.primary.withValues(
+                                          alpha: isDark ? 0.16 : 0.08,
+                                        )
+                                      : theme.cardColor,
                                   borderRadius: BorderRadius.circular(18),
                                   border: Border.all(
                                     color: isSelected
-                                        ? EduTheme.primary
-                                        : Colors.transparent,
+                                        ? theme.colorScheme.primary
+                                        : theme.dividerColor.withValues(
+                                            alpha: isDark ? 0.35 : 0.0,
+                                          ),
                                     width: 1.2,
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.03),
+                                      color: Colors.black.withValues(
+                                        alpha: isDark ? 0.16 : 0.03,
+                                      ),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
                                   ],
                                 ),
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 10),
+                                  horizontal: 14,
+                                  vertical: 10,
+                                ),
                                 child: Row(
                                   children: [
                                     if (_isLessonSelectionMode)
@@ -1031,8 +1312,8 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                                               : Icons
                                                   .radio_button_unchecked_rounded,
                                           color: isSelected
-                                              ? EduTheme.primary
-                                              : EduTheme.textMuted,
+                                              ? theme.colorScheme.primary
+                                              : mutedColor,
                                           size: 20,
                                         ),
                                       ),
@@ -1043,30 +1324,31 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
                                         children: [
                                           Text(
                                             lesson.title,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontWeight: FontWeight.w700,
                                               fontSize: 15,
-                                              color: EduTheme.primaryDark,
+                                              color:
+                                                  theme.colorScheme.onSurface,
                                             ),
                                           ),
                                           const SizedBox(height: 2),
                                           Text(
                                             lesson.status == 'draft'
-                                                ? 'مسودة'
-                                                : 'منشور',
+                                                ? 'Draft'
+                                                : 'Published',
                                             style: TextStyle(
                                               fontSize: 12,
                                               color: lesson.status == 'draft'
                                                   ? Colors.orange
-                                                  : EduTheme.textMuted,
+                                                  : mutedColor,
                                             ),
                                           ),
                                         ],
                                       ),
                                     ),
-                                    const Icon(
+                                    Icon(
                                       Icons.chevron_right_rounded,
-                                      color: EduTheme.textMuted,
+                                      color: mutedColor,
                                     ),
                                   ],
                                 ),
@@ -1082,18 +1364,20 @@ class _ClassDetailsScreenState extends State<ClassDetailsScreen> {
   }
 
   Widget _buildAssignmentsTab() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Center(
       child: Text(
         'No assignments yet.',
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: EduTheme.textMuted,
+              color: theme.textTheme.bodySmall?.color ??
+                  (isDark ? EduTheme.darkTextMuted : EduTheme.textMuted),
             ),
       ),
     );
   }
 }
-
-// ======== Models داخل الملف (وحدات + دروس) ========
 
 class _LessonModule {
   final int id;

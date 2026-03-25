@@ -8,9 +8,7 @@ import 'package:video_player/video_player.dart';
 import '../../theme.dart';
 import 'ai_tutor_screen.dart';
 import 'lesson_completion_screen.dart';
-import '../../services/student_service.dart';
-
-
+// import '../../services/student_service.dart';
 
 class StudentLessonViewerScreen extends StatefulWidget {
   final int lessonId;
@@ -34,7 +32,8 @@ class StudentLessonViewerScreen extends StatefulWidget {
       _StudentLessonViewerScreenState();
 }
 
-class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> with WidgetsBindingObserver {
+class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
+    with WidgetsBindingObserver {
   bool _isLoading = true;
   String? _error;
 
@@ -86,7 +85,8 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
       if (!_studyStopwatch.isRunning) {
         _studyStopwatch.start();
       }
-    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
       if (_studyStopwatch.isRunning) {
         _studyStopwatch.stop();
       }
@@ -194,76 +194,76 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
   // =========================
   // Load lesson
   // =========================
- Future<void> _loadLessonDetail() async {
-  setState(() {
-    _isLoading = true;
-    _error = null;
-    _audioKeysByIndex.clear();
-  });
+  Future<void> _loadLessonDetail() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+      _audioKeysByIndex.clear();
+    });
 
-  try {
-    // ✅ واجهة الطالب فقط (لا نستخدم fetchLessonDetail للأستاذ لأنه يتطلب teacherCode)
-    final lesson = await StudentService.fetchStudentLessonDetail(
-      academicId: widget.academicId,
-      lessonId: widget.lessonId,
-    );
+    try {
+      // ✅ واجهة الطالب فقط (لا نستخدم fetchLessonDetail للأستاذ لأنه يتطلب teacherCode)
+      final lesson = await StudentService.fetchStudentLessonDetail(
+        academicId: widget.academicId,
+        lessonId: widget.lessonId,
+      );
 
-    // title
-    _title = (lesson['title'] ?? _title).toString();
+      // title
+      _title = (lesson['title'] ?? _title).toString();
 
-    // duration_label (لو رجع من السيرفر)
-    final dl = (lesson['duration_label'] ?? '').toString().trim();
-    if (dl.isNotEmpty) {
-      _durationLabel = dl;
-    }
+      // duration_label (لو رجع من السيرفر)
+      final dl = (lesson['duration_label'] ?? '').toString().trim();
+      if (dl.isNotEmpty) {
+        _durationLabel = dl;
+      }
 
-    // blocks
-    final rawBlocks = lesson['blocks'];
-    if (rawBlocks is List) {
-      _blocks = rawBlocks
-          .whereType<Map>()
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
+      // blocks
+      final rawBlocks = lesson['blocks'];
+      if (rawBlocks is List) {
+        _blocks = rawBlocks
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
 
-      // ✅ ترتيب ثابت: sort_order ثم position ثم id (حسب ما عندكم في Laravel normalize)
-      _blocks.sort((a, b) {
-        int readInt(dynamic v) {
-          if (v is int) return v;
-          if (v is num) return v.toInt();
-          return int.tryParse(v?.toString() ?? '') ?? 0;
-        }
+        // ✅ ترتيب ثابت: sort_order ثم position ثم id (حسب ما عندكم في Laravel normalize)
+        _blocks.sort((a, b) {
+          int readInt(dynamic v) {
+            if (v is int) return v;
+            if (v is num) return v.toInt();
+            return int.tryParse(v?.toString() ?? '') ?? 0;
+          }
 
-        final sa = readInt(a['sort_order']);
-        final sb = readInt(b['sort_order']);
-        if (sa != sb) return sa.compareTo(sb);
+          final sa = readInt(a['sort_order']);
+          final sb = readInt(b['sort_order']);
+          if (sa != sb) return sa.compareTo(sb);
 
-        final pa = readInt(a['position']);
-        final pb = readInt(b['position']);
-        if (pa != pb) return pa.compareTo(pb);
+          final pa = readInt(a['position']);
+          final pb = readInt(b['position']);
+          if (pa != pb) return pa.compareTo(pb);
 
-        final ia = readInt(a['id']);
-        final ib = readInt(b['id']);
-        return ia.compareTo(ib);
-      });
-    } else {
-      _blocks = [];
-    }
+          final ia = readInt(a['id']);
+          final ib = readInt(b['id']);
+          return ia.compareTo(ib);
+        });
+      } else {
+        _blocks = [];
+      }
 
-    // quiz (اختياري)
-    final q = lesson['quiz'];
-    if (q is Map) {
-      _quizData = Map<String, dynamic>.from(q);
-    } else {
-      _quizData = null;
-    }
-  } catch (e) {
-    _error = e.toString().replaceFirst('Exception: ', '');
-  } finally {
-    if (mounted) {
-      setState(() => _isLoading = false);
+      // quiz (اختياري)
+      final q = lesson['quiz'];
+      if (q is Map) {
+        _quizData = Map<String, dynamic>.from(q);
+      } else {
+        _quizData = null;
+      }
+    } catch (e) {
+      _error = e.toString().replaceFirst('Exception: ', '');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
-}
 
   // =========================
   // Actions
@@ -288,7 +288,7 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
       // Reset the stopwatch to 0 so dispose doesn't add more time if they somehow go back.
       _studyStopwatch.reset();
 
-      final result = await Navigator.of(context).push(
+      await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => LessonCompletionScreen(
             title: _title,
@@ -369,16 +369,22 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
   // =========================
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final titleColor = theme.colorScheme.onSurface;
+
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: theme.scaffoldBackgroundColor,
+          surfaceTintColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded,
-                color: EduTheme.primaryDark),
+            icon: Icon(
+              Icons.arrow_back_rounded,
+              color: titleColor,
+            ),
             onPressed: () => _onWillPop(),
           ),
           centerTitle: true,
@@ -386,8 +392,8 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
             _title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: EduTheme.primaryDark,
+            style: TextStyle(
+              color: titleColor,
               fontWeight: FontWeight.w700,
               fontSize: 16,
             ),
@@ -395,8 +401,10 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
           actions: [
             IconButton(
               onPressed: _loadLessonDetail,
-              icon: const Icon(Icons.refresh_rounded,
-                  color: EduTheme.primaryDark),
+              icon: Icon(
+                Icons.refresh_rounded,
+                color: titleColor,
+              ),
               tooltip: 'Refresh',
             ),
           ],
@@ -412,25 +420,32 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
   }
 
   Widget _buildError() {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+    final titleColor = theme.colorScheme.onSurface;
+    final mutedColor =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
+        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               'Error loading lesson',
               style: TextStyle(
                 fontWeight: FontWeight.w700,
-                color: EduTheme.primaryDark,
+                color: titleColor,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               _error ?? '',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: EduTheme.textMuted,
+              style: TextStyle(
+                color: mutedColor,
                 fontSize: 13,
               ),
             ),
@@ -446,6 +461,13 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
   }
 
   Widget _buildContent() {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+    final titleColor = theme.colorScheme.onSurface;
+    final mutedColor =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
+        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+
     return RefreshIndicator(
       onRefresh: _loadLessonDetail,
       child: SingleChildScrollView(
@@ -458,19 +480,19 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
             // Header
             Text(
               _title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
-                color: EduTheme.primaryDark,
+                color: titleColor,
               ),
             ),
             const SizedBox(height: 4),
             if (_durationLabel.isNotEmpty)
               Text(
                 _durationLabel,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: EduTheme.textMuted,
+                  color: mutedColor,
                 ),
               ),
             const SizedBox(height: 12),
@@ -502,17 +524,25 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
   }
 
   Widget _buildEmptyState() {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+    final mutedColor =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
+        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+    final boxColor =
+        isDarkMode ? EduTheme.darkSurface : const Color(0xFFF3F7FF);
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F7FF),
+        color: boxColor,
         borderRadius: BorderRadius.circular(20),
       ),
       padding: const EdgeInsets.all(16),
-      child: const Text(
+      child: Text(
         'لا يوجد محتوى داخل هذا الدرس بعد.',
         style: TextStyle(
-          color: EduTheme.textMuted,
+          color: mutedColor,
           fontSize: 13,
           fontWeight: FontWeight.w600,
         ),
@@ -567,8 +597,9 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
 
     // text
     final body = (block['body'] ?? '').toString();
-    final meta =
-        (block['meta'] is Map) ? (block['meta'] as Map).cast<String, dynamic>() : const <String, dynamic>{};
+    final meta = (block['meta'] is Map)
+        ? (block['meta'] as Map).cast<String, dynamic>()
+        : const <String, dynamic>{};
     final fontSize = (meta['font_size'] is num)
         ? (meta['font_size'] as num).toDouble()
         : 14.5;
@@ -630,31 +661,38 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
   }
 
   Widget _buildKnowledgeCheckFromData(Map<String, dynamic> quiz) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+    final titleColor = theme.colorScheme.onSurface;
+    final cardColor = theme.cardColor;
+    final shadowColor = isDarkMode
+        ? Colors.black.withValues(alpha: 0.18)
+        : const Color(0x11000000);
+
     final title = (quiz['title'] ?? 'Knowledge Check').toString();
     final question = (quiz['question'] ?? '').toString();
-    final options = (quiz['options'] as List?)
-            ?.map((e) => e.toString())
-            .toList() ??
-        <String>[];
+    final options =
+        (quiz['options'] as List?)?.map((e) => e.toString()).toList() ??
+            <String>[];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: EduTheme.primaryDark,
+            color: titleColor,
           ),
         ),
         const SizedBox(height: 10),
         if (question.isNotEmpty) ...[
           Text(
             question,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w700,
-              color: EduTheme.primaryDark,
+              color: titleColor,
             ),
           ),
           const SizedBox(height: 8),
@@ -662,13 +700,13 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
         if (options.isNotEmpty)
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: cardColor,
               borderRadius: BorderRadius.circular(18),
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
-                  color: Color(0x11000000),
+                  color: shadowColor,
                   blurRadius: 10,
-                  offset: Offset(0, 4),
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
@@ -684,24 +722,36 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
   }
 
   Widget _quizOption(String text) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+    final titleColor = theme.colorScheme.onSurface;
+    final borderColor =
+        isDarkMode ? EduTheme.darkInputBorder : const Color(0xFFE0E4F0);
+    final mutedColor =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
+        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE0E4F0)),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         children: [
-          const Icon(Icons.radio_button_unchecked,
-              size: 18, color: EduTheme.textMuted),
+          Icon(
+            Icons.radio_button_unchecked,
+            size: 18,
+            color: mutedColor,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
-                color: EduTheme.primaryDark,
+              style: TextStyle(
+                color: titleColor,
                 fontSize: 14,
               ),
             ),
@@ -712,12 +762,17 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen> w
   }
 
   Widget _buildBottomBar() {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+    final borderColor =
+        isDarkMode ? EduTheme.darkInputBorder : const Color(0xFFE0E4F0);
+
     return Container(
       height: 58,
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: theme.cardColor,
         border: Border(
-          top: BorderSide(color: Color(0xFFE0E4F0), width: 0.6),
+          top: BorderSide(color: borderColor, width: 0.6),
         ),
       ),
       child: Row(
@@ -756,16 +811,22 @@ class _CardShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+    final shadowColor = isDarkMode
+        ? Colors.black.withValues(alpha: 0.18)
+        : const Color(0x11000000);
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x11000000),
+            color: shadowColor,
             blurRadius: 8,
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -781,11 +842,12 @@ class _TextBlock extends StatelessWidget {
 
   const _TextBlock({required this.body, required this.fontSize});
 
-  TextSpan _buildStyledTextSpan(String text) {
+  TextSpan _buildStyledTextSpan(BuildContext context, String text) {
+    final theme = Theme.of(context);
     final defaultStyle = TextStyle(
       fontSize: fontSize,
       height: 1.45,
-      color: EduTheme.primaryDark,
+      color: theme.colorScheme.onSurface,
     );
 
     final spans = <TextSpan>[];
@@ -836,7 +898,7 @@ class _TextBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = body.trim();
     if (t.isEmpty) return const SizedBox.shrink();
-    return RichText(text: _buildStyledTextSpan(t));
+    return RichText(text: _buildStyledTextSpan(context, t));
   }
 }
 
@@ -848,10 +910,16 @@ class _ImageBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final titleColor = theme.colorScheme.onSurface;
+    final mutedColor =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
+            EduTheme.textMuted;
+
     if (url.isEmpty) {
-      return const Text(
+      return Text(
         'Image not available',
-        style: TextStyle(color: EduTheme.textMuted),
+        style: TextStyle(color: mutedColor),
       );
     }
 
@@ -878,7 +946,9 @@ class _ImageBlock extends StatelessWidget {
               width: double.infinity,
               errorBuilder: (_, __, ___) => Container(
                 height: 120,
-                color: Colors.grey.withOpacity(0.1),
+                color: theme.brightness == Brightness.dark
+                    ? EduTheme.darkSurface
+                    : Colors.grey.withValues(alpha: 0.1),
                 child: const Center(child: Icon(Icons.broken_image_rounded)),
               ),
             ),
@@ -888,10 +958,10 @@ class _ImageBlock extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             caption,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: EduTheme.primaryDark,
+              color: titleColor,
             ),
           ),
         ],
@@ -908,6 +978,13 @@ class _FileBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+    final titleColor = theme.colorScheme.onSurface;
+    final mutedColor =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
+        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+
     return InkWell(
       onTap: () {
         // In a real app, use url_launcher or a PDF viewer package.
@@ -919,16 +996,20 @@ class _FileBlock extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.05),
+          color: Colors.red.withValues(alpha: isDarkMode ? 0.12 : 0.05),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.red.withOpacity(0.1)),
+          border: Border.all(color: Colors.red.withValues(alpha: 0.18)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                const Icon(Icons.picture_as_pdf_rounded, color: Colors.red, size: 32),
+                const Icon(
+                  Icons.picture_as_pdf_rounded,
+                  color: Colors.red,
+                  size: 32,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -936,20 +1017,27 @@ class _FileBlock extends StatelessWidget {
                     children: [
                       Text(
                         caption.isNotEmpty ? caption : 'PDF Documentation',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: EduTheme.primaryDark,
+                          color: titleColor,
                         ),
                       ),
-                      const Text(
+                      Text(
                         'Tap to open document',
-                        style: TextStyle(fontSize: 12, color: EduTheme.textMuted),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: mutedColor,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.open_in_new_rounded, size: 18, color: Colors.grey),
+                Icon(
+                  Icons.open_in_new_rounded,
+                  size: 18,
+                  color: mutedColor,
+                ),
               ],
             ),
           ],
@@ -959,7 +1047,6 @@ class _FileBlock extends StatelessWidget {
   }
 }
 
-
 class _VideoBlock extends StatelessWidget {
   final String url;
   final String caption;
@@ -968,10 +1055,16 @@ class _VideoBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+    final mutedColor =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
+        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+
     if (url.isEmpty) {
-      return const Text(
+      return Text(
         'Video not available',
-        style: TextStyle(color: EduTheme.textMuted),
+        style: TextStyle(color: mutedColor),
       );
     }
 
@@ -983,9 +1076,9 @@ class _VideoBlock extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             caption,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: EduTheme.textMuted,
+              color: mutedColor,
             ),
           ),
         ],
@@ -1007,6 +1100,12 @@ class _BottomNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+    final mutedColor =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
+        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
@@ -1015,13 +1114,13 @@ class _BottomNavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 22, color: EduTheme.textMuted),
+            Icon(icon, size: 22, color: mutedColor),
             const SizedBox(height: 2),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
-                color: EduTheme.textMuted,
+                color: mutedColor,
               ),
             ),
           ],
@@ -1155,15 +1254,28 @@ class _LessonAudioPlayerState extends State<LessonAudioPlayer> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+    final titleColor = theme.colorScheme.onSurface;
+    final mutedColor =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
+        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+    final softBoxColor =
+        isDarkMode ? EduTheme.darkSurface : const Color(0xFFF3F7FF);
+
     if (widget.url.isEmpty) {
-      return const Text(
+      return Text(
         'Audio not available',
-        style: TextStyle(color: EduTheme.textMuted),
+        style: TextStyle(color: mutedColor),
       );
     }
 
-    final maxMs = (_duration.inMilliseconds <= 0) ? 1.0 : _duration.inMilliseconds.toDouble();
-    final posMs = _position.inMilliseconds.clamp(0, _duration.inMilliseconds).toDouble();
+    final maxMs = (_duration.inMilliseconds <= 0)
+        ? 1.0
+        : _duration.inMilliseconds.toDouble();
+    final posMs = _position.inMilliseconds
+        .clamp(0, _duration.inMilliseconds)
+        .toDouble();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1171,16 +1283,16 @@ class _LessonAudioPlayerState extends State<LessonAudioPlayer> {
         if ((widget.title ?? '').trim().isNotEmpty) ...[
           Text(
             widget.title!.trim(),
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w800,
-              color: EduTheme.primaryDark,
+              color: titleColor,
             ),
           ),
           const SizedBox(height: 10),
         ],
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFF3F7FF),
+            color: softBoxColor,
             borderRadius: BorderRadius.circular(18),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -1194,9 +1306,7 @@ class _LessonAudioPlayerState extends State<LessonAudioPlayer> {
                   height: 44,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: !_ready
-                        ? const Color(0xFFBFC7DA)
-                        : EduTheme.primary,
+                    color: !_ready ? const Color(0xFFBFC7DA) : EduTheme.primary,
                   ),
                   child: _loadingSource
                       ? const Padding(
@@ -1231,16 +1341,16 @@ class _LessonAudioPlayerState extends State<LessonAudioPlayer> {
                       children: [
                         Text(
                           _fmt(_position),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: EduTheme.textMuted,
+                            color: mutedColor,
                           ),
                         ),
                         Text(
                           _fmt(_duration),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: EduTheme.textMuted,
+                            color: mutedColor,
                           ),
                         ),
                       ],
@@ -1253,9 +1363,9 @@ class _LessonAudioPlayerState extends State<LessonAudioPlayer> {
         ),
         if (!_ready && !_loadingSource) ...[
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'تعذر تشغيل الصوت. تأكد من الرابط أو الاتصال.',
-            style: TextStyle(fontSize: 12, color: EduTheme.textMuted),
+            style: TextStyle(fontSize: 12, color: mutedColor),
           ),
         ],
       ],
@@ -1341,17 +1451,25 @@ class _LessonVideoPlayerState extends State<LessonVideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+    final mutedColor =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
+        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+    final softBoxColor =
+        isDarkMode ? EduTheme.darkSurface : const Color(0xFFEEF1F8);
+
     if (widget.url.isEmpty) {
       return Container(
         height: 190,
         decoration: BoxDecoration(
-          color: const Color(0xFFEEF1F8),
+          color: softBoxColor,
           borderRadius: BorderRadius.circular(18),
         ),
         alignment: Alignment.center,
-        child: const Text(
+        child: Text(
           'Video not available',
-          style: TextStyle(color: EduTheme.textMuted),
+          style: TextStyle(color: mutedColor),
         ),
       );
     }
@@ -1360,16 +1478,16 @@ class _LessonVideoPlayerState extends State<LessonVideoPlayer> {
       return Container(
         height: 190,
         decoration: BoxDecoration(
-          color: const Color(0xFFEEF1F8),
+          color: softBoxColor,
           borderRadius: BorderRadius.circular(18),
         ),
         alignment: Alignment.center,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               'Unable to load video',
-              style: TextStyle(color: EduTheme.textMuted),
+              style: TextStyle(color: mutedColor),
             ),
             const SizedBox(height: 10),
             OutlinedButton(
@@ -1385,7 +1503,7 @@ class _LessonVideoPlayerState extends State<LessonVideoPlayer> {
       return Container(
         height: 190,
         decoration: BoxDecoration(
-          color: const Color(0xFFEEF1F8),
+          color: softBoxColor,
           borderRadius: BorderRadius.circular(18),
         ),
         child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),

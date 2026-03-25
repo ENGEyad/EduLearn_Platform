@@ -5,8 +5,8 @@ import '../../services/student_service.dart';
 import 'student_subject_detail_screen.dart';
 
 class StudentSubjectsScreen extends StatefulWidget {
-  final Map<String, dynamic> student;          // 👈 بيانات الطالب من الـ API
-  final List<dynamic> assignedSubjects;        // 👈 قائمة المواد من الـ API (القديمة من تسجيل الدخول)
+  final Map<String, dynamic> student;
+  final List<dynamic> assignedSubjects;
 
   const StudentSubjectsScreen({
     super.key,
@@ -30,7 +30,6 @@ class _StudentSubjectsScreenState extends State<StudentSubjectsScreen> {
     _refreshSubjects();
   }
 
-  /// ✅ نبني قائمة المواد المبدئية من بيانات تسجيل الدخول
   void _buildInitialSubjects() {
     _subjectItems = widget.assignedSubjects
         .whereType<Map<String, dynamic>>()
@@ -57,6 +56,8 @@ class _StudentSubjectsScreenState extends State<StudentSubjectsScreen> {
       return;
     }
 
+    if (!mounted) return;
+
     setState(() {
       _isLoading = true;
     });
@@ -65,6 +66,8 @@ class _StudentSubjectsScreenState extends State<StudentSubjectsScreen> {
       final List<dynamic> fresh = await StudentService.fetchStudentSubjects(
         academicId: academicId,
       );
+
+      if (!mounted) return;
 
       final List<Map<String, dynamic>> items = fresh
           .whereType<Map<String, dynamic>>()
@@ -88,29 +91,45 @@ class _StudentSubjectsScreenState extends State<StudentSubjectsScreen> {
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
+
       setState(() {
         _isLoading = false;
       });
-      // ممكن تضيف Snackbar هنا لاحقاً لو حاب
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final String fullName = (widget.student['full_name'] ?? '').toString();
     final String academicId = (widget.student['academic_id'] ?? '').toString();
+
+    final theme = Theme.of(context);
+    final bool isDarkMode = theme.brightness == Brightness.dark;
+
+    final Color pageBackground = theme.scaffoldBackgroundColor;
+    final Color appBarBackground = theme.scaffoldBackgroundColor;
+    final Color titleColor = theme.colorScheme.onSurface;
+    final Color mutedColor =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
+        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+    final Color cardColor = theme.cardColor;
+    final Color shadowColor = isDarkMode
+        ? Colors.black.withValues(alpha: 0.18)
+        : const Color(0x11000000);
 
     if (_isLoading && _subjectItems.isEmpty) {
       return Scaffold(
-        backgroundColor: EduTheme.background,
+        backgroundColor: pageBackground,
         appBar: AppBar(
           elevation: 0,
-          backgroundColor: EduTheme.background,
+          backgroundColor: appBarBackground,
+          surfaceTintColor: Colors.transparent,
           centerTitle: true,
-          title: const Text(
+          iconTheme: IconThemeData(color: titleColor),
+          title: Text(
             'My Subjects',
             style: TextStyle(
-              color: EduTheme.primaryDark,
+              color: titleColor,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -122,15 +141,17 @@ class _StudentSubjectsScreenState extends State<StudentSubjectsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: EduTheme.background,
+      backgroundColor: pageBackground,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: EduTheme.background,
+        backgroundColor: appBarBackground,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
-        title: const Text(
+        iconTheme: IconThemeData(color: titleColor),
+        title: Text(
           'My Subjects',
           style: TextStyle(
-            color: EduTheme.primaryDark,
+            color: titleColor,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -142,13 +163,13 @@ class _StudentSubjectsScreenState extends State<StudentSubjectsScreen> {
             onRefresh: _refreshSubjects,
             child: _subjectItems.isEmpty
                 ? ListView(
-                    children: const [
-                      SizedBox(height: 120),
+                    children: [
+                      const SizedBox(height: 120),
                       Center(
                         child: Text(
                           'No subjects found for your grade.',
                           style: TextStyle(
-                            color: EduTheme.textMuted,
+                            color: mutedColor,
                             fontSize: 13,
                           ),
                         ),
@@ -167,7 +188,6 @@ class _StudentSubjectsScreenState extends State<StudentSubjectsScreen> {
                     itemBuilder: (context, index) {
                       final subjectMap = _subjectItems[index];
 
-                      // ✅ قراءة subject_id بشكل آمن
                       final dynamic rawSubjectId = subjectMap['subject_id'];
                       int? subjectId;
                       if (rawSubjectId is int) {
@@ -176,11 +196,10 @@ class _StudentSubjectsScreenState extends State<StudentSubjectsScreen> {
                         subjectId = int.tryParse(rawSubjectId);
                       }
 
-                      // لو الـ ID غير صالح نتجاهل هذا الكرت بدل ما يطيح التطبيق
                       if (subjectId == null) {
                         return const SizedBox.shrink();
                       }
-                      // ✅ هنا مضمون إنه non-null
+
                       final int safeSubjectId = subjectId;
 
                       final String subjectName =
@@ -210,13 +229,13 @@ class _StudentSubjectsScreenState extends State<StudentSubjectsScreen> {
                         },
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: cardColor,
                             borderRadius: BorderRadius.circular(18),
-                            boxShadow: const [
+                            boxShadow: [
                               BoxShadow(
-                                color: Color(0x11000000),
+                                color: shadowColor,
                                 blurRadius: 6,
-                                offset: Offset(0, 2),
+                                offset: const Offset(0, 2),
                               ),
                             ],
                           ),
@@ -233,10 +252,10 @@ class _StudentSubjectsScreenState extends State<StudentSubjectsScreen> {
                               Text(
                                 subjectName,
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 13,
-                                  color: EduTheme.primaryDark,
+                                  color: titleColor,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -244,9 +263,9 @@ class _StudentSubjectsScreenState extends State<StudentSubjectsScreen> {
                                 Text(
                                   teacherName,
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11,
-                                    color: EduTheme.textMuted,
+                                    color: mutedColor,
                                   ),
                                 ),
                             ],

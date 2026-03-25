@@ -5,7 +5,7 @@ import '../../services/api_service.dart';
 import 'class_details_screen.dart';
 
 class TeacherClassesScreen extends StatefulWidget {
-  final Map<String, dynamic> teacher;   // بيانات الأستاذ من الـ API
+  final Map<String, dynamic> teacher; // بيانات الأستاذ من الـ API
   final List<dynamic> assignments;
   final int totalAssignedStudents;
 
@@ -30,13 +30,10 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
   @override
   void initState() {
     super.initState();
-    // نبدأ بالبيانات الممرّرة من تسجيل الدخول
     _assignments = widget.assignments;
-    // ثم نحدّثها من السيرفر
     _refreshAssignments();
   }
 
-  /// ✅ تحويل أي قيمة إلى int بشكل آمن
   int _parseInt(dynamic value) {
     if (value == null) return 0;
     if (value is int) return value;
@@ -62,7 +59,6 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
       setState(() {
         _isLoading = false;
       });
-      // ممكن تضيف Snackbar لو حاب لاحقاً
     }
   }
 
@@ -76,36 +72,41 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: EduTheme.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: EduTheme.background,
+        backgroundColor: theme.scaffoldBackgroundColor,
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'My Classes',
           style: TextStyle(
-            color: EduTheme.primaryDark,
+            color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.w700,
           ),
         ),
-        // تبويب رئيسي، لذلك لا نضع سهم رجوع هنا
-        actions: const [
+        actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.only(right: 16),
             child: Icon(
               Icons.search_rounded,
-              color: EduTheme.primaryDark,
+              color: theme.colorScheme.onSurface,
             ),
           ),
         ],
       ),
       body: SafeArea(
         child: _isLoading && _assignments.isEmpty
-            ? const Center(
-                child: CircularProgressIndicator(),
+            ? Center(
+                child: CircularProgressIndicator(
+                  color: theme.colorScheme.primary,
+                ),
               )
             : RefreshIndicator(
+                color: theme.colorScheme.primary,
                 onRefresh: _refreshAssignments,
                 child: ListView.builder(
                   padding:
@@ -117,8 +118,7 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
                       return const SizedBox.shrink();
                     }
 
-                    final String grade =
-                        (item['class_grade'] ?? '').toString();
+                    final String grade = (item['class_grade'] ?? '').toString();
                     final String section =
                         (item['class_section'] ?? '').toString();
                     final String subjectName =
@@ -132,11 +132,9 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
 
                     final int studentsCount =
                         (item['students_count'] as int?) ?? 0;
-                    const String scheduleText =
-                        'Mon, Wed, Fri - 10:00 AM';
+                    const String scheduleText = 'Mon, Wed, Fri - 10:00 AM';
 
-                    final double progress =
-                        [0.85, 0.45, 1.0, 0.6][index % 4];
+                    final double progress = [0.85, 0.45, 1.0, 0.6][index % 4];
                     final String progressText =
                         '${(progress * 100).round()}%';
 
@@ -149,15 +147,11 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
                     final List<dynamic> students =
                         (item['students'] as List<dynamic>?) ?? [];
 
-                    // ✅ IDs الحقيقية من الـ API بشكل آمن
-                    final int assignmentId =
-                        _parseInt(item['assignment_id']);
+                    final int assignmentId = _parseInt(item['assignment_id']);
                     final int classSectionId =
                         _parseInt(item['class_section_id']);
-                    final int subjectId =
-                        _parseInt(item['subject_id']);
+                    final int subjectId = _parseInt(item['subject_id']);
 
-                    // ❗ لو واحد من IDs طلع 0 (مفقود أو غير صالح) نتجاهل هذه الكلاس
                     if (assignmentId == 0 ||
                         classSectionId == 0 ||
                         subjectId == 0) {
@@ -167,6 +161,7 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: _classCard(
+                        context: context,
                         title: title,
                         grade: grade,
                         section: section,
@@ -204,13 +199,14 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
         onPressed: () {
           // لاحقاً: إضافة درس أو كلاس جديد من هنا إن حبيت
         },
-        backgroundColor: EduTheme.primary,
+        backgroundColor: theme.colorScheme.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
   Widget _classCard({
+    required BuildContext context,
     required String title,
     required String grade,
     required String section,
@@ -221,18 +217,52 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
     required String progressText,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final cardColor = isDark
+        ? const Color(0xFF1E2A3A)
+        : const Color(0xFFFDFEFF);
+
+    final cardBorderColor = isDark
+        ? const Color(0xFF314156)
+        : const Color(0xFFE6EBF5);
+
+    final iconBoxColor = isDark
+        ? const Color(0xFF315F43)
+        : const Color(0xFF2D6C3C);
+
+    final mutedColor =
+        theme.textTheme.bodySmall?.color ??
+        (isDark ? EduTheme.darkTextMuted : EduTheme.textMuted);
+
+    final titleColor = theme.colorScheme.onSurface;
+
+    final progressBackground = isDark
+        ? const Color(0xFF2B3647)
+        : const Color(0xFFE3E7F3);
+
+    final progressValue = isDark
+        ? const Color(0xFF67C4EA)
+        : const Color(0xFF8DD2F0);
+
+    final shadowColor = isDark
+        ? Colors.black.withValues(alpha: 0.18)
+        : const Color(0x11000000);
+
     return InkWell(
       borderRadius: BorderRadius.circular(22),
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: cardColor,
           borderRadius: BorderRadius.circular(22),
-          boxShadow: const [
+          border: Border.all(color: cardBorderColor),
+          boxShadow: [
             BoxShadow(
-              color: Color(0x11000000),
+              color: shadowColor,
               blurRadius: 10,
-              offset: Offset(0, 4),
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -246,7 +276,7 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2D6C3C),
+                    color: iconBoxColor,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: const Align(
@@ -268,20 +298,20 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 16,
-                          color: EduTheme.primaryDark,
+                          color: titleColor,
                         ),
                       ),
                       const SizedBox(height: 4),
                       if (grade.isNotEmpty || section.isNotEmpty)
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.class_rounded,
                               size: 16,
-                              color: EduTheme.textMuted,
+                              color: mutedColor,
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -289,9 +319,9 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
                                 if (grade.isNotEmpty) 'Grade: $grade',
                                 if (section.isNotEmpty) 'Section: $section',
                               ].join(' | '),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
-                                color: EduTheme.textMuted,
+                                color: mutedColor,
                               ),
                             ),
                           ],
@@ -299,17 +329,17 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.group_rounded,
                             size: 16,
-                            color: EduTheme.textMuted,
+                            color: mutedColor,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             '$studentsCount Students',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: EduTheme.textMuted,
+                              color: mutedColor,
                             ),
                           ),
                         ],
@@ -317,17 +347,17 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.calendar_month_rounded,
                             size: 16,
-                            color: EduTheme.textMuted,
+                            color: mutedColor,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             schedule,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: EduTheme.textMuted,
+                              color: mutedColor,
                             ),
                           ),
                         ],
@@ -335,9 +365,9 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
                     ],
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.chevron_right_rounded,
-                  color: EduTheme.textMuted,
+                  color: mutedColor,
                 ),
               ],
             ),
@@ -350,19 +380,17 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
                     child: LinearProgressIndicator(
                       value: progress,
                       minHeight: 6,
-                      backgroundColor: const Color(0xFFE3E7F3),
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Color(0xFF8DD2F0),
-                      ),
+                      backgroundColor: progressBackground,
+                      valueColor: AlwaysStoppedAnimation<Color>(progressValue),
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   progressText,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    color: EduTheme.primaryDark,
+                    color: titleColor,
                   ),
                 ),
               ],

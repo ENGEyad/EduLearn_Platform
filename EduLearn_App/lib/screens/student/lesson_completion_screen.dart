@@ -68,10 +68,30 @@ class _LessonCompletionScreenState extends State<LessonCompletionScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bool isDarkMode = theme.brightness == Brightness.dark;
+
+    final Color pageBackground = theme.scaffoldBackgroundColor;
+    final Color titleColor = theme.colorScheme.onSurface;
+    final Color mutedColor =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
+        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+    final Color cardColor = theme.cardColor;
+    final Color borderColor =
+        isDarkMode ? EduTheme.darkInputBorder : const Color(0xFFE2E8F0);
+    final Color trophyBackground =
+        isDarkMode ? const Color(0xFF3A2A1C) : const Color(0xFFFFF7ED);
+    final Color shadowColor = isDarkMode
+        ? const Color(0xFFF97316).withValues(alpha: 0.14)
+        : const Color(0xFFF97316).withValues(alpha: 0.2);
+    final Color statsBackground =
+        isDarkMode ? EduTheme.darkSurface : const Color(0xFFF8FAFC);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: pageBackground,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: pageBackground,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: const SizedBox.shrink(), // No back button
       ),
@@ -82,7 +102,7 @@ class _LessonCompletionScreenState extends State<LessonCompletionScreen>
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 40),
-              
+
               // Animated Trophy Graphic
               AnimatedBuilder(
                 animation: _controller,
@@ -95,11 +115,11 @@ class _LessonCompletionScreenState extends State<LessonCompletionScreen>
                         width: 140,
                         height: 140,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFF7ED),
+                          color: trophyBackground,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFF97316).withOpacity(0.2),
+                              color: shadowColor,
                               blurRadius: 20,
                               offset: const Offset(0, 10),
                             ),
@@ -115,66 +135,66 @@ class _LessonCompletionScreenState extends State<LessonCompletionScreen>
                   );
                 },
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Congratulation Text
               FadeTransition(
                 opacity: _fadeAnimation,
                 child: Column(
                   children: [
-                    const Text(
+                    Text(
                       'أحسنت صنعاً!',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,
-                        color: EduTheme.primaryDark,
+                        color: titleColor,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'لقد أتممت دراسة الدرس بنجاح',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: EduTheme.textMuted,
+                        color: mutedColor,
                       ),
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Stats Card
                     Container(
                       padding: const EdgeInsets.all(20),
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
+                        color: statsBackground,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: borderColor),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const Text(
+                          Text(
                             'الدرس المنجز',
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: EduTheme.textMuted,
+                              color: mutedColor,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             widget.title,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
-                              color: EduTheme.primaryDark,
+                              color: titleColor,
                             ),
                           ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                            child: Divider(),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Divider(color: borderColor),
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -185,21 +205,21 @@ class _LessonCompletionScreenState extends State<LessonCompletionScreen>
                                 color: EduTheme.primary,
                               ),
                               const SizedBox(width: 8),
-                              const Text(
+                              Text(
                                 'الوقت المستغرق:',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: EduTheme.textMuted,
+                                  color: mutedColor,
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 _formatTime(widget.timeSpentSeconds),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w800,
-                                  color: EduTheme.primaryDark,
+                                  color: titleColor,
                                 ),
                               ),
                             ],
@@ -210,9 +230,9 @@ class _LessonCompletionScreenState extends State<LessonCompletionScreen>
                   ],
                 ),
               ),
-              
+
               const Spacer(),
-              
+
               // Actions
               FadeTransition(
                 opacity: _fadeAnimation,

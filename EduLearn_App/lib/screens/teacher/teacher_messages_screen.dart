@@ -1,14 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pusher_reverb_flutter/pusher_reverb_flutter.dart';
 
 import '../../theme.dart';
-
-// ✅ APIs
 import '../../services/chat_service.dart';
 import '../../services/api_helpers.dart';
-
-// ✅ Reverb service (مشترك)
 import '../../services/reverb_service.dart';
 
 /// ========= Helpers عامة للتواريخ/الأوقات =========
@@ -18,7 +15,6 @@ DateTime? _parseUtcDate(String value) {
     if (value.trim().isEmpty) return null;
     var v = value.trim();
 
-    // مثل: "2025-12-06 18:20:00" -> ISO
     if (!v.contains('T') && v.length >= 19) {
       v = v.substring(0, 19).replaceFirst(' ', 'T') + 'Z';
     }
@@ -113,6 +109,32 @@ bool _isSameCalendarDate(DateTime a, DateTime b) {
   return a.year == b.year && a.month == b.month && a.day == b.day;
 }
 
+String _formatDateDivider(DateTime date) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final target = DateTime(date.year, date.month, date.day);
+  final diff = today.difference(target).inDays;
+
+  if (diff == 0) return 'Today';
+  if (diff == 1) return 'Yesterday';
+
+  const monthNames = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  return '${monthNames[date.month - 1]} ${date.day}, ${date.year}';
+}
+
 /// ✅ Helper: فلترة مرنة لأسماء أحداث Reverb/Pusher
 bool _isMessageSentEvent(String name) {
   final n = name.trim();
@@ -152,16 +174,10 @@ class _TeacherMessagesScreenState extends State<TeacherMessagesScreen>
   late List<_ChatStudent> _chatStudents;
   bool _loadingConversations = false;
 
-  /// محادثات لكل طالب حسب الـ academic_id
   final Map<String, _ConversationMeta> _metaByAcademicId = {};
-
-  /// conversationId -> academicId
   final Map<int, String> _academicIdByConversationId = {};
 
-  /// Reverb (مشترك)
   ReverbClient? _reverbClient;
-
-  /// القنوات المشترك بها
   final Map<int, Channel> _conversationChannels = {};
 
   String get _teacherFullName => (widget.teacher['full_name'] ?? '').toString();
@@ -178,7 +194,6 @@ class _TeacherMessagesScreenState extends State<TeacherMessagesScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // ✅ عند رجوع التطبيق: أعِد تثبيت الاشتراكات (في حال انقطع الاتصال)
     if (state == AppLifecycleState.resumed) {
       _ensureReverbClient().then((_) => _resubscribeToConversationChannels());
     }
@@ -188,7 +203,6 @@ class _TeacherMessagesScreenState extends State<TeacherMessagesScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
 
-    // ✅ مهم: لا تفصل ReverbService هنا حتى لا تقطع الاتصال عن شاشة الشات/شاشات أخرى
     try {
       for (final ch in _conversationChannels.values) {
         try {
@@ -242,7 +256,6 @@ class _TeacherMessagesScreenState extends State<TeacherMessagesScreen>
     return list;
   }
 
-  /// ✅ showLoading=false لتجنب “الدائرة الصغيرة” عند الرجوع من الشات
   Future<void> _loadTeacherConversations({required bool showLoading}) async {
     if (_teacherCode.isEmpty) return;
 
@@ -279,7 +292,6 @@ class _TeacherMessagesScreenState extends State<TeacherMessagesScreen>
         final String lastPreview = (c['last_message'] ?? '').toString();
         final String lastTimeRaw = (c['last_message_at'] ?? '').toString();
 
-        // ✅ عند الأستاذ: نفضل unread_for_teacher إن توفر، وإلا fallback على unread_count
         final int unread = int.tryParse(
               (c['unread_for_teacher'] ?? c['unread_count'] ?? '0').toString(),
             ) ??
@@ -324,11 +336,11 @@ class _TeacherMessagesScreenState extends State<TeacherMessagesScreen>
         );
       }
     } finally {
-      if (showLoading && mounted) setState(() => _loadingConversations = false);
+      if (showLoading && mounted) {
+        setState(() => _loadingConversations = false);
+      }
     }
   }
-
-  /// ===================== Reverb (Private Channels) =====================
 
   Future<void> _ensureReverbClient() async {
     if (_reverbClient != null) return;
@@ -353,13 +365,14 @@ class _TeacherMessagesScreenState extends State<TeacherMessagesScreen>
       final channelName = 'private-conversation.$conversationId';
       final ch = _reverbClient!.subscribeToChannel(channelName);
 
-      // ✅ مهم: listen قبل subscribe حتى لا نفوّت أول events
       ch.stream.listen(
         (ChannelEvent event) {
           _handleConversationChannelEvent(conversationId, event);
         },
         onError: (e) {
-          debugPrint('TeacherMessagesScreen: error on channel $conversationId: $e');
+          debugPrint(
+            'TeacherMessagesScreen: error on channel $conversationId: $e',
+          );
         },
       );
 
@@ -446,7 +459,6 @@ class _TeacherMessagesScreenState extends State<TeacherMessagesScreen>
           ? ''
           : _formatTimeLabel(lastTimeRaw, forConversation: true);
 
-      // unread logic (عميل)
       final isOpen = _TeacherChatState.currentConversationId == conversationId;
 
       int unreadClient;
@@ -455,7 +467,6 @@ class _TeacherMessagesScreenState extends State<TeacherMessagesScreen>
       } else if (senderType == 'teacher') {
         unreadClient = 0;
       } else {
-        // ✅ لو السيرفر رجّع unread_for_teacher ناخذه، وإلا نزود محلياً +1
         final serverUnread = int.tryParse(
               (conv['unread_for_teacher'] ?? conv['unread_count'] ?? '')
                   .toString(),
@@ -580,14 +591,25 @@ class _TeacherMessagesScreenState extends State<TeacherMessagesScreen>
       _TeacherChatState.currentConversationId = null;
     }
 
-    // ✅ تحديث صامت بدل “اللود الدائري” بعد الرجوع
     await _loadTeacherConversations(showLoading: false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<_ChatStudent> orderedStudents =
-        List<_ChatStudent>.from(_chatStudents);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final titleColor = theme.colorScheme.onSurface;
+    final mutedColor = theme.textTheme.bodySmall?.color ??
+        (isDark ? EduTheme.darkTextMuted : EduTheme.textMuted);
+    final headerBoxColor = theme.cardColor;
+    final headerShadow = isDark
+        ? Colors.black.withValues(alpha: 0.18)
+        : const Color(0x12000000);
+
+    final List<_ChatStudent> orderedStudents = List<_ChatStudent>.from(
+      _chatStudents,
+    );
 
     orderedStudents.sort((a, b) {
       final ma = _metaByAcademicId[a.academicId];
@@ -603,130 +625,170 @@ class _TeacherMessagesScreenState extends State<TeacherMessagesScreen>
       return a.name.toLowerCase().compareTo(b.name.toLowerCase());
     });
 
-    final avatarUrl = _teacherImage != null && _teacherImage!.isNotEmpty
-        ? ApiHelpers.buildFullMediaUrl(_teacherImage!)
-        : null;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6FB),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
         centerTitle: false,
-        titleSpacing: 16,
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: Colors.white,
-              backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
-              child: avatarUrl == null
-                  ? const Icon(Icons.person, color: EduTheme.primaryDark)
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Messages',
-                  style: TextStyle(
-                    color: EduTheme.primaryDark,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 24,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  _teacherFullName,
-                  style: const TextStyle(
-                    color: EduTheme.textMuted,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ],
+        titleSpacing: 20,
+        title: Text(
+          'Messages',
+          style: GoogleFonts.nunito(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            color: titleColor,
+          ),
         ),
         actions: [
           if (_loadingConversations)
-            const Padding(
-              padding: EdgeInsets.only(right: 16),
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
               child: SizedBox(
                 width: 18,
                 height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: theme.colorScheme.primary,
+                ),
               ),
             )
           else
             IconButton(
-              icon: const Icon(Icons.refresh_rounded, color: EduTheme.primaryDark),
+              icon: Icon(
+                Icons.refresh_rounded,
+                color: theme.colorScheme.primary,
+              ),
               onPressed: () => _loadTeacherConversations(showLoading: true),
             ),
         ],
       ),
-      body: orderedStudents.isEmpty
-          ? const Center(
-              child: Text(
-                'No students found for your classes yet.',
-                style: TextStyle(color: EduTheme.textMuted, fontSize: 13),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: headerBoxColor,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: headerShadow,
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.only(top: 8, bottom: 12),
-              itemCount: orderedStudents.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 4),
-              itemBuilder: (context, index) {
-                final s = orderedStudents[index];
-
-                final avatarText =
-                    s.name.isNotEmpty ? s.name[0].toUpperCase() : '?';
-
-                final subtitleParts = <String>[];
-                if (s.grade != null && s.grade!.isNotEmpty) {
-                  subtitleParts.add('Grade ${s.grade}');
-                }
-                if (s.section != null && s.section!.isNotEmpty) {
-                  subtitleParts.add('Section ${s.section}');
-                }
-                if (s.academicId.isNotEmpty) {
-                  subtitleParts.add('#${s.academicId}');
-                }
-                final fallbackSubtitle = subtitleParts.join(' • ');
-
-                final meta = _metaByAcademicId[s.academicId];
-
-                final displayPreview =
-                    (meta?.lastMessagePreview?.isNotEmpty ?? false)
-                        ? meta!.lastMessagePreview!
-                        : fallbackSubtitle;
-
-                final displayTime = meta?.lastMessageTimeLabel ?? '';
-
-                final unreadCount =
-                    (meta?.unreadCount != null && meta!.unreadCount! > 0)
-                        ? meta.unreadCount
-                        : null;
-
-                final avatarImageUrl =
-                    (s.imageUrl != null && s.imageUrl!.isNotEmpty)
-                        ? ApiHelpers.buildFullMediaUrl(s.imageUrl!)
-                        : null;
-
-                return _MessageItem(
-                  avatarText: avatarText,
-                  avatarImageUrl: avatarImageUrl,
-                  name: s.name.isNotEmpty ? s.name : s.academicId,
-                  preview: displayPreview,
-                  metaLine: fallbackSubtitle,
-                  time: displayTime,
-                  unreadCount: unreadCount,
-                  onTap: () => _openChatForStudent(s),
-                );
-              },
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: isDark
+                        ? EduTheme.darkSurface
+                        : const Color(0xFFE8F3FF),
+                    child: Text(
+                      _teacherFullName.trim().isNotEmpty
+                          ? _teacherFullName.trim()[0].toUpperCase()
+                          : '?',
+                      style: GoogleFonts.nunito(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: titleColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _teacherFullName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.nunito(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: titleColor,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          'Your conversations with students',
+                          style: GoogleFonts.nunito(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: mutedColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
+          ),
+          Expanded(
+            child: orderedStudents.isEmpty
+                ? const _EmptyConversationsState()
+                : ListView.separated(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
+                    itemCount: orderedStudents.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    itemBuilder: (context, index) {
+                      final s = orderedStudents[index];
+
+                      final avatarText =
+                          s.name.isNotEmpty ? s.name[0].toUpperCase() : '?';
+
+                      final subtitleParts = <String>[];
+                      if (s.grade != null && s.grade!.isNotEmpty) {
+                        subtitleParts.add('Grade ${s.grade}');
+                      }
+                      if (s.section != null && s.section!.isNotEmpty) {
+                        subtitleParts.add('Section ${s.section}');
+                      }
+                      if (s.academicId.isNotEmpty) {
+                        subtitleParts.add('#${s.academicId}');
+                      }
+                      final fallbackSubtitle = subtitleParts.join(' • ');
+
+                      final meta = _metaByAcademicId[s.academicId];
+
+                      final displayPreview =
+                          (meta?.lastMessagePreview?.isNotEmpty ?? false)
+                          ? meta!.lastMessagePreview!
+                          : fallbackSubtitle;
+
+                      final displayTime = meta?.lastMessageTimeLabel ?? '';
+
+                      final unreadCount =
+                          (meta?.unreadCount != null && meta!.unreadCount! > 0)
+                          ? meta.unreadCount
+                          : null;
+
+                      final avatarImageUrl =
+                          (s.imageUrl != null && s.imageUrl!.isNotEmpty)
+                          ? ApiHelpers.buildFullMediaUrl(s.imageUrl!)
+                          : null;
+
+                      return _MessageItem(
+                        avatarText: avatarText,
+                        avatarImageUrl: avatarImageUrl,
+                        name: s.name.isNotEmpty ? s.name : s.academicId,
+                        preview: displayPreview,
+                        metaLine: fallbackSubtitle,
+                        time: displayTime,
+                        unreadCount: unreadCount,
+                        onTap: () => _openChatForStudent(s),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -768,6 +830,71 @@ class _ConversationMeta {
   });
 }
 
+class _EmptyConversationsState extends StatelessWidget {
+  const _EmptyConversationsState();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final titleColor = theme.colorScheme.onSurface;
+    final mutedColor = theme.textTheme.bodySmall?.color ??
+        (isDark ? EduTheme.darkTextMuted : EduTheme.textMuted);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: theme.colorScheme.primary.withValues(alpha: 0.10),
+                ),
+                child: Icon(
+                  Icons.chat_bubble_outline_rounded,
+                  color: theme.colorScheme.primary,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No conversations yet',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  color: titleColor,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Student conversations will appear here once available.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  color: mutedColor,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _MessageItem extends StatelessWidget {
   final String avatarText;
   final String? avatarImageUrl;
@@ -791,53 +918,62 @@ class _MessageItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final bool hasUnread = unreadCount != null && unreadCount! > 0;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    final titleColor = theme.colorScheme.onSurface;
+    final mutedColor = theme.textTheme.bodySmall?.color ??
+        (isDark ? EduTheme.darkTextMuted : EduTheme.textMuted);
+
+    final shadowColor = isDark
+        ? Colors.black.withValues(alpha: 0.14)
+        : const Color(0x10000000);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Ink(
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: hasUnread ? const Color(0xFFEFF4FF) : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: hasUnread
-                  ? EduTheme.primary.withOpacity(0.25)
-                  : const Color(0xFFE2E6F0),
-            ),
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                offset: const Offset(0, 2),
-                blurRadius: 4,
+                color: shadowColor,
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
+            border: Border.all(
+              color: hasUnread
+                  ? theme.colorScheme.primary.withValues(alpha: 0.20)
+                  : theme.dividerColor.withValues(alpha: 0.35),
+            ),
           ),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               CircleAvatar(
-                radius: 24,
-                backgroundColor: hasUnread
-                    ? EduTheme.primary.withOpacity(0.14)
-                    : Colors.white,
-                backgroundImage:
-                    avatarImageUrl != null ? NetworkImage(avatarImageUrl!) : null,
+                radius: 28,
+                backgroundColor:
+                    theme.colorScheme.primary.withValues(alpha: 0.10),
+                backgroundImage: avatarImageUrl != null
+                    ? NetworkImage(avatarImageUrl!)
+                    : null,
                 child: avatarImageUrl == null
                     ? Text(
                         avatarText,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 20,
-                          color: EduTheme.primaryDark,
+                        style: GoogleFonts.nunito(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 18,
                         ),
                       )
                     : null,
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -849,11 +985,10 @@ class _MessageItem extends StatelessWidget {
                             name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontWeight:
-                                  hasUnread ? FontWeight.w800 : FontWeight.w700,
-                              fontSize: 15.5,
-                              color: EduTheme.primaryDark,
+                            style: GoogleFonts.nunito(
+                              color: titleColor,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 15,
                             ),
                           ),
                         ),
@@ -861,26 +996,29 @@ class _MessageItem extends StatelessWidget {
                           const SizedBox(width: 8),
                           Text(
                             time,
-                            style: TextStyle(
-                              fontSize: 11,
+                            style: GoogleFonts.nunito(
                               color: hasUnread
-                                  ? EduTheme.primary
-                                  : EduTheme.textMuted,
-                              fontWeight: FontWeight.w600,
+                                  ? theme.colorScheme.primary
+                                  : mutedColor,
+                              fontSize: 11,
+                              fontWeight: hasUnread
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
                             ),
                           ),
                         ],
                       ],
                     ),
                     if (metaLine.isNotEmpty) ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 3),
                       Text(
                         metaLine,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: EduTheme.textMuted,
+                        style: GoogleFonts.nunito(
+                          color: mutedColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -889,41 +1027,39 @@ class _MessageItem extends StatelessWidget {
                       preview,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style: GoogleFonts.nunito(
+                        color: hasUnread ? titleColor : mutedColor,
                         fontSize: 13,
-                        color: hasUnread ? EduTheme.primaryDark : EduTheme.textMuted,
-                        fontWeight: hasUnread ? FontWeight.w600 : FontWeight.w400,
+                        fontWeight:
+                            hasUnread ? FontWeight.w700 : FontWeight.w600,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  const SizedBox(height: 4),
-                  if (hasUnread)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: EduTheme.primary,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        unreadCount.toString(),
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+              if (hasUnread) ...[
+                const SizedBox(width: 10),
+                Container(
+                  constraints: const BoxConstraints(minWidth: 22),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    unreadCount! > 99 ? '99+' : unreadCount.toString(),
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.nunito(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
                     ),
-                ],
-              ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -1009,15 +1145,15 @@ class _TeacherChatScreenState extends State<TeacherChatScreen>
 
         final idStr = (m['id'] ?? '').toString();
         if (idStr.isEmpty) continue;
-
         if (_messageIds.contains(idStr)) continue;
 
         _messageIds.add(idStr);
         _messages.add(m);
       }
 
+      if (!mounted) return;
       setState(() => _initialLoaded = true);
-      _scrollToBottom();
+      _scrollToBottom(jump: true);
     } catch (e) {
       debugPrint('Failed to load messages: $e');
       if (!mounted) return;
@@ -1046,7 +1182,6 @@ class _TeacherChatScreenState extends State<TeacherChatScreen>
 
       final channelName = 'private-conversation.${widget.conversationId}';
 
-      // ✅ افصل القديم قبل إعادة الاشتراك (مهم مع reconnect/resume)
       try {
         _channel?.unsubscribe();
       } catch (_) {}
@@ -1054,7 +1189,6 @@ class _TeacherChatScreenState extends State<TeacherChatScreen>
 
       _channel = _reverbClient!.subscribeToChannel(channelName);
 
-      // ✅ listen قبل subscribe
       _channel!.stream.listen(
         (ChannelEvent event) {
           if (!_isMessageSentEvent(event.eventName)) return;
@@ -1143,7 +1277,6 @@ class _TeacherChatScreenState extends State<TeacherChatScreen>
 
       if (!mounted) return;
       setState(() {
-        // حذف الرسالة المؤقتة واستبدالها بالرسالة الحقيقية من السيرفر
         _messages.removeWhere((m) => m['id'] == tempId);
         _messageIds.remove(tempId);
 
@@ -1158,11 +1291,13 @@ class _TeacherChatScreenState extends State<TeacherChatScreen>
       debugPrint('Failed to send message: $e');
       if (!mounted) return;
 
-      // في حال الفشل
       setState(() {
         _messages.removeWhere((m) => m['id'] == tempId);
         _messageIds.remove(tempId);
         _textController.text = text;
+        _textController.selection = TextSelection.fromPosition(
+          TextPosition(offset: _textController.text.length),
+        );
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1177,14 +1312,25 @@ class _TeacherChatScreenState extends State<TeacherChatScreen>
     }
   }
 
-  void _scrollToBottom() {
+  void _scrollToBottom({bool jump = false}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scrollController.hasClients) return;
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent + 80,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOut,
-      );
+      final target = _scrollController.position.maxScrollExtent + 80;
+
+      if (jump) {
+        _scrollController.jumpTo(
+          target.clamp(
+            _scrollController.position.minScrollExtent,
+            _scrollController.position.maxScrollExtent,
+          ),
+        );
+      } else {
+        _scrollController.animateTo(
+          target,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
 
@@ -1199,7 +1345,6 @@ class _TeacherChatScreenState extends State<TeacherChatScreen>
     _textController.dispose();
     _scrollController.dispose();
 
-    // ✅ نفصل القناة فقط، ولا نفصل الاتصال العام
     try {
       _channel?.unsubscribe();
     } catch (_) {}
@@ -1209,6 +1354,9 @@ class _TeacherChatScreenState extends State<TeacherChatScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     final subtitleParts = <String>[];
     if (widget.grade != null && widget.grade!.isNotEmpty) {
       subtitleParts.add('Grade: ${widget.grade}');
@@ -1225,161 +1373,212 @@ class _TeacherChatScreenState extends State<TeacherChatScreen>
         ? ApiHelpers.buildFullMediaUrl(_studentImage!)
         : null;
 
+    final titleColor = theme.colorScheme.onSurface;
+    final mutedColor = theme.textTheme.bodySmall?.color ??
+        (isDark ? EduTheme.darkTextMuted : EduTheme.textMuted);
+
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        elevation: 0.4,
-        backgroundColor: Colors.white,
+        elevation: 0,
         titleSpacing: 0,
         title: Row(
           children: [
-            const SizedBox(width: 4),
             CircleAvatar(
               radius: 20,
-              backgroundColor: Colors.white,
-              backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+              backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.10),
+              backgroundImage:
+                  avatarUrl != null ? NetworkImage(avatarUrl) : null,
               child: avatarUrl == null
-                  ? const Icon(Icons.person, color: EduTheme.primaryDark)
+                  ? Icon(
+                      Icons.person,
+                      color: theme.colorScheme.primary,
+                      size: 20,
+                    )
                   : null,
             ),
             const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _studentName.isNotEmpty ? _studentName : _academicId,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: EduTheme.primaryDark,
-                  ),
-                ),
-                if (subtitle.isNotEmpty)
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: EduTheme.textMuted,
+                    _studentName.isNotEmpty ? _studentName : _academicId,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.nunito(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: titleColor,
                     ),
                   ),
-              ],
+                  if (subtitle.isNotEmpty)
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.nunito(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: mutedColor,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ],
         ),
       ),
-      backgroundColor: const Color(0xFFECEFF3),
       body: Column(
         children: [
           Expanded(
             child: _loading && !_initialLoaded
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(
+                    child: CircularProgressIndicator(
+                      color: theme.colorScheme.primary,
+                    ),
+                  )
                 : _messages.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'No messages yet. Start the conversation.',
-                          style: TextStyle(color: EduTheme.textMuted),
-                        ),
-                      )
-                    : ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 10,
-                        ),
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          final m = _messages[index];
-                          final senderType = (m['sender_type'] ?? '').toString();
-                          final isTeacher = senderType == 'teacher';
+                ? const _EmptyChatState()
+                : ListView.builder(
+                    controller: _scrollController,
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 20),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final m = _messages[index];
+                      final senderType = (m['sender_type'] ?? '').toString();
+                      final isTeacher = senderType == 'teacher';
 
-                          final body = (m['body'] ?? '').toString();
-                          final createdAtRaw = (m['sent_at'] ?? '').toString();
-                          final createdTimeLabel =
-                              createdAtRaw.isEmpty ? '' : _formatTimeLabel(createdAtRaw);
+                      final body = (m['body'] ?? '').toString();
+                      final createdAtRaw = (m['sent_at'] ?? '').toString();
+                      final createdTimeLabel = createdAtRaw.isEmpty
+                          ? ''
+                          : _formatTimeLabel(createdAtRaw);
 
-                          String? dateHeader;
-                          final dt = _parseUtcDate(createdAtRaw)?.toLocal();
-                          if (dt != null) {
-                            bool showHeader = false;
-                            if (index == 0) {
-                              showHeader = true;
-                            } else {
-                              final prevRaw =
-                                  (_messages[index - 1]['sent_at'] ?? '').toString();
-                              final prevDt = _parseUtcDate(prevRaw)?.toLocal();
-                              if (prevDt == null || !_isSameCalendarDate(prevDt, dt)) {
-                                showHeader = true;
-                              }
-                            }
-
-                            if (showHeader) {
-                              final now = DateTime.now();
-                              final today = DateTime(now.year, now.month, now.day);
-                              final date = DateTime(dt.year, dt.month, dt.day);
-                              final diffDays = today.difference(date).inDays;
-                              if (diffDays == 0) {
-                                dateHeader = 'Today';
-                              } else if (diffDays == 1) {
-                                dateHeader = 'Yesterday';
-                              } else {
-                                const monthNames = [
-                                  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-                                ];
-                                dateHeader = '${monthNames[dt.month - 1]} ${dt.day}';
-                              }
-                            }
+                      String? dateHeader;
+                      final dt = _parseUtcDate(createdAtRaw)?.toLocal();
+                      if (dt != null) {
+                        bool showHeader = false;
+                        if (index == 0) {
+                          showHeader = true;
+                        } else {
+                          final prevRaw =
+                              (_messages[index - 1]['sent_at'] ?? '').toString();
+                          final prevDt = _parseUtcDate(prevRaw)?.toLocal();
+                          if (prevDt == null ||
+                              !_isSameCalendarDate(prevDt, dt)) {
+                            showHeader = true;
                           }
+                        }
 
-                          return Column(
-                            children: [
-                              if (dateHeader != null) _DateChip(label: dateHeader),
-                              _ChatBubble(
-                                isMe: isTeacher,
-                                text: body,
-                                timeLabel: createdTimeLabel,
-                                isTemp: m['is_temp'] == true,
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            color: Colors.white,
-            child: SafeArea(
-              top: false,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F7FB),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                        child: TextField(
-                          controller: _textController,
-                          minLines: 1,
-                          maxLines: 4,
-                          textInputAction: TextInputAction.send,
-                          onSubmitted: (val) => _sendMessage(),
-                          decoration: const InputDecoration(
-                            hintText: 'Type a message...',
-                            border: InputBorder.none,
+                        if (showHeader) {
+                          dateHeader = _formatDateDivider(dt);
+                        }
+                      }
+
+                      return Column(
+                        children: [
+                          if (dateHeader != null) _DateChip(label: dateHeader),
+                          _ChatBubble(
+                            isMe: isTeacher,
+                            text: body,
+                            timeLabel: createdTimeLabel,
+                            isTemp: m['is_temp'] == true,
                           ),
-                        ),
+                        ],
+                      );
+                    },
+                  ),
+          ),
+          _buildInput(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInput(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final inputFill = isDark ? EduTheme.darkSurface : Colors.white;
+    final borderColor = theme.dividerColor.withValues(alpha: 0.6);
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        border: Border(
+          top: BorderSide(color: borderColor),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: inputFill,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: borderColor),
+                ),
+                child: TextField(
+                  controller: _textController,
+                  minLines: 1,
+                  maxLines: 4,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  cursorColor: theme.colorScheme.primary,
+                  style: GoogleFonts.nunito(
+                    color: theme.colorScheme.onSurface,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    height: 1.35,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Type a message...',
+                    hintStyle: GoogleFonts.nunito(
+                      color: theme.textTheme.bodySmall?.color,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    border: InputBorder.none,
+                    isCollapsed: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: _sendMessage,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            ValueListenableBuilder<TextEditingValue>(
+              valueListenable: _textController,
+              builder: (context, value, _) {
+                final canSend = value.text.trim().isNotEmpty;
+                return AnimatedOpacity(
+                  duration: const Duration(milliseconds: 180),
+                  opacity: canSend ? 1 : 0.55,
+                  child: GestureDetector(
+                    onTap: canSend ? _sendMessage : null,
                     child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: const BoxDecoration(
-                        color: EduTheme.primary,
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
+                        color: theme.colorScheme.primary,
+                        boxShadow: [
+                          BoxShadow(
+                            color: theme.colorScheme.primary.withValues(
+                              alpha: 0.20,
+                            ),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: const Icon(
                         Icons.send_rounded,
@@ -1388,11 +1587,67 @@ class _TeacherChatScreenState extends State<TeacherChatScreen>
                       ),
                     ),
                   ),
-                ],
-              ),
+                );
+              },
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyChatState extends StatelessWidget {
+  const _EmptyChatState();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final titleColor = theme.colorScheme.onSurface;
+    final mutedColor = theme.textTheme.bodySmall?.color ??
+        (isDark ? EduTheme.darkTextMuted : EduTheme.textMuted);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(24),
           ),
-        ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.mark_chat_unread_rounded,
+                color: theme.colorScheme.primary,
+                size: 30,
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'No messages yet',
+                style: GoogleFonts.nunito(
+                  color: titleColor,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Start the conversation by sending your first message.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  color: mutedColor,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1405,21 +1660,25 @@ class _DateChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(top: 6, bottom: 10),
+      padding: const EdgeInsets.only(top: 8, bottom: 10),
       child: Center(
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: const Color(0xFFD9E1F2),
+            color: theme.cardColor,
             borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: theme.dividerColor.withValues(alpha: 0.45),
+            ),
           ),
           child: Text(
             label,
-            style: const TextStyle(
+            style: GoogleFonts.nunito(
+              color: theme.textTheme.bodySmall?.color,
               fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: EduTheme.primaryDark,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
@@ -1443,84 +1702,80 @@ class _ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = isMe ? EduTheme.primary : Colors.white;
-    final textColor = isMe ? Colors.white : EduTheme.primaryDark;
+    final theme = Theme.of(context);
+    final bubbleColor = isMe ? theme.colorScheme.primary : theme.cardColor;
+    final textColor = isMe ? Colors.white : theme.colorScheme.onSurface;
+    final timeColor = isMe
+        ? Colors.white.withValues(alpha: 0.78)
+        : theme.textTheme.bodySmall?.color ?? Colors.grey;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-      child: Column(
-        crossAxisAlignment:
-            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment:
-                isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-            children: [
-              Flexible(
-                child: Opacity(
-                  opacity: isTemp ? 0.6 : 1.0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: bgColor,
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(20),
-                        topRight: const Radius.circular(20),
-                        bottomLeft: Radius.circular(isMe ? 20 : 6),
-                        bottomRight: Radius.circular(isMe ? 6 : 20),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          offset: const Offset(0, 1),
-                          blurRadius: 3,
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      text,
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Opacity(
+        opacity: isTemp ? 0.72 : 1,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.76,
           ),
-          const SizedBox(height: 2),
-          if (timeLabel.isNotEmpty || isTemp)
-            Row(
-              mainAxisAlignment:
-                  isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: bubbleColor,
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(18),
+                topRight: const Radius.circular(18),
+                bottomLeft: Radius.circular(isMe ? 18 : 6),
+                bottomRight: Radius.circular(isMe ? 6 : 18),
+              ),
+              border: Border.all(
+                color: isMe
+                    ? theme.colorScheme.primary.withValues(alpha: 0.20)
+                    : theme.dividerColor.withValues(alpha: 0.45),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment:
+                  isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
-                if (isTemp)
-                   const Padding(
-                     padding: EdgeInsets.only(left: 4),
-                     child: SizedBox(width: 8, height: 8, child: CircularProgressIndicator(strokeWidth: 1)),
-                   ),
                 Text(
-                  isTemp ? 'Sending...' : timeLabel,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: EduTheme.textMuted,
+                  text,
+                  style: GoogleFonts.nunito(
+                    color: textColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    height: 1.35,
                   ),
                 ),
-                if (isMe && !isTemp) ...[
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.done_all_rounded,
-                    size: 14,
-                    color: EduTheme.primary.withOpacity(0.9),
-                  ),
-                ],
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      isTemp ? 'Sending...' : timeLabel,
+                      style: GoogleFonts.nunito(
+                        color: timeColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (isTemp && isMe) ...[
+                      const SizedBox(width: 6),
+                      SizedBox(
+                        width: 9,
+                        height: 9,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.2,
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
-        ],
+          ),
+        ),
       ),
     );
   }

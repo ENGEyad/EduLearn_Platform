@@ -193,7 +193,8 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
           if (type == 'text') {
             _blocks.add(_LessonBlock.text(
               id: (m['id'] ?? _id()).toString(),
-              controller: TextEditingController(text: (m['body'] ?? '').toString()),
+              controller:
+                  TextEditingController(text: (m['body'] ?? '').toString()),
             )..attachChangeListener(_onAnyFieldChanged));
           } else {
             final kind = _inferKindFromBlockType(type);
@@ -208,7 +209,9 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                 mime: m['media_mime']?.toString(),
                 size: m['media_size'] is int
                     ? m['media_size'] as int
-                    : (m['media_size'] is num ? (m['media_size'] as num).toInt() : null),
+                    : (m['media_size'] is num
+                        ? (m['media_size'] as num).toInt()
+                        : null),
                 status: _MediaStatus.ready,
               ),
             ));
@@ -261,7 +264,9 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
         final mime = block['media_mime']?.toString();
         final size = block['media_size'] is int
             ? block['media_size'] as int
-            : (block['media_size'] is num ? (block['media_size'] as num).toInt() : null);
+            : (block['media_size'] is num
+                ? (block['media_size'] as num).toInt()
+                : null);
 
         final id = _id();
         _blocks.add(
@@ -404,7 +409,40 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
   void _showSnack(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        behavior: SnackBarBehavior.floating,
+        content: Container(
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: theme.dividerColor.withValues(alpha: isDark ? 0.35 : 0.65),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.08),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Text(
+            message,
+            style: TextStyle(
+              color: theme.colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   String _id() => DateTime.now().microsecondsSinceEpoch.toString();
@@ -430,13 +468,15 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     final selectedText = text.substring(start, end);
     if (selectedText.isEmpty) return;
 
-    final newText = text.replaceRange(start, end, '$prefix$selectedText$suffix');
+    final newText =
+        text.replaceRange(start, end, '$prefix$selectedText$suffix');
 
     c.value = c.value.copyWith(
       text: newText,
       selection: TextSelection(
         baseOffset: start,
-        extentOffset: start + prefix.length + selectedText.length + suffix.length,
+        extentOffset:
+            start + prefix.length + selectedText.length + suffix.length,
       ),
     );
 
@@ -453,6 +493,7 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
     await showModalBottomSheet(
       context: context,
+      backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
@@ -524,9 +565,13 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     required String title,
     required Future<void> Function() onTap,
   }) {
+    final theme = Theme.of(context);
     return ListTile(
-      leading: Icon(icon, color: EduTheme.primaryDark),
-      title: Text(title),
+      leading: Icon(icon, color: theme.colorScheme.primary),
+      title: Text(
+        title,
+        style: TextStyle(color: theme.colorScheme.onSurface),
+      ),
       onTap: onTap,
     );
   }
@@ -655,7 +700,9 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
               mediaPath: mediaPath,
               remoteUrl: mediaUrl.isNotEmpty
                   ? mediaUrl
-                  : (mediaPath.isNotEmpty ? ApiHelpers.buildMediaUrl(mediaPath) : ''),
+                  : (mediaPath.isNotEmpty
+                      ? ApiHelpers.buildMediaUrl(mediaPath)
+                      : ''),
               mime: mime,
               size: size,
               status: _MediaStatus.ready,
@@ -941,16 +988,28 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Scaffold(
-      backgroundColor: EduTheme.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: const Text('Lesson Builder'),
+        title: Text(
+          'Lesson Builder',
+          style: TextStyle(
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        backgroundColor: theme.scaffoldBackgroundColor,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: EduTheme.primaryDark),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: theme.colorScheme.onSurface,
+          ),
           onPressed: _handleBack,
         ),
         actions: [
@@ -963,7 +1022,7 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: _hasUnsavedChanges
                         ? Colors.orange
-                        : EduTheme.primaryDark,
+                        : theme.colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
             ),
@@ -975,9 +1034,10 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
           children: [
             Expanded(
               child: Container(
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF6F7FB),
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                decoration: BoxDecoration(
+                  color: theme.scaffoldBackgroundColor,
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(24)),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
@@ -989,30 +1049,48 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                         // 1️⃣ Step 1: Lesson Metadata
                         _buildSectionHeader(context, "Step 1: Lesson Details"),
                         Card(
-                          elevation: 2,
-                          color: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                          color: theme.cardColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: theme.dividerColor.withValues(
+                                alpha: isDark ? 0.35 : 0.65,
+                              ),
+                            ),
+                          ),
                           child: Padding(
                             padding: const EdgeInsets.all(16),
                             child: Column(
                               children: [
                                 TextField(
                                   controller: _titleController,
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
                                     labelText: 'Lesson Title',
-                                    prefixIcon: Icon(Icons.title),
-                                    border: OutlineInputBorder(),
+                                    prefixIcon: Icon(
+                                      Icons.title,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    border: const OutlineInputBorder(),
                                   ),
                                 ),
                                 const SizedBox(height: 12),
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: _buildStaticField('Subject', widget.classTitle, Icons.book),
+                                      child: _buildStaticField(
+                                        'Subject',
+                                        widget.classTitle,
+                                        Icons.book,
+                                      ),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
-                                      child: _buildStaticField('Grade', widget.classKey, Icons.grade),
+                                      child: _buildStaticField(
+                                        'Grade',
+                                        widget.classKey,
+                                        Icons.grade,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -1020,9 +1098,15 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                                 SizedBox(
                                   width: double.infinity,
                                   child: OutlinedButton.icon(
-                                    icon: const Icon(Icons.auto_awesome, size: 18),
-                                    label: const Text('Generate AI Suggestions'),
-                                    onPressed: () => _showSnack('AI suggestion feature coming soon.'),
+                                    icon: const Icon(
+                                      Icons.auto_awesome,
+                                      size: 18,
+                                    ),
+                                    label:
+                                        const Text('Generate AI Suggestions'),
+                                    onPressed: () => _showSnack(
+                                      'AI suggestion feature coming soon.',
+                                    ),
                                   ),
                                 ),
                               ],
@@ -1033,17 +1117,31 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                         const SizedBox(height: 24),
 
                         // 2️⃣ Step 2: Source Material (The Editor)
-                        _buildSectionHeader(context, "Step 2: Upload Lesson Content"),
+                        _buildSectionHeader(
+                          context,
+                          "Step 2: Upload Lesson Content",
+                        ),
                         _buildToolbar(),
                         const SizedBox(height: 10),
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: theme.cardColor,
                             borderRadius: BorderRadius.circular(16),
-                            boxShadow: const [
-                              BoxShadow(color: Color(0x11000000), blurRadius: 10, offset: Offset(0, 4)),
+                            border: Border.all(
+                              color: theme.dividerColor.withValues(
+                                alpha: isDark ? 0.35 : 0.65,
+                              ),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(
+                                  alpha: isDark ? 0.16 : 0.04,
+                                ),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
                             ],
                           ),
                           child: Column(
@@ -1052,12 +1150,31 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                               if (_blocks.isEmpty)
                                 Center(
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 20),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 20,
+                                    ),
                                     child: Column(
                                       children: [
-                                        Icon(Icons.cloud_upload_outlined, size: 48, color: Colors.grey.shade400),
+                                        Icon(
+                                          Icons.cloud_upload_outlined,
+                                          size: 48,
+                                          color: theme.textTheme.bodySmall
+                                                  ?.color ??
+                                              (isDark
+                                                  ? EduTheme.darkTextMuted
+                                                  : EduTheme.textMuted),
+                                        ),
                                         const SizedBox(height: 8),
-                                        Text("No content uploaded yet", style: TextStyle(color: Colors.grey.shade600)),
+                                        Text(
+                                          "No content uploaded yet",
+                                          style: TextStyle(
+                                            color: theme
+                                                    .textTheme.bodySmall?.color ??
+                                                (isDark
+                                                    ? EduTheme.darkTextMuted
+                                                    : EduTheme.textMuted),
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -1065,7 +1182,8 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                               else
                                 for (int i = 0; i < _blocks.length; i++) ...[
                                   _buildEditorBlock(i, _blocks[i]),
-                                  if (i != _blocks.length - 1) const SizedBox(height: 16),
+                                  if (i != _blocks.length - 1)
+                                    const SizedBox(height: 16),
                                 ],
                             ],
                           ),
@@ -1074,7 +1192,10 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                         const SizedBox(height: 24),
 
                         // 3️⃣ Step 3: AI Assessment Review
-                        _buildSectionHeader(context, "Step 3: AI Assessment Review"),
+                        _buildSectionHeader(
+                          context,
+                          "Step 3: AI Assessment Review",
+                        ),
                         _buildAIQuestionsSection(),
                       ],
                     ),
@@ -1090,6 +1211,7 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   }
 
   Widget _buildSectionHeader(BuildContext context, String title) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0, left: 4),
       child: Text(
@@ -1097,28 +1219,44 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
         style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: EduTheme.primaryDark,
+          color: theme.colorScheme.onSurface,
         ),
       ),
     );
   }
 
   Widget _buildStaticField(String label, String value, IconData icon) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return TextFormField(
       initialValue: value,
       readOnly: true,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, size: 20),
+        prefixIcon: Icon(
+          icon,
+          size: 20,
+          color: theme.colorScheme.primary,
+        ),
         filled: true,
-        fillColor: Colors.grey.shade50,
+        fillColor: isDark ? EduTheme.darkSurface : theme.cardColor,
         border: const OutlineInputBorder(),
       ),
-      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+      style: TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 13,
+        color: theme.colorScheme.onSurface,
+      ),
     );
   }
 
   Widget _buildAIQuestionsSection() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final mutedColor = theme.textTheme.bodySmall?.color ??
+        (isDark ? EduTheme.darkTextMuted : EduTheme.textMuted);
+
     return Column(
       children: [
         SizedBox(
@@ -1128,23 +1266,30 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
             icon: const Icon(Icons.psychology),
             label: const Text('Generate Exercises & Exam Questions'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: EduTheme.primaryDark,
+              backgroundColor: theme.colorScheme.primary,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onPressed: _isGeneratingAI ? null : _generateAIQuestions,
           ),
         ),
         const SizedBox(height: 16),
         if (_isGeneratingAI)
-          const Center(
+          Center(
             child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 40),
+              padding: const EdgeInsets.symmetric(vertical: 40),
               child: Column(
                 children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text("AI is generating questions from your content..."),
+                  CircularProgressIndicator(
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "AI is generating questions from your content...",
+                    style: TextStyle(color: theme.colorScheme.onSurface),
+                  ),
                 ],
               ),
             ),
@@ -1153,33 +1298,69 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
           Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Text("No questions generated yet. Click above to start.",
-                  style: TextStyle(color: Colors.grey.shade600)),
+              child: Text(
+                "No questions generated yet. Click above to start.",
+                style: TextStyle(color: mutedColor),
+              ),
             ),
           )
         else
-          ..._aiQuestions.asMap().entries.map((entry) => _buildAIQuestionCard(entry.value, entry.key)),
+          ..._aiQuestions
+              .asMap()
+              .entries
+              .map((entry) => _buildAIQuestionCard(entry.value, entry.key)),
       ],
     );
   }
 
   Widget _buildAIQuestionCard(GeneratedQuestion q, int index) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      color: theme.cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: theme.dividerColor.withValues(alpha: isDark ? 0.35 : 0.65),
+        ),
+      ),
       child: ExpansionTile(
+        iconColor: theme.colorScheme.onSurface,
+        collapsedIconColor: theme.colorScheme.onSurface,
         leading: _getQuestionIcon(q.type),
-        title: Text(q.questionText, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-        subtitle: Text('Type: ${q.type.replaceAll('_', ' ').toUpperCase()}', style: const TextStyle(fontSize: 10)),
+        title: Text(
+          q.questionText,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        subtitle: Text(
+          'Type: ${q.type.replaceAll('_', ' ').toUpperCase()}',
+          style: TextStyle(
+            fontSize: 10,
+            color: theme.textTheme.bodySmall?.color,
+          ),
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(icon: const Icon(Icons.edit, size: 18, color: Colors.blue), onPressed: () {}),
+            IconButton(
+              icon: const Icon(Icons.edit, size: 18, color: Colors.blue),
+              onPressed: () {},
+            ),
             IconButton(
               icon: const Icon(Icons.delete, size: 18, color: Colors.red),
               onPressed: () => setState(() => _aiQuestions.removeAt(index)),
             ),
-            const Icon(Icons.expand_more),
+            Icon(
+              Icons.expand_more,
+              color: theme.colorScheme.onSurface,
+            ),
           ],
         ),
         children: [
@@ -1189,20 +1370,42 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (q.options != null) ...[
-                  const Text("Options:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  Text(
+                    "Options:",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  ...q.options!.map((opt) => Text("• $opt", style: const TextStyle(fontSize: 12))),
-                  const Divider(),
+                  ...q.options!.map(
+                    (opt) => Text(
+                      "• $opt",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  Divider(color: theme.dividerColor),
                 ],
-                const Text("Answer Review:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, fontSize: 12)),
+                Text(
+                  "Answer Review:",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: theme.textTheme.bodySmall?.color,
+                    fontSize: 12,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 TextFormField(
                   initialValue: q.answer,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Correct Answer',
                     filled: true,
-                    fillColor: Color(0xFFF5F5F5),
-                    border: OutlineInputBorder(),
+                    fillColor: isDark ? EduTheme.darkSurface : theme.cardColor,
+                    border: const OutlineInputBorder(),
                   ),
                   onChanged: (val) => q.answer = val,
                 ),
@@ -1216,11 +1419,16 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
   Icon _getQuestionIcon(String type) {
     switch (type) {
-      case 'multiple_choice': return const Icon(Icons.list_alt, color: Colors.blue);
-      case 'true_false': return const Icon(Icons.check_circle_outline, color: Colors.green);
-      case 'fill_blank': return const Icon(Icons.edit_note, color: Colors.orange);
-      case 'matching': return const Icon(Icons.compare_arrows, color: Colors.purple);
-      default: return const Icon(Icons.style, color: Colors.red);
+      case 'multiple_choice':
+        return const Icon(Icons.list_alt, color: Colors.blue);
+      case 'true_false':
+        return const Icon(Icons.check_circle_outline, color: Colors.green);
+      case 'fill_blank':
+        return const Icon(Icons.edit_note, color: Colors.orange);
+      case 'matching':
+        return const Icon(Icons.compare_arrows, color: Colors.purple);
+      default:
+        return const Icon(Icons.style, color: Colors.red);
     }
   }
 
@@ -1266,13 +1474,19 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   }
 
   Widget _buildToolbar() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: theme.dividerColor.withValues(alpha: isDark ? 0.35 : 0.65),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.14 : 0.04),
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
@@ -1285,7 +1499,10 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
           children: [
             IconButton(
               tooltip: 'Attach Media',
-              icon: const Icon(Icons.attach_file_rounded),
+              icon: Icon(
+                Icons.attach_file_rounded,
+                color: theme.colorScheme.onSurface,
+              ),
               onPressed: _openMediaPickerSheet,
             ),
             const SizedBox(width: 8),
@@ -1294,9 +1511,14 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                 ElevatedButton.icon(
                   onPressed: _toggleVoiceRecording,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _isRecording ? Colors.red : EduTheme.primary,
+                    backgroundColor: _isRecording
+                        ? Colors.red
+                        : theme.colorScheme.primary,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -1319,7 +1541,10 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                   const SizedBox(width: 8),
                   TextButton(
                     onPressed: _cancelRecording,
-                    child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(color: Colors.red),
+                    ),
                   ),
                 ],
               ],
@@ -1327,28 +1552,40 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
             const SizedBox(width: 12),
             IconButton(
               tooltip: 'Bold',
-              icon: const Icon(Icons.format_bold_rounded),
+              icon: Icon(
+                Icons.format_bold_rounded,
+                color: theme.colorScheme.onSurface,
+              ),
               onPressed: () => _insertAroundSelection('**', '**'),
             ),
             IconButton(
               tooltip: 'Italic',
-              icon: const Icon(Icons.format_italic_rounded),
+              icon: Icon(
+                Icons.format_italic_rounded,
+                color: theme.colorScheme.onSurface,
+              ),
               onPressed: () => _insertAroundSelection('_', '_'),
             ),
             const SizedBox(width: 12),
             Row(
               children: [
-                const Text('A'),
-                Slider(
-                  value: _fontSize,
-                  min: 12,
-                  max: 24,
-                  divisions: 6,
-                  label: _fontSize.toStringAsFixed(0),
-                  onChanged: (v) {
-                    setState(() => _fontSize = v);
-                    _markDirtyAndMaybeAutosave();
-                  },
+                Text(
+                  'A',
+                  style: TextStyle(color: theme.colorScheme.onSurface),
+                ),
+                SizedBox(
+                  width: 160,
+                  child: Slider(
+                    value: _fontSize,
+                    min: 12,
+                    max: 24,
+                    divisions: 6,
+                    label: _fontSize.toStringAsFixed(0),
+                    onChanged: (v) {
+                      setState(() => _fontSize = v);
+                      _markDirtyAndMaybeAutosave();
+                    },
+                  ),
                 ),
               ],
             ),
@@ -1367,16 +1604,27 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   // ========= Editor rendering =========
 
   Widget _buildEditorBlock(int index, _LessonBlock block) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     if (block.type == _LessonBlockType.text) {
       final c = block.controller!;
       return TextField(
         controller: c,
         maxLines: null,
         keyboardType: TextInputType.multiline,
-        style: TextStyle(fontSize: _fontSize, height: 1.4),
-        decoration: const InputDecoration(
+        style: TextStyle(
+          fontSize: _fontSize,
+          height: 1.4,
+          color: theme.colorScheme.onSurface,
+        ),
+        decoration: InputDecoration(
           hintText: 'Write here...',
-          border: OutlineInputBorder(),
+          hintStyle: TextStyle(
+            color: theme.textTheme.bodySmall?.color ??
+                (isDark ? EduTheme.darkTextMuted : EduTheme.textMuted),
+          ),
+          border: const OutlineInputBorder(),
         ),
         onTap: () => _activeTextBlockIndex = index,
         onChanged: (_) => _markDirtyAndMaybeAutosave(),
@@ -1393,22 +1641,28 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       children: [
         Row(
           children: [
-            Icon(_iconForKind(media.kind), color: EduTheme.primaryDark),
+            Icon(
+              _iconForKind(media.kind),
+              color: theme.colorScheme.primary,
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 _labelForKind(media.kind),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: EduTheme.primaryDark,
+                      color: theme.colorScheme.onSurface,
                     ),
               ),
             ),
             if (isUploading)
-              const SizedBox(
+              SizedBox(
                 height: 16,
                 width: 16,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: theme.colorScheme.primary,
+                ),
               ),
             if (isFailed) ...[
               const SizedBox(width: 8),
@@ -1433,7 +1687,10 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
               ),
             ],
             IconButton(
-              icon: const Icon(Icons.delete_outline_rounded),
+              icon: Icon(
+                Icons.delete_outline_rounded,
+                color: theme.colorScheme.onSurface,
+              ),
               onPressed: () => _removeBlockAt(index),
             ),
           ],
@@ -1465,8 +1722,13 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   }
 
   Widget _buildMediaPreview(_PendingMedia media) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final localPath = media.localPath;
-    if (localPath != null && localPath.isNotEmpty && File(localPath).existsSync()) {
+
+    if (localPath != null &&
+        localPath.isNotEmpty &&
+        File(localPath).existsSync()) {
       final f = File(localPath);
 
       if (media.kind == _MediaKind.image) {
@@ -1475,7 +1737,10 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
           child: Image.file(
             f,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const Text('Failed to preview image'),
+            errorBuilder: (_, __, ___) => Text(
+              'Failed to preview image',
+              style: TextStyle(color: theme.colorScheme.onSurface),
+            ),
           ),
         );
       }
@@ -1488,18 +1753,27 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
         return Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: theme.cardColor,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.red.withOpacity(0.3)),
+            border: Border.all(
+              color: Colors.red.withValues(alpha: isDark ? 0.45 : 0.30),
+            ),
           ),
           child: Row(
             children: [
-              const Icon(Icons.picture_as_pdf_rounded, color: Colors.red, size: 30),
+              const Icon(
+                Icons.picture_as_pdf_rounded,
+                color: Colors.red,
+                size: 30,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   localPath.split('/').last,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onSurface,
+                  ),
                 ),
               ),
             ],
@@ -1513,13 +1787,18 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     // remote
     final url = media.remoteUrl.isNotEmpty
         ? media.remoteUrl
-        : (media.mediaPath.isNotEmpty ? ApiHelpers.buildMediaUrl(media.mediaPath) : '');
+        : (media.mediaPath.isNotEmpty
+            ? ApiHelpers.buildMediaUrl(media.mediaPath)
+            : '');
 
     if (url.isEmpty) {
       return Text(
-        media.status == _MediaStatus.failed ? 'Upload failed.' : 'Waiting for upload...',
+        media.status == _MediaStatus.failed
+            ? 'Upload failed.'
+            : 'Waiting for upload...',
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: EduTheme.primaryDark.withOpacity(0.6),
+              color: theme.textTheme.bodySmall?.color ??
+                  (isDark ? EduTheme.darkTextMuted : EduTheme.textMuted),
             ),
       );
     }
@@ -1530,7 +1809,10 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
         child: Image.network(
           url,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const Text('Failed to load image'),
+          errorBuilder: (_, __, ___) => Text(
+            'Failed to load image',
+            style: TextStyle(color: theme.colorScheme.onSurface),
+          ),
         ),
       );
     }
@@ -1543,21 +1825,36 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.05),
+          color: isDark
+              ? Colors.red.withValues(alpha: 0.12)
+              : Colors.red.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.red.withOpacity(0.2)),
+          border: Border.all(
+            color: Colors.red.withValues(alpha: isDark ? 0.35 : 0.20),
+          ),
         ),
         child: Row(
           children: [
-            const Icon(Icons.picture_as_pdf_rounded, color: Colors.red, size: 30),
+            const Icon(
+              Icons.picture_as_pdf_rounded,
+              color: Colors.red,
+              size: 30,
+            ),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Text(
                 'PDF Document',
-                style: TextStyle(fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
             ),
-            const Icon(Icons.open_in_new_rounded, size: 18, color: Colors.grey),
+            Icon(
+              Icons.open_in_new_rounded,
+              size: 18,
+              color: theme.textTheme.bodySmall?.color,
+            ),
           ],
         ),
       );
@@ -1596,19 +1893,27 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   }
 
   Widget _buildBottomButtons(double bottomInset) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     // Note: Since resizeToAvoidBottomInset is true, the Scaffold already handles the inset.
-    // Adding it again here doubles the space and causes overflow. 
+    // Adding it again here doubles the space and causes overflow.
     // We only need some padding if there's no keyboard.
     return Container(
       padding: EdgeInsets.fromLTRB(18, 10, 18, bottomInset > 0 ? 10 : 24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border(
+          top: BorderSide(
+            color: theme.dividerColor.withValues(alpha: isDark ? 0.35 : 0.65),
+          ),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Color(0x19000000),
+            color: Colors.black.withValues(alpha: isDark ? 0.16 : 0.10),
             blurRadius: 12,
-            offset: Offset(0, -2),
+            offset: const Offset(0, -2),
           ),
         ],
       ),
@@ -1625,7 +1930,7 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
             child: ElevatedButton(
               onPressed: _isSaving ? null : () => _saveLesson(publish: true),
               style: ElevatedButton.styleFrom(
-                backgroundColor: EduTheme.primary,
+                backgroundColor: theme.colorScheme.primary,
                 foregroundColor: Colors.white,
               ),
               child: _isSaving
@@ -1658,6 +1963,7 @@ class _ModuleData {
 }
 
 enum _MediaKind { image, video, audio, voice, pdf }
+
 enum _MediaStatus { uploading, ready, failed, missing }
 
 class _PendingMedia {
@@ -1856,11 +2162,21 @@ class _LessonVideoPlayerState extends State<LessonVideoPlayer> {
   Widget build(BuildContext context) {
     final c = _controller;
 
-    if (_error || c == null) return const Text('Failed to load video');
+    if (_error || c == null) {
+      return Text(
+        'Failed to load video',
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+      );
+    }
     if (!_initialized) {
-      return const SizedBox(
+      return SizedBox(
         height: 180,
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        child: Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
       );
     }
 
@@ -1880,7 +2196,7 @@ class _LessonVideoPlayerState extends State<LessonVideoPlayer> {
                 c.value.isPlaying
                     ? Icons.pause_circle_filled
                     : Icons.play_circle_fill,
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
               ),
               onPressed: () {
                 setState(() {
@@ -1979,16 +2295,29 @@ class _LessonAudioPlayerState extends State<LessonAudioPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    if (_error) return const Text('Failed to load audio');
+    final theme = Theme.of(context);
+
+    if (_error) {
+      return Text(
+        'Failed to load audio',
+        style: TextStyle(color: theme.colorScheme.onSurface),
+      );
+    }
     if (!_ready) {
-      return const SizedBox(
+      return SizedBox(
         height: 48,
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        child: Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: theme.colorScheme.primary,
+          ),
+        ),
       );
     }
 
     final maxMs = _duration.inMilliseconds;
-    final posMs = _position.inMilliseconds.clamp(0, maxMs == 0 ? 0 : maxMs);
+    final posMs =
+        _position.inMilliseconds.clamp(0, maxMs == 0 ? 0 : maxMs);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2005,9 +2334,15 @@ class _LessonAudioPlayerState extends State<LessonAudioPlayer> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(_format(_position)),
+            Text(
+              _format(_position),
+              style: TextStyle(color: theme.colorScheme.onSurface),
+            ),
             IconButton(
-              icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
+              icon: Icon(
+                _isPlaying ? Icons.pause : Icons.play_arrow,
+                color: theme.colorScheme.onSurface,
+              ),
               onPressed: () async {
                 if (_isPlaying) {
                   await _player.pause();
@@ -2018,7 +2353,10 @@ class _LessonAudioPlayerState extends State<LessonAudioPlayer> {
                 setState(() => _isPlaying = !_isPlaying);
               },
             ),
-            Text(_format(_duration)),
+            Text(
+              _format(_duration),
+              style: TextStyle(color: theme.colorScheme.onSurface),
+            ),
           ],
         ),
       ],
