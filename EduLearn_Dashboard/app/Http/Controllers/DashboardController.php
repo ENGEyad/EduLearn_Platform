@@ -8,6 +8,7 @@ use App\Models\Student;
 use App\Models\ClassSection;
 use App\Models\Subject;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {
@@ -49,24 +50,29 @@ class DashboardController extends Controller
         - متوسط الحضور: " . number_format($avgAttendance, 1) . "%
         - متوسط الأداء الأكاديمي: " . number_format($avgPerformance, 1) . " / 100";
 
-        $aiInsight = "جاري تحليل البيانات لـ ($periodLabel)...";
+        // ⚡ Bolt Optimization: Cache AI-generated insights to avoid blocking page loads
+        // The AI service is slow; caching results based on the current stats & period
+        // ensures a fast experience while still updating when data significantly changes.
+        $cacheKey = 'dashboard_ai_insight_' . md5($statsSummary . $period);
 
-        try {
-            // Call the AI service running on 8001
-            $response = Http::timeout(10)->post('http://127.0.0.1:8001/chat/', [
-                'message' => "بصفتك محلل بيانات تعليمي، قم بتحليل إحصائيات فترة ($periodLabel) وتقديم تقرير (3 نقاط) باللغة العربية حول حالة المدرسة وتوصية واحدة: $statsSummary"
-            ]);
+        $aiInsight = Cache::remember($cacheKey, 3600, function() use ($periodLabel, $statsSummary) {
+            try {
+                // Call the AI service running on 8001
+                $response = Http::timeout(10)->post('http://127.0.0.1:8001/chat/', [
+                    'message' => "بصفتك محلل بيانات تعليمي، قم بتحليل إحصائيات فترة ($periodLabel) وتقديم تقرير (3 نقاط) باللغة العربية حول حالة المدرسة وتوصية واحدة: $statsSummary"
+                ]);
 
-            if ($response->successful()) {
-                $aiInsight = $response->json('reply') ?? "تعذر الحصول على تحليل دقيق حالياً.";
+                if ($response->successful()) {
+                    return $response->json('reply') ?? "تعذر الحصول على تحليل دقيق حالياً.";
+                }
+
+                return "الذكاء الاصطناعي غير متاح حالياً للتحليل.";
             }
-            else {
-                $aiInsight = "الذكاء الاصطناعي غير متاح حالياً للتحليل.";
+            catch (\Exception $e) {
+                \Log::error("Dashboard AI analysis failed: " . $e->getMessage());
+                return "فشل الاتصال بخدمة الذكاء الاصطناعي حالياً.";
             }
-        }
-        catch (\Exception $e) {
-            $aiInsight = "فشل الاتصال بخدمة الذكاء الاصطناعي: " . $e->getMessage();
-        }
+        });
 
         return view('dashboard', [
             'pageTitle' => 'Dashboard',
