@@ -25,8 +25,8 @@ class ReportsController extends Controller
         $subjects = \App\Models\Subject::select('id', 'name_en as name')->orderBy('name_en')->get();
 
         return view('reports', [
-            'pageTitle' => 'Reports',
-            'pageSubtitle' => 'Generate system reports',
+            'pageTitle' => __('Reports'),
+            'pageSubtitle' => __('A detailed overview of class performance and student data.'),
             'years' => $years,
             'teachers' => $teachers,
             'classes_dropdown' => $classes,
@@ -122,7 +122,7 @@ class ReportsController extends Controller
                 }
             }
 
-            $matchingStudents = $matchingStudents->get(['id', 'full_name', 'academic_id', 'grade', 'class_section']);
+            $matchingStudents = $matchingStudents->get(['id', 'full_name', 'academic_id', 'grade', 'class_section', 'photo_path']);
         }
 
         return response()->json([
@@ -142,14 +142,14 @@ class ReportsController extends Controller
             ->where('grade', $grade)
             ->where('class_section', $section)
             ->orderBy('id', 'asc')
-            ->get(['id', 'full_name', 'academic_id', 'class_section']);
+            ->get(['id', 'full_name', 'academic_id', 'class_section', 'photo_path']);
 
         $studentsTable = $students->map(fn($s) => [
             'id' => $s->id,
             'name' => $s->full_name,
             'academic_id' => $s->academic_id,
             'section' => $s->class_section,
-            'photo_url' => $s->photo_path ? asset('storage/' . $s->photo_path) : null,
+            'photo_url' => $s->photo_url,
             'score' => null,
             'attendance' => null,
             ]);
@@ -229,7 +229,7 @@ class ReportsController extends Controller
                 'class' => $student->grade,
                 'section' => $student->class_section,
                 'academic_id' => $student->academic_id,
-                'photo_url' => $student->photo_path ? asset('storage/' . $student->photo_path) : null,
+                'photo_url' => $student->photo_url,
                 'status' => 'ON TRACK',
             ],
             'stats' => [

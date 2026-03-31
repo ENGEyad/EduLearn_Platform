@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
       completionChart = new Chart(cctx, {
         type: 'doughnut',
         data: {
-          labels: ['Completed', 'Remaining'],
+          labels: [window.I18N?.completed || 'Completed', window.I18N?.remaining || 'Remaining'],
           datasets: [{ data: [completion, Math.max(0, 100 - completion)], backgroundColor: [brandColors[1], '#e2e8f0'], borderWidth: 0 }]
         },
         options: { ...quietOpts, cutout: '75%', plugins: { tooltip: { enabled: false } } },
@@ -204,8 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const combined = [...state.items, ...state.students];
 
     if (!combined.length) {
-      tBody.innerHTML = `<tr><td colspan="2" class="text-center text-muted py-4">No matching results</td></tr>`;
-      resultsInfo.textContent = `Showing 0 of 0 result(s) (page ${state.page})`;
+      tBody.innerHTML = `<tr><td colspan="2" class="text-center text-muted py-4">${window.I18N?.noMatchingResults || 'No matching results'}</td></tr>`;
+      resultsInfo.textContent = (window.I18N?.showingResults || 'Showing :count of :total result(s) (page :page)')
+        .replace(':count', '0').replace(':total', '0').replace(':page', state.page);
       return;
     }
     const start = (state.page - 1) * state.perPage;
@@ -219,10 +220,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Student Row
         const display = `${row.full_name} (${row.academic_id || 'ID N/A'})`;
         const classInfo = `${row.grade ?? ''} - ${row.class_section ?? ''}`;
+        const avatarSrc = row.photo_url ? row.photo_url : window.DEFAULT_AVATAR;
+        
         tr.innerHTML = `
           <td>
             <div class="d-flex align-items-center">
-                <div class="avatar-circle me-3" style="width: 32px; height: 32px; font-size: 12px; background: #EEF2FF; color: #4F46E5;">ST</div>
+                <img class="avatar-circle me-3" src="${avatarSrc}" loading="lazy" decoding="async" alt="Student" style="width: 32px; height: 32px; object-fit: cover; border-radius: 50%;">
                 <div>
                     <span class="fw-semibold d-block">${display}</span>
                     <span class="text-muted small">${classInfo}</span>
@@ -231,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </td>
           <td class="text-end">
             <button class="btn btn-sm btn-outline-info js-open-student-direct" data-student="${row.id}">
-              View Student Report
+              ${window.I18N?.viewStudentReport || 'View Student Report'}
             </button>
           </td>
         `;
@@ -244,13 +247,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="avatar-circle me-3" style="width: 32px; height: 32px; font-size: 12px; background: #F0FDF4; color: #16A34A;">CL</div>
                 <div>
                     <span class="fw-semibold d-block">${display}</span>
-                    <span class="text-muted small">${row.students_count} students</span>
+                    <span class="text-muted small">${row.students_count} ${window.I18N?.students || 'students'}</span>
                 </div>
             </div>
           </td>
           <td class="text-end">
             <button class="btn btn-sm btn-outline-primary" data-grade="${row.grade ?? ''}" data-section="${row.class_section ?? ''}">
-              View Class Report
+              ${window.I18N?.viewClassReport || 'View Class Report'}
             </button>
           </td>
         `;
@@ -259,7 +262,8 @@ document.addEventListener('DOMContentLoaded', () => {
       tBody.appendChild(tr);
     });
 
-    resultsInfo.textContent = `Showing ${pageItems.length} of ${state.total} result(s) (page ${state.page})`;
+    resultsInfo.textContent = (window.I18N?.showingResults || 'Showing :count of :total result(s) (page :page)')
+        .replace(':count', pageItems.length).replace(':total', state.total).replace(':page', state.page);
 
     tBody.querySelectorAll('button[data-grade]').forEach(btn => {
       btn.addEventListener('click', async (e) => {
@@ -290,13 +294,13 @@ document.addEventListener('DOMContentLoaded', () => {
       a.onclick = (ev) => { ev.preventDefault(); if (disabled || active) return; state.page = page; renderTable(); renderPager(); };
       li.appendChild(a); pager.appendChild(li);
     };
-    add('Previous', state.page - 1, state.page === 1);
+    add(window.I18N?.previous || 'Previous', state.page - 1, state.page === 1);
     const totalPagesToShow = Math.min(totalPages, 5);
     let start = Math.max(1, state.page - 2);
     let end = Math.min(totalPages, start + totalPagesToShow - 1);
     if (end - start < totalPagesToShow - 1) { start = Math.max(1, end - totalPagesToShow + 1); }
     for (let p = start; p <= end; p++) add(String(p), p, false, p === state.page);
-    add('Next', state.page + 1, state.page === totalPages);
+    add(window.I18N?.next || 'Next', state.page + 1, state.page === totalPages);
   }
 
   /* ===== Class report ===== */
@@ -308,12 +312,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!res.ok) { alert('Failed to load class report'); return; }
     const json = await res.json();
 
-    classTitleEl && (classTitleEl.textContent = `${json.grade ?? grade} - Section ${json.section ?? section}`);
+    classTitleEl && (classTitleEl.textContent = `${json.grade ?? grade} - ${window.I18N?.section || 'Section'} ${json.section ?? section}`);
     statStudentsEl && (statStudentsEl.textContent = json.stats?.students ?? '--');
     statAvgScoreEl && (statAvgScoreEl.textContent = (json.stats?.avg_score ?? 0).toString());
     statPassRateEl && (statPassRateEl.textContent = ((json.stats?.pass_rate ?? 0) * 100).toFixed(0) + '%');
     statAttendanceEl && (statAttendanceEl.textContent = ((json.stats?.attendance ?? 0) * 100).toFixed(0) + '%');
-    statStudyTimeEl && (statStudyTimeEl.textContent = (json.stats?.study_time ?? 0) + ' hrs');
+    statStudyTimeEl && (statStudyTimeEl.textContent = (json.stats?.study_time ?? 0) + ' ' + (window.I18N?.hrs || 'hrs'));
 
     // students table
     const sTbody = document.querySelector('#studentsTable tbody');
@@ -326,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${s.section ?? ''}</td>
         <td>${s.score ?? ''}</td>
         <td>${s.attendance ?? ''}</td>
-        <td><a class="action-link js-open-student" href="#" data-student="${s.id}">View student report</a></td>
+        <td><a class="action-link js-open-student" href="#" data-student="${s.id}">${window.I18N?.viewReport || 'View report'}</a></td>
       `;
       sTbody.appendChild(tr);
     });
@@ -361,14 +365,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     nameEl && (nameEl.textContent = name);
     crumbsEl && (crumbsEl.textContent = name);
-    avatarEl && name && (avatarEl.textContent = name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase());
-    classEl && (classEl.textContent = `${cls}, Section ${section}`);
+    classEl && (classEl.textContent = `${cls}, ${window.I18N?.section || 'Section'} ${section}`);
+
+    if (avatarEl) {
+      avatarEl.innerHTML = '';
+      avatarEl.style.padding = '0';
+      avatarEl.style.overflow = 'hidden';
+      const imgSrc = json.student?.photo_url ? json.student.photo_url : window.DEFAULT_AVATAR;
+      avatarEl.innerHTML = `<img src="${imgSrc}" loading="lazy" decoding="async" alt="${name}" style="width: 100%; height: 100%; object-fit: cover;">`;
+    }
 
     const set = (sel, txt) => { const el = document.querySelector(sel); if (el) el.textContent = txt; };
     set('.js-s-avg', (json.stats?.avg_score != null) ? (json.stats.avg_score * 100).toFixed(0) + '%' : '--');
     set('.js-s-pass', (json.stats?.pass_rate != null) ? (json.stats.pass_rate * 100).toFixed(0) + '%' : '--');
     set('.js-s-att', (json.stats?.attendance != null) ? (json.stats.attendance * 100).toFixed(0) + '%' : '--');
-    set('.js-s-time', (json.stats?.study_time != null) ? (json.stats.study_time + ' hrs') : '--');
+    set('.js-s-time', (json.stats?.study_time != null) ? (json.stats.study_time + ' ' + (window.I18N?.hrs || 'hrs')) : '--');
 
     // subjects table (نضيف data-subject + data-student)
     const subjTbody = document.querySelector('.js-subjects-table tbody');
@@ -384,7 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>${sub.time || '--'}</td>
           <td><span class="badge rounded-pill ${sub.status === 'Pass' ? 'badge-pass' : 'badge-fail'} px-3 py-2">${sub.status || '--'}</span></td>
           <td class="text-end">
-            <a href="#" class="action-link js-open-subject" data-student="${id}" data-subject="${sid}" data-subject-name="${sub.name || ''}">View report</a>
+            <a href="#" class="action-link js-open-subject" data-student="${id}" data-subject="${sid}" data-subject-name="${sub.name || ''}">${window.I18N?.viewReport || 'View report'}</a>
           </td>
         `;
         subjTbody.appendChild(tr);
@@ -427,8 +438,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const subttl = document.querySelector('.js-sr-subtitle');
 
     sNameEl && (sNameEl.textContent = document.querySelector('.student-head .js-student-name')?.textContent || '--');
-    subjEl && (subjEl.textContent = subjectName || json?.subject?.name || 'Subject');
-    titleEl && (titleEl.textContent = `${subjectName || json?.subject?.name || 'Subject'} Progress`);
+    subjEl && (subjEl.textContent = subjectName || json?.subject?.name || window.I18N?.subject || 'Subject');
+    titleEl && (titleEl.textContent = `${subjectName || json?.subject?.name || window.I18N?.subject || 'Subject'} ${window.I18N?.subjectProgress || 'Progress'}`);
     subttl && (subttl.textContent = `${sNameEl?.textContent || '--'} | Teacher: ${json?.teacher ?? (document.querySelector('.js-student-teacher')?.textContent.replace('Supervising Teacher: ', '') || '--')}`);
 
     // إحصاءات مصغّرة
@@ -442,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ملاحظات إكمال المادة
     const completionPct = json?.stats?.completion_pct ?? 76;
     const noteEl = document.querySelector('.js-sr-completion-note');
-    noteEl && (noteEl.textContent = completionPct >= 100 ? 'Excellent! Subject completed.' : 'Great job! Keep up the momentum to reach 100%.');
+    noteEl && (noteEl.textContent = completionPct >= 100 ? (window.I18N?.excellentCompleted || 'Excellent! Subject completed.') : (window.I18N?.keepGoing || 'Great job! Keep up the momentum to reach 100%.'));
 
     // إنجازات (شكل)
     document.querySelector('.js-sr-ach1')?.replaceChildren(document.createTextNode(json?.achievements?.[0]?.title ?? 'Perfect Score'));
@@ -470,12 +481,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!res.ok) { alert('Failed to load class report for cards'); return; }
     const json = await res.json();
 
-    cardsClassTitleEl && (cardsClassTitleEl.textContent = `${json.grade} - Section ${json.section}`);
+    cardsClassTitleEl && (cardsClassTitleEl.textContent = `${json.grade} - ${window.I18N?.section || 'Section'} ${json.section}`);
     
     if (studentCardsContainer) {
         studentCardsContainer.innerHTML = '';
-        const currentYear = new Date().getFullYear();
-        const academicYear = `${currentYear}-${currentYear + 1}`;
+        const school = window.SCHOOL_INFO || {};
+        const academicYear = school.academic_year || `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`;
+        const schoolLogo = school.logo_path ? `${window.STORAGE_BASE_URL || '/storage'}/${school.logo_path}` : null;
+        const schoolName = school.name || 'EduLearn Platform';
 
         (json.students || []).forEach(s => {
             const col = document.createElement('div');
@@ -484,37 +497,76 @@ document.addEventListener('DOMContentLoaded', () => {
             // Generate initials for avatar if no image
             const initials = s.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
             const avatarHtml = s.photo_url 
-                ? `<img src="${s.photo_url}" class="card-avatar" alt="${s.name}">`
-                : `<div class="card-avatar d-flex align-items-center justify-content-center bg-light text-primary fw-bold" style="font-size: 24px;">${initials}</div>`;
+                ? `<img src="${s.photo_url}" loading="lazy" decoding="async" alt="${s.name}">`
+                : `<img src="${window.DEFAULT_AVATAR}" loading="lazy" decoding="async" alt="${s.name}">`;
+
+            const schoolLogoHtml = schoolLogo 
+                ? `<img src="${schoolLogo}" loading="lazy" decoding="async" alt="Logo">` 
+                : `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>`;
+
+            const acId = s.academic_id || Math.floor(100000 + Math.random() * 900000).toString();
 
             col.innerHTML = `
-                <div class="student-id-card">
-                    <div class="card-header-accent">
-                        <div class="card-logo">EduLearn Platform</div>
+                <div class="card-scale-wrapper mb-4 position-relative">
+                    <div class="no-print position-absolute top-0 start-0 m-2" style="z-index: 20;">
+                        <input class="form-check-input card-print-select" type="checkbox" style="width: 24px; height: 24px; cursor: pointer; border: 2px solid #0ea5e9;">
                     </div>
-                    <div class="card-body-content">
-                        <div class="card-avatar-wrap">
-                            ${avatarHtml}
+                    <div class="student-id-card-new">
+                        <!-- Background Elements -->
+                        <div class="bg-accent-teal"></div>
+                        <div class="bg-accent-blue"></div>
+                        <div class="card-decorative-circles"></div>
+
+                        <!-- Header Ribbon -->
+                        <div class="ribbon-banner">
+                            <div class="school-logo-c">
+                                ${schoolLogoHtml}
+                            </div>
+                            <span>${schoolName}</span>
                         </div>
-                        <div class="card-name">${s.name}</div>
-                        <div class="card-id">#${s.academic_id || 'ID-TBA'}</div>
-                        
-                        <div class="card-info-grid">
-                            <div class="info-item">
-                                <div class="label">Grade</div>
-                                <div class="value">${json.grade}</div>
+
+                        <!-- Main Content Area -->
+                        <div class="id-content">
+                            <h1 class="id-title">${window.I18N?.studentIdCardTitle || 'STUDENT ID CARD'}</h1>
+                            
+                            <div class="id-flex-row">
+                                <!-- Photo Section -->
+                                <div class="profile-img-container">
+                                    ${avatarHtml}
+                                </div>
+                                
+                                <!-- Details Section -->
+                                <div class="id-details">
+                                    <div>
+                                        <p class="id-label">${window.I18N?.nameLabel || 'Name:'}</p>
+                                        <p class="id-value border-b">${s.name}</p>
+                                    </div>
+                                    <div>
+                                        <p class="id-label">${window.I18N?.studentIdLabel || 'Student ID:'}</p>
+                                        <p class="id-value border-b academic-id-text">${acId}</p>
+                                    </div>
+                                    <div>
+                                        <p class="id-label">${window.I18N?.programLabel || 'Program:'}</p>
+                                        <p class="id-value border-b">${window.I18N?.elementary?.toUpperCase() || ''} (${json.grade},  ${json.section})</p>
+                                    </div>
+                                    <div>
+                                        <p class="id-label">${window.I18N?.yearLabel || 'Year:'}</p>
+                                        <p class="id-value border-b">${academicYear}</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="info-item">
-                                <div class="label">Section</div>
-                                <div class="value">${json.section}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="label">Stage</div>
-                                <div class="value">Elementary</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="label">Academic Year</div>
-                                <div class="value">${academicYear}</div>
+
+                            <!-- Footer Elements -->
+                            <div class="id-footer">
+                                <div class="id-valid">
+                                    <p class="v-label">${window.I18N?.validUntilLabel || 'Valid Until:'}</p>
+                                    <p class="v-val">AUGUST ${academicYear.split('-')[1] || new Date().getFullYear()+1}</p>
+                                </div>
+                                <div class="barcode-area">
+                                    <div class="barcode-font">${acId}</div>
+                                    <div class="barcode-text">ID-${acId}</div>
+                                </div>
+                                <div class="id-footer-spacer" style="width: 128px;"></div> <!-- Spacer -->
                             </div>
                         </div>
                     </div>
@@ -546,7 +598,37 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Print cards
-  document.querySelector('.js-print-cards')?.addEventListener('click', () => window.print());
+  document.querySelector('.js-print-cards')?.addEventListener('click', () => {
+    document.querySelectorAll('.card-scale-wrapper').forEach(card => card.classList.remove('d-none-print'));
+    window.print();
+  });
+
+  // Select all cards
+  document.querySelector('.js-select-all-cards')?.addEventListener('change', (e) => {
+    const isChecked = e.target.checked;
+    document.querySelectorAll('.card-print-select').forEach(cb => cb.checked = isChecked);
+  });
+
+  // Print selected cards
+  document.querySelector('.js-print-selected-cards')?.addEventListener('click', () => {
+    const selected = document.querySelectorAll('.card-print-select:checked');
+    if (selected.length === 0) {
+        alert(window.I18N?.selectAtLeastOne || 'Please select at least one card to print.');
+        return;
+    }
+
+    // Hide unselected
+    document.querySelectorAll('.card-scale-wrapper').forEach(wrapper => {
+        const cb = wrapper.querySelector('.card-print-select');
+        if (cb && !cb.checked) {
+            wrapper.classList.add('d-none-print');
+        } else {
+            wrapper.classList.remove('d-none-print');
+        }
+    });
+
+    window.print();
+  });
 
   // Back from subject to student
   document.querySelector('.js-back-to-student')?.addEventListener('click', (e) => {
@@ -617,8 +699,51 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  document.querySelectorAll('.js-print').forEach(b => b.addEventListener('click', () => window.print()));
-  document.querySelectorAll('.js-export').forEach(b => b.addEventListener('click', () => window.print()));
+  /* ===== Print & Export Helpers ===== */
+  function getReportTitle() {
+    if (classReportView && classReportView.style.display !== 'none') {
+      return (window.I18N?.classReport || 'Class Report') + ': ' + (classTitleEl?.textContent || '');
+    }
+    if (studentReportView && studentReportView.style.display !== 'none') {
+      return (window.I18N?.studentReport || 'Student Report') + ': ' + (document.querySelector('.js-student-name')?.textContent || '');
+    }
+    if (subjectReportView && subjectReportView.style.display !== 'none') {
+      const sName = document.querySelector('.js-sr-student')?.textContent || '';
+      const sSub = document.querySelector('.js-sr-subject')?.textContent || '';
+      return (window.I18N?.subjectReport || 'Subject Report') + ': ' + sSub + ' - ' + sName;
+    }
+    if (classCardsView && classCardsView.style.display !== 'none') {
+      return (window.I18N?.studentIdCards || 'Student ID Cards') + ': ' + (cardsClassTitleEl?.textContent || '');
+    }
+    return document.getElementById('pageTitle')?.textContent || 'EduLearn Report';
+  }
+
+  function handlePrint() {
+    const reportTitle = getReportTitle();
+    const printHeader = document.getElementById('globalPrintHeader');
+    const printHeaderTitle = document.getElementById('printReportTitle');
+    const printHeaderDate = document.getElementById('printReportDate');
+
+    if (printHeader) {
+      if (printHeaderTitle) printHeaderTitle.textContent = reportTitle;
+      if (printHeaderDate) {
+        const now = new Date();
+        const lang = document.documentElement.lang || 'en';
+        printHeaderDate.textContent = now.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', {
+          year: 'numeric', month: 'long', day: 'numeric'
+        });
+      }
+    }
+
+    const originalTitle = document.title;
+    document.title = reportTitle;
+    window.print();
+    setTimeout(() => { document.title = originalTitle; }, 500);
+  }
+
+  document.querySelectorAll('.js-print').forEach(b => b.addEventListener('click', handlePrint));
+  document.querySelectorAll('.js-export').forEach(b => b.addEventListener('click', handlePrint));
+  document.querySelector('.js-print-cards')?.addEventListener('click', handlePrint);
 
   /* ===== First load ===== */
   fetchClasses();
