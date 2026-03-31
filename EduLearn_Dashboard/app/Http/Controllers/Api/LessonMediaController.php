@@ -27,7 +27,7 @@ class LessonMediaController extends Controller
     {
         // ✅ Validation (50MB)
         $request->validate([
-            'file' => 'required|file|max:51200', // 50MB
+            'file' => 'required|file|max:51200|mimes:jpg,jpeg,png,mp4,mp3,wav,m4a,pdf', // 50MB
         ]);
 
         $file = $request->file('file');

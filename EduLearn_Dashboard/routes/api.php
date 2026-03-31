@@ -11,68 +11,81 @@ use App\Http\Controllers\Api\StudentLessonController;
 use App\Http\Controllers\Api\ClassModuleController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\BroadcastAuthController;
+use App\Http\Controllers\Api\TeacherLessonExerciseController;
+use App\Http\Controllers\Api\StudentLessonExerciseController;
 
-/* |-------------------------------------------------------------------------- | API Routes |-------------------------------------------------------------------------- */
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// ✅ مسار الطالب
-Route::post('/student/auth', [StudentAuthController::class , 'auth']);
+// ==================== مصادقة الطالب / الأستاذ ====================
+Route::post('/student/auth', [StudentAuthController::class, 'auth']);
+Route::post('/teacher/auth', [TeacherAuthController::class, 'auth']);
 
-// ✅ مسار الأستاذ
-Route::post('/teacher/auth', [TeacherAuthController::class , 'auth']);
-
-// ==================== Broadcasting Auth (Reverb / Pusher protocol) ====================
-// ✅ هذا هو المسار الذي Flutter يستخدمه: /api/broadcasting/auth
-Route::post('/broadcasting/auth', [BroadcastAuthController::class , 'auth']);
+// ==================== Broadcasting Auth ====================
+// هذا المسار مهم للشات / Reverb / Echo
+Route::post('/broadcasting/auth', [BroadcastAuthController::class, 'auth']);
 
 // ==================== دروس الأستاذ ====================
-Route::post('/teacher/lessons/save', [LessonController::class , 'save']);
-Route::get('/teacher/lessons', [LessonController::class , 'index']);
+Route::post('/teacher/lessons/save', [LessonController::class, 'save']);
+Route::get('/teacher/lessons', [LessonController::class, 'index']);
+Route::get('/teacher/lessons/{lesson}', [LessonController::class, 'show']);
+Route::delete('/teacher/lessons/{lesson}', [LessonController::class, 'destroy']);
+Route::post('/teacher/lessons/bulk-delete', [LessonController::class, 'bulkDelete']);
+Route::post('/teacher/lessons/media', [LessonMediaController::class, 'store']);
 
-// ملاحظة: أبقيناه كما هو الآن
-Route::get('/teacher/lessons/{lesson}', [LessonController::class , 'show']);
-Route::delete('/teacher/lessons/{lesson}', [LessonController::class , 'destroy']);
-
-Route::post('/teacher/lessons/bulk-delete', [LessonController::class , 'bulkDelete']);
-Route::post('/teacher/lessons/media', [LessonMediaController::class , 'store']);
-
-// ==================== موديولات الفصل (Class Modules) ====================
-Route::get('/teacher/class-modules', [ClassModuleController::class , 'index']);
-Route::post('/teacher/class-modules', [ClassModuleController::class , 'store']);
-Route::put('/teacher/class-modules/{module}', [ClassModuleController::class , 'update']);
-Route::delete('/teacher/class-modules/{module}', [ClassModuleController::class , 'destroy']);
-Route::get('/teacher/class-modules/{module}/lessons', [ClassModuleController::class , 'lessons']);
+// ==================== موديولات الفصل ====================
+Route::get('/teacher/class-modules', [ClassModuleController::class, 'index']);
+Route::post('/teacher/class-modules', [ClassModuleController::class, 'store']);
+Route::put('/teacher/class-modules/{module}', [ClassModuleController::class, 'update']);
+Route::delete('/teacher/class-modules/{module}', [ClassModuleController::class, 'destroy']);
+Route::get('/teacher/class-modules/{module}/lessons', [ClassModuleController::class, 'lessons']);
 
 // ==================== دروس الطالب ====================
-Route::get('/student/lessons', [StudentLessonController::class , 'index']);
-Route::get('/student/lessons/{lesson}', [StudentLessonController::class , 'show']);
-Route::post('/student/lessons/update-status', [StudentLessonController::class , 'updateStatus']);
-Route::post('/student/lessons/{lesson}/progress', [StudentLessonController::class , 'saveProgress']);
+Route::get('/student/lessons', [StudentLessonController::class, 'index']);
+Route::get('/student/lessons/{lesson}', [StudentLessonController::class, 'show']);
+Route::post('/student/lessons/update-status', [StudentLessonController::class, 'updateStatus']);
+Route::post('/student/lessons/{lesson}/progress', [StudentLessonController::class, 'saveProgress']);
 
-// ==================== دردشة الأستاذ / الطالب ====================
-Route::group(['prefix' => 'chat'], function () {
+// ==================== تمارين الأستاذ ====================
+Route::prefix('teacher/lessons/{lesson}/exercise-set')->group(function () {
+    Route::get('/draft', [TeacherLessonExerciseController::class, 'showDraft']);
+    Route::post('/save-draft', [TeacherLessonExerciseController::class, 'saveDraft']);
+    Route::post('/publish', [TeacherLessonExerciseController::class, 'publish']);
+    Route::post('/archive', [TeacherLessonExerciseController::class, 'archiveSet']);
+    Route::post('/unarchive', [TeacherLessonExerciseController::class, 'unarchiveSet']);
 
-    // فتح / إنشاء محادثة بين أستاذ وطالب
-    Route::post('/conversations/open', [ChatController::class , 'openConversation']);
+    Route::delete('/questions/{stableQuestionKey}', [TeacherLessonExerciseController::class, 'deleteDraftQuestion']);
+    Route::post('/questions/{stableQuestionKey}/restore', [TeacherLessonExerciseController::class, 'restoreDraftQuestion']);
+    Route::post('/questions/{stableQuestionKey}/archive', [TeacherLessonExerciseController::class, 'archiveDraftQuestion']);
+    Route::post('/questions/{stableQuestionKey}/unarchive', [TeacherLessonExerciseController::class, 'unarchiveDraftQuestion']);
+});
 
-    // فتح / إنشاء محادثة جماعية للفصل
-    Route::post('/conversations/open-group', [ChatController::class , 'openGroupConversation']);
+// ==================== تمارين الطالب ====================
+Route::prefix('student/lessons/{lesson}/exercise-set')->group(function () {
+    Route::get('/current', [StudentLessonExerciseController::class, 'current']);
+    Route::get('/latest-attempt', [StudentLessonExerciseController::class, 'latestAttempt']);
+    Route::post('/save', [StudentLessonExerciseController::class, 'save']);
+    Route::post('/submit', [StudentLessonExerciseController::class, 'submit']);
+});
 
-    // قائمة محادثات الأستاذ
-    Route::get('/conversations/teacher', [ChatController::class , 'teacherConversations']);
+// ==================== الدردشة ====================
+Route::prefix('chat')->group(function () {
+    Route::post('/conversations/open', [ChatController::class, 'openConversation']);
+    Route::post('/conversations/open-group', [ChatController::class, 'openGroupConversation']);
 
-    // قائمة محادثات الطالب
-    Route::get('/conversations/student', [ChatController::class , 'studentConversations']);
+    Route::get('/conversations/teacher', [ChatController::class, 'teacherConversations']);
+    Route::get('/conversations/student', [ChatController::class, 'studentConversations']);
 
-    // رسائل محادثة معيّنة
-    Route::get('/conversations/{conversation}/messages', [ChatController::class , 'messages']);
+    Route::get('/conversations/{conversation}/messages', [ChatController::class, 'messages']);
+    Route::post('/conversations/{conversation}/messages', [ChatController::class, 'sendMessage']);
 
-    // إرسال رسالة في محادثة معيّنة
-    Route::post('/conversations/{conversation}/messages', [ChatController::class , 'sendMessage']);
-
-    // ✅ (اختياري للتوافق) إذا كان عندك أي جزء قديم يستخدم /api/chat/broadcasting/auth
-    Route::post('/broadcasting/auth', [BroadcastAuthController::class , 'auth']);
+    // للتوافق إذا كان عندك جزء قديم يستخدم هذا المسار
+    Route::post('/broadcasting/auth', [BroadcastAuthController::class, 'auth']);
 });

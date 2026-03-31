@@ -235,7 +235,7 @@ class LessonService {
       final block = Map<String, dynamic>.from(b);
       final type = (block['type'] ?? '').toString();
 
-      final isMedia = type == 'image' || type == 'video' || type == 'audio';
+      final isMedia = type == 'image' || type == 'video' || type == 'audio' || type == 'file';
 
       if (isMedia) {
         final rawPath = (block['media_path'] ?? '').toString();

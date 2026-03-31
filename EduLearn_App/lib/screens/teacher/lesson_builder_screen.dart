@@ -5,52 +5,55 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:open_file/open_file.dart';
 import 'package:record/record.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../theme.dart';
-
-// ✅ بدل api_service.dart
 import '../../services/lesson_service.dart';
 import '../../services/api_helpers.dart';
-import '../../services/auth_service.dart';
+import 'lesson_exercises_screen.dart';
 
-// ✅ AI Question Model
-class GeneratedQuestion {
-  final String id;
-  String type; // multiple_choice, true_false, fill_blank, matching, flashcard
-  String questionText;
-  List<String>? options;
-  String answer;
-  bool isEditing;
+// =============================================
+// REMOVED PER NEW ARCHITECTURE
+// Exercises and AI generation are no longer managed
+// inside LessonBuilderScreen. They now live in:
+// lib/screens/teacher/lesson_exercises_screen.dart
+// =============================================
 
-  GeneratedQuestion({
-    required this.id,
-    required this.type,
-    required this.questionText,
-    this.options,
-    required this.answer,
-    this.isEditing = false,
-  });
-}
+// class GeneratedQuestion {
+//   final String id;
+//   String type;
+//   String questionText;
+//   List<String>? options;
+//   String answer;
+//   bool isEditing;
+//
+//   GeneratedQuestion({
+//     required this.id,
+//     required this.type,
+//     required this.questionText,
+//     this.options,
+//     required this.answer,
+//     this.isEditing = false,
+//   });
+// }
 
 class LessonBuilderScreen extends StatefulWidget {
   final String classKey;
   final String classTitle;
   final int studentsCount;
 
-  // 🔹 Data needed to bind the lesson to the real assignment
   final String teacherCode;
   final int assignmentId;
   final int classSectionId;
   final int subjectId;
 
-  // If editing an existing lesson
   final int? existingLessonId;
 
-  // 🔹 Link the lesson to the outer module (ClassModule) it came from
-  final int moduleId; // this is class_module_id
+  final int moduleId;
   final String moduleTitle;
 
   const LessonBuilderScreen({
@@ -74,44 +77,41 @@ class LessonBuilderScreen extends StatefulWidget {
 class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   final TextEditingController _titleController = TextEditingController();
 
-  // ✅ Block editor (بدل content + tokens + preview + pendingMedia)
   final List<_LessonBlock> _blocks = [];
   int? _activeTextBlockIndex;
 
-  // 🔹 داخلياً: نحتفظ بموديول واحد فقط (للتوافق مع شاشتك الحالية)
   final List<_ModuleData> _modules = [];
   _ModuleData? _selectedModule;
 
   bool _isSaving = false;
-
-  // 🔹 Font size
   double _fontSize = 16;
 
-  // 🔹 Audio recording
   final AudioRecorder _recorder = AudioRecorder();
   bool _isRecording = false;
   DateTime? _recordingStartedAt;
   Duration _recordingElapsed = Duration.zero;
   late final Ticker _ticker;
 
-  // 🔹 Editing state
   bool get _isEditingExisting => widget.existingLessonId != null;
   bool _hasUnsavedChanges = false;
   bool _initializing = true;
 
-  // 🔹 AI Generated Questions
-  List<GeneratedQuestion> _aiQuestions = [];
-  bool _isGeneratingAI = false;
+  // =============================================
+  // REMOVED PER NEW ARCHITECTURE
+  // Old AI state removed from this screen.
+  // List<GeneratedQuestion> _aiQuestions = [];
+  // bool _isGeneratingAI = false;
+  // =============================================
 
-  // ========= Draft autosave debounce =========
   DateTime? _lastDraftSaveAt;
+
+  int? get _resolvedLessonId => widget.existingLessonId;
 
   @override
   void initState() {
     super.initState();
 
     _ticker = Ticker(_onTick);
-
     _titleController.addListener(_onAnyFieldChanged);
 
     if (_isEditingExisting) {
@@ -153,7 +153,7 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     if (_lastDraftSaveAt == null ||
         now.difference(_lastDraftSaveAt!).inSeconds >= 5) {
       _lastDraftSaveAt = now;
-      _saveLocalDraft(); // لا ننتظر
+      _saveLocalDraft();
     }
   }
 
@@ -170,11 +170,8 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     }
   }
 
-  // ======== Load existing lesson from local draft or API ========
-
   Future<void> _loadExistingLesson() async {
     try {
-      // 1) Try local draft
       final draft = await _loadLocalDraft();
       if (draft != null) {
         _titleController.text = (draft['title'] ?? '').toString();
@@ -191,30 +188,34 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
           final m = raw.cast<String, dynamic>();
           final type = (m['type'] ?? '').toString();
           if (type == 'text') {
-            _blocks.add(_LessonBlock.text(
-              id: (m['id'] ?? _id()).toString(),
-              controller:
-                  TextEditingController(text: (m['body'] ?? '').toString()),
-            )..attachChangeListener(_onAnyFieldChanged));
+            _blocks.add(
+              _LessonBlock.text(
+                id: (m['id'] ?? _id()).toString(),
+                controller:
+                    TextEditingController(text: (m['body'] ?? '').toString()),
+              )..attachChangeListener(_onAnyFieldChanged),
+            );
           } else {
             final kind = _inferKindFromBlockType(type);
-            _blocks.add(_LessonBlock.media(
-              id: (m['id'] ?? _id()).toString(),
-              media: _PendingMedia(
+            _blocks.add(
+              _LessonBlock.media(
                 id: (m['id'] ?? _id()).toString(),
-                kind: kind,
-                localPath: null,
-                mediaPath: (m['media_path'] ?? '').toString(),
-                remoteUrl: '',
-                mime: m['media_mime']?.toString(),
-                size: m['media_size'] is int
-                    ? m['media_size'] as int
-                    : (m['media_size'] is num
-                        ? (m['media_size'] as num).toInt()
-                        : null),
-                status: _MediaStatus.ready,
+                media: _PendingMedia(
+                  id: (m['id'] ?? _id()).toString(),
+                  kind: kind,
+                  localPath: null,
+                  mediaPath: (m['media_path'] ?? '').toString(),
+                  remoteUrl: '',
+                  mime: m['media_mime']?.toString(),
+                  size: m['media_size'] is int
+                      ? m['media_size'] as int
+                      : (m['media_size'] is num
+                          ? (m['media_size'] as num).toInt()
+                          : null),
+                  status: _MediaStatus.ready,
+                ),
               ),
-            ));
+            );
           }
         }
 
@@ -222,7 +223,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
         return;
       }
 
-      // 2) Load from API
       final lesson = await LessonService.fetchLessonDetail(
         lessonId: widget.existingLessonId!,
         teacherCode: widget.teacherCode,
@@ -230,14 +230,15 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
       _titleController.text = (lesson['title'] ?? '').toString();
 
-      _modules.clear();
-      _modules.add(
-        _ModuleData(
-          tempId: 'm1',
-          title: widget.moduleTitle,
-          position: 1,
-        ),
-      );
+      _modules
+        ..clear()
+        ..add(
+          _ModuleData(
+            tempId: 'm1',
+            title: widget.moduleTitle,
+            position: 1,
+          ),
+        );
       _selectedModule = _modules.first;
 
       _blocks.clear();
@@ -274,10 +275,10 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
             id: id,
             media: _PendingMedia(
               id: id,
-              kind: _inferKindFromBlockType(type),
+              kind: _inferKindFromBlockType(type, mime: mime),
               localPath: null,
               mediaPath: mediaPath,
-              remoteUrl: '', // نبني URL وقت العرض
+              remoteUrl: '',
               mime: mime,
               size: size,
               status: _MediaStatus.ready,
@@ -286,7 +287,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
         );
       }
 
-      // font size from first block meta (مثل كودك السابق)
       if (blocks.isNotEmpty) {
         final first = blocks.first;
         if (first is Map) {
@@ -317,7 +317,7 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     }
   }
 
-  _MediaKind _inferKindFromBlockType(String type) {
+  _MediaKind _inferKindFromBlockType(String type, {String? mime}) {
     switch (type) {
       case 'image':
         return _MediaKind.image;
@@ -325,12 +325,17 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
         return _MediaKind.video;
       case 'audio':
         return _MediaKind.audio;
+      case 'file':
+      case 'pdf':
+        return _MediaKind.pdf;
       default:
+        final normalizedMime = (mime ?? '').toLowerCase();
+        if (normalizedMime.contains('pdf')) return _MediaKind.pdf;
+        if (normalizedMime.startsWith('image/')) return _MediaKind.image;
+        if (normalizedMime.startsWith('video/')) return _MediaKind.video;
         return _MediaKind.audio;
     }
   }
-
-  // ======== Local Draft Handling ========
 
   String get _draftKey {
     final id = widget.existingLessonId;
@@ -341,7 +346,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
   Future<void> _saveLocalDraft() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-
       final blocksJson = _blocks.map((b) => b.toDraftJson()).toList();
 
       final draft = {
@@ -371,8 +375,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     await prefs.remove(_draftKey);
   }
 
-  // ======== Helpers for initial structure ========
-
   void _addInitialStructure() {
     if (_modules.isEmpty) {
       _modules.add(
@@ -397,7 +399,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       return;
     }
 
-    // لو آخر بلوك ميديا، أضف Text بعده عشان المعلم يكمّل كتابة
     if (_blocks.isNotEmpty && _blocks.last.type == _LessonBlockType.media) {
       final b = _LessonBlock.text(
         id: _id(),
@@ -447,7 +448,129 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
   String _id() => DateTime.now().microsecondsSinceEpoch.toString();
 
-  // ======== TEXT HELPER: bold/italic (على بلوك النص النشط) ========
+  Future<void> _openLessonExercises() async {
+    final lessonId = _resolvedLessonId;
+
+    if (lessonId == null) {
+      _showSnack('احفظ الدرس أولاً، ثم افتح شاشة التمارين.');
+      return;
+    }
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => LessonExercisesScreen(
+          lessonId: lessonId,
+          teacherCode: widget.teacherCode,
+          lessonTitle: _titleController.text.trim().isNotEmpty
+              ? _titleController.text.trim()
+              : widget.moduleTitle,
+        ),
+      ),
+    );
+  }
+
+  String _mediaDisplayName(_PendingMedia media) {
+    if (media.localPath != null && media.localPath!.trim().isNotEmpty) {
+      return media.localPath!.split(Platform.pathSeparator).last;
+    }
+
+    if (media.mediaPath.trim().isNotEmpty) {
+      return media.mediaPath.split('/').last;
+    }
+
+    final url = media.remoteUrl.trim();
+    if (url.isNotEmpty) {
+      try {
+        final uri = Uri.parse(url);
+        if (uri.pathSegments.isNotEmpty) return uri.pathSegments.last;
+      } catch (_) {}
+    }
+
+    return media.kind == _MediaKind.pdf ? 'document.pdf' : 'file';
+  }
+
+  Future<void> _showFileActions(_PendingMedia media) async {
+    if (media.status == _MediaStatus.uploading) {
+      _showSnack('Please wait until the file upload finishes.');
+      return;
+    }
+
+    if (media.status == _MediaStatus.failed) {
+      _showSnack('This file failed to upload.');
+      return;
+    }
+
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 14),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.open_in_new_rounded),
+                  title: const Text('Open file'),
+                  subtitle: Text(_mediaDisplayName(media)),
+                  onTap: () async {
+                    Navigator.of(ctx).pop();
+                    await _openFileExternally(media);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _openFileExternally(_PendingMedia media) async {
+    try {
+      final localPath = media.localPath;
+      if (localPath != null &&
+          localPath.trim().isNotEmpty &&
+          File(localPath).existsSync()) {
+        final result = await OpenFile.open(localPath);
+        if (result.type != ResultType.done) {
+          _showSnack(result.message.isNotEmpty
+              ? result.message
+              : 'Could not open file.');
+        }
+        return;
+      }
+
+      final url = media.remoteUrl.isNotEmpty
+          ? media.remoteUrl
+          : (media.mediaPath.isNotEmpty
+              ? ApiHelpers.buildMediaUrl(media.mediaPath)
+              : '');
+
+      if (url.isEmpty) {
+        _showSnack('File is not ready yet.');
+        return;
+      }
+
+      final uri = Uri.parse(url);
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
+        _showSnack('Could not open file.');
+      }
+    } catch (e) {
+      _showSnack(
+        'Failed to open file: ${e.toString().replaceFirst('Exception: ', '')}',
+      );
+    }
+  }
 
   void _insertAroundSelection(String prefix, String suffix) {
     final idx = _activeTextBlockIndex;
@@ -468,8 +591,7 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     final selectedText = text.substring(start, end);
     if (selectedText.isEmpty) return;
 
-    final newText =
-        text.replaceRange(start, end, '$prefix$selectedText$suffix');
+    final newText = text.replaceRange(start, end, '$prefix$selectedText$suffix');
 
     c.value = c.value.copyWith(
       text: newText,
@@ -482,8 +604,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
     _markDirtyAndMaybeAutosave();
   }
-
-  // =================== Media Picking (Unified UX) ===================
 
   Future<void> _openMediaPickerSheet() async {
     if (_isRecording) {
@@ -615,15 +735,12 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     await _attachAndUploadMedia(kind: _MediaKind.pdf, localPath: path);
   }
 
-  // =================== Media Attachment + Upload ===================
-  // ✅ الآن: الميديا تظهر كبـ "Block" داخل المحرر نفسه (بدون Tokens)
-
   int _insertIndexForNewMediaBlock() {
     final idx = _activeTextBlockIndex;
     if (idx == null || idx < 0 || idx >= _blocks.length) {
-      return _blocks.length; // آخر شي
+      return _blocks.length;
     }
-    return idx + 1; // تحت بلوك النص النشط مباشرة
+    return idx + 1;
   }
 
   Future<void> _attachAndUploadMedia({
@@ -647,11 +764,9 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
     setState(() {
       _blocks.insert(insertAt, _LessonBlock.media(id: id, media: pending));
-      // لو كان آخر بلوك ميديا، أضف Text بعده عشان يكمّل كتابة
       if (insertAt == _blocks.length - 1) {
         _ensureAtLeastOneTextBlock();
       } else {
-        // لو البلوك اللي بعده ميديا/نهاية، أضف نص بينهما
         final nextIndex = insertAt + 1;
         if (nextIndex >= _blocks.length ||
             _blocks[nextIndex].type == _LessonBlockType.media) {
@@ -667,7 +782,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     });
 
     _markDirtyAndMaybeAutosave();
-
     await _uploadMedia(blockId: id, localPath: localPath);
   }
 
@@ -731,8 +845,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       );
     }
   }
-
-  // =================== Voice Recording ===================
 
   Future<void> _toggleVoiceRecording() async {
     if (_isRecording) {
@@ -817,15 +929,13 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     }
   }
 
-  // =================== SAVE LESSON ===================
-
   bool _hasAnyMeaningfulContent() {
     for (final b in _blocks) {
       if (b.type == _LessonBlockType.text) {
         final t = b.controller?.text.trim() ?? '';
         if (t.isNotEmpty) return true;
       } else {
-        return true; // أي ميديا تعتبر محتوى
+        return true;
       }
     }
     return false;
@@ -881,7 +991,7 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
               ? 'video'
               : media.kind == _MediaKind.pdf
                   ? 'file'
-                  : 'audio'; // audio + voice
+                  : 'audio';
 
       blocks.add({
         'id': null,
@@ -935,7 +1045,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
           .toList();
 
       final topicsPayload = <Map<String, dynamic>>[];
-
       final blocksPayload = _buildBlocksPayload();
 
       await LessonService.saveLesson(
@@ -953,7 +1062,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       );
 
       _showSnack(publish ? 'Lesson published.' : 'Lesson saved as draft.');
-
       await _clearLocalDraft();
 
       if (!mounted) return;
@@ -970,8 +1078,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     }
   }
 
-  // =================== Back Handling ===================
-
   Future<void> _handleBack() async {
     if (_isRecording) {
       _showSnack('Stop recording before leaving.');
@@ -983,8 +1089,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     }
     if (mounted) Navigator.of(context).pop(false);
   }
-
-  // =================== UI ===================
 
   @override
   Widget build(BuildContext context) {
@@ -1046,8 +1150,7 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 1️⃣ Step 1: Lesson Metadata
-                        _buildSectionHeader(context, "Step 1: Lesson Details"),
+                        _buildSectionHeader(context, 'Step 1: Lesson Details'),
                         Card(
                           elevation: 0,
                           color: theme.cardColor,
@@ -1095,18 +1198,25 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: 12),
+
+                                // =============================================
+                                // REMOVED PER NEW ARCHITECTURE
+                                // Old AI button removed from lesson builder.
+                                // OutlinedButton.icon(
+                                //   icon: const Icon(Icons.auto_awesome, size: 18),
+                                //   label: const Text('Generate AI Suggestions'),
+                                //   onPressed: () => _showSnack(
+                                //     'AI suggestion feature coming soon.',
+                                //   ),
+                                // )
+                                // =============================================
+
                                 SizedBox(
                                   width: double.infinity,
                                   child: OutlinedButton.icon(
-                                    icon: const Icon(
-                                      Icons.auto_awesome,
-                                      size: 18,
-                                    ),
-                                    label:
-                                        const Text('Generate AI Suggestions'),
-                                    onPressed: () => _showSnack(
-                                      'AI suggestion feature coming soon.',
-                                    ),
+                                    onPressed: _openLessonExercises,
+                                    icon: const Icon(Icons.quiz_outlined),
+                                    label: const Text('Manage Lesson Exercises'),
                                   ),
                                 ),
                               ],
@@ -1116,11 +1226,7 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
                         const SizedBox(height: 24),
 
-                        // 2️⃣ Step 2: Source Material (The Editor)
-                        _buildSectionHeader(
-                          context,
-                          "Step 2: Upload Lesson Content",
-                        ),
+                        _buildSectionHeader(context, 'Step 2: Upload Lesson Content'),
                         _buildToolbar(),
                         const SizedBox(height: 10),
                         Container(
@@ -1158,18 +1264,16 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
                                         Icon(
                                           Icons.cloud_upload_outlined,
                                           size: 48,
-                                          color: theme.textTheme.bodySmall
-                                                  ?.color ??
+                                          color: theme.textTheme.bodySmall?.color ??
                                               (isDark
                                                   ? EduTheme.darkTextMuted
                                                   : EduTheme.textMuted),
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          "No content uploaded yet",
+                                          'No content uploaded yet',
                                           style: TextStyle(
-                                            color: theme
-                                                    .textTheme.bodySmall?.color ??
+                                            color: theme.textTheme.bodySmall?.color ??
                                                 (isDark
                                                     ? EduTheme.darkTextMuted
                                                     : EduTheme.textMuted),
@@ -1191,12 +1295,65 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
 
                         const SizedBox(height: 24),
 
-                        // 3️⃣ Step 3: AI Assessment Review
-                        _buildSectionHeader(
-                          context,
-                          "Step 3: AI Assessment Review",
+                        // =============================================
+                        // REMOVED PER NEW ARCHITECTURE
+                        // Old Step 3 AI review removed from this screen.
+                        // _buildSectionHeader(context, 'Step 3: AI Assessment Review');
+                        // _buildAIQuestionsSection();
+                        // =============================================
+
+                        _buildSectionHeader(context, 'Step 3: Lesson Exercises'),
+                        Card(
+                          elevation: 0,
+                          color: theme.cardColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: theme.dividerColor.withValues(
+                                alpha: isDark ? 0.35 : 0.65,
+                              ),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'التمارين أصبحت في شاشة مستقلة مرتبطة بالدرس الحالي.',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: theme.colorScheme.onSurface,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  _resolvedLessonId == null
+                                      ? 'احفظ الدرس أولاً حتى يصبح له lessonId، ثم افتح شاشة التمارين.'
+                                      : 'يمكنك الآن الانتقال إلى شاشة إدارة التمارين الخاصة بهذا الدرس.',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: theme.textTheme.bodySmall?.color,
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    onPressed: _openLessonExercises,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: theme.colorScheme.primary,
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    icon: const Icon(Icons.arrow_forward_rounded),
+                                    label: const Text('Open Exercises Screen'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        _buildAIQuestionsSection(),
                       ],
                     ),
                   ),
@@ -1251,227 +1408,13 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     );
   }
 
-  Widget _buildAIQuestionsSection() {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final mutedColor = theme.textTheme.bodySmall?.color ??
-        (isDark ? EduTheme.darkTextMuted : EduTheme.textMuted);
-
-    return Column(
-      children: [
-        SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.psychology),
-            label: const Text('Generate Exercises & Exam Questions'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: theme.colorScheme.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: _isGeneratingAI ? null : _generateAIQuestions,
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (_isGeneratingAI)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 40),
-              child: Column(
-                children: [
-                  CircularProgressIndicator(
-                    color: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    "AI is generating questions from your content...",
-                    style: TextStyle(color: theme.colorScheme.onSurface),
-                  ),
-                ],
-              ),
-            ),
-          )
-        else if (_aiQuestions.isEmpty)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Text(
-                "No questions generated yet. Click above to start.",
-                style: TextStyle(color: mutedColor),
-              ),
-            ),
-          )
-        else
-          ..._aiQuestions
-              .asMap()
-              .entries
-              .map((entry) => _buildAIQuestionCard(entry.value, entry.key)),
-      ],
-    );
-  }
-
-  Widget _buildAIQuestionCard(GeneratedQuestion q, int index) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 0,
-      color: theme.cardColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: theme.dividerColor.withValues(alpha: isDark ? 0.35 : 0.65),
-        ),
-      ),
-      child: ExpansionTile(
-        iconColor: theme.colorScheme.onSurface,
-        collapsedIconColor: theme.colorScheme.onSurface,
-        leading: _getQuestionIcon(q.type),
-        title: Text(
-          q.questionText,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-        subtitle: Text(
-          'Type: ${q.type.replaceAll('_', ' ').toUpperCase()}',
-          style: TextStyle(
-            fontSize: 10,
-            color: theme.textTheme.bodySmall?.color,
-          ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit, size: 18, color: Colors.blue),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete, size: 18, color: Colors.red),
-              onPressed: () => setState(() => _aiQuestions.removeAt(index)),
-            ),
-            Icon(
-              Icons.expand_more,
-              color: theme.colorScheme.onSurface,
-            ),
-          ],
-        ),
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (q.options != null) ...[
-                  Text(
-                    "Options:",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ...q.options!.map(
-                    (opt) => Text(
-                      "• $opt",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
-                  Divider(color: theme.dividerColor),
-                ],
-                Text(
-                  "Answer Review:",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: theme.textTheme.bodySmall?.color,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  initialValue: q.answer,
-                  decoration: InputDecoration(
-                    labelText: 'Correct Answer',
-                    filled: true,
-                    fillColor: isDark ? EduTheme.darkSurface : theme.cardColor,
-                    border: const OutlineInputBorder(),
-                  ),
-                  onChanged: (val) => q.answer = val,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Icon _getQuestionIcon(String type) {
-    switch (type) {
-      case 'multiple_choice':
-        return const Icon(Icons.list_alt, color: Colors.blue);
-      case 'true_false':
-        return const Icon(Icons.check_circle_outline, color: Colors.green);
-      case 'fill_blank':
-        return const Icon(Icons.edit_note, color: Colors.orange);
-      case 'matching':
-        return const Icon(Icons.compare_arrows, color: Colors.purple);
-      default:
-        return const Icon(Icons.style, color: Colors.red);
-    }
-  }
-
-  Future<void> _generateAIQuestions() async {
-    if (!_hasAnyMeaningfulContent()) {
-      _showSnack('Please add some content first.');
-      return;
-    }
-
-    setState(() => _isGeneratingAI = true);
-
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (!mounted) return;
-
-    setState(() {
-      _isGeneratingAI = false;
-      _aiQuestions = [
-        GeneratedQuestion(
-          id: 'q1',
-          type: 'multiple_choice',
-          questionText: 'What is the main topic discussed in this lesson?',
-          options: ['Option A', 'Option B', 'Option C', 'Option D'],
-          answer: 'Option A',
-        ),
-        GeneratedQuestion(
-          id: 'q2',
-          type: 'true_false',
-          questionText: 'Is the content provided sufficient for an exam?',
-          answer: 'True',
-        ),
-        GeneratedQuestion(
-          id: 'q3',
-          type: 'fill_blank',
-          questionText: 'The core concept of this lesson is _____.',
-          answer: 'Knowledge',
-        ),
-      ];
-    });
-
-    _showSnack('AI Questions generated successfully!');
-  }
+  // =============================================
+  // REMOVED PER NEW ARCHITECTURE
+  // Widget _buildAIQuestionsSection() { ... }
+  // Widget _buildAIQuestionCard(GeneratedQuestion q, int index) { ... }
+  // Icon _getQuestionIcon(String type) { ... }
+  // Future<void> _generateAIQuestions() async { ... }
+  // =============================================
 
   Widget _buildToolbar() {
     final theme = Theme.of(context);
@@ -1601,8 +1544,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     return '$mm:$ss';
   }
 
-  // ========= Editor rendering =========
-
   Widget _buildEditorBlock(int index, _LessonBlock block) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -1631,7 +1572,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       );
     }
 
-    // Media block
     final media = block.media!;
     final isUploading = media.status == _MediaStatus.uploading;
     final isFailed = media.status == _MediaStatus.failed;
@@ -1746,45 +1686,62 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
       }
 
       if (media.kind == _MediaKind.video) {
-        return LessonVideoPlayer(url: 'file://$localPath');
+        return LessonVideoPlayer(
+          key: ValueKey('video-local-$localPath'),
+          url: 'file://$localPath',
+        );
       }
 
       if (media.kind == _MediaKind.pdf) {
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: theme.cardColor,
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: Colors.red.withValues(alpha: isDark ? 0.45 : 0.30),
-            ),
-          ),
-          child: Row(
-            children: [
-              const Icon(
-                Icons.picture_as_pdf_rounded,
-                color: Colors.red,
-                size: 30,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  localPath.split('/').last,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
-                  ),
+            onTap: () => _showFileActions(media),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.cardColor,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Colors.red.withValues(alpha: isDark ? 0.45 : 0.30),
                 ),
               ),
-            ],
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.picture_as_pdf_rounded,
+                    color: Colors.red,
+                    size: 30,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _mediaDisplayName(media),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.open_in_new_rounded,
+                    size: 18,
+                    color: theme.textTheme.bodySmall?.color,
+                  ),
+                ],
+              ),
+            ),
           ),
         );
       }
 
-      return LessonAudioPlayer(url: 'file://$localPath');
+      return LessonAudioPlayer(
+        key: ValueKey('audio-local-$localPath'),
+        url: 'file://$localPath',
+      );
     }
 
-    // remote
     final url = media.remoteUrl.isNotEmpty
         ? media.remoteUrl
         : (media.mediaPath.isNotEmpty
@@ -1818,49 +1775,62 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     }
 
     if (media.kind == _MediaKind.video) {
-      return LessonVideoPlayer(url: url);
+      return LessonVideoPlayer(
+        key: ValueKey('video-remote-$url'),
+        url: url,
+      );
     }
 
     if (media.kind == _MediaKind.pdf) {
-      return Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: isDark
-              ? Colors.red.withValues(alpha: 0.12)
-              : Colors.red.withValues(alpha: 0.05),
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: Colors.red.withValues(alpha: isDark ? 0.35 : 0.20),
-          ),
-        ),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.picture_as_pdf_rounded,
-              color: Colors.red,
-              size: 30,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'PDF Document',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.onSurface,
-                ),
+          onTap: () => _showFileActions(media),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.red.withValues(alpha: 0.12)
+                  : Colors.red.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: Colors.red.withValues(alpha: isDark ? 0.35 : 0.20),
               ),
             ),
-            Icon(
-              Icons.open_in_new_rounded,
-              size: 18,
-              color: theme.textTheme.bodySmall?.color,
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.picture_as_pdf_rounded,
+                  color: Colors.red,
+                  size: 30,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _mediaDisplayName(media),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.open_in_new_rounded,
+                  size: 18,
+                  color: theme.textTheme.bodySmall?.color,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       );
     }
 
-    return LessonAudioPlayer(url: url);
+    return LessonAudioPlayer(
+      key: ValueKey('audio-remote-$url'),
+      url: url,
+    );
   }
 
   IconData _iconForKind(_MediaKind k) {
@@ -1896,9 +1866,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Note: Since resizeToAvoidBottomInset is true, the Scaffold already handles the inset.
-    // Adding it again here doubles the space and causes overflow.
-    // We only need some padding if there's no keyboard.
     return Container(
       padding: EdgeInsets.fromLTRB(18, 10, 18, bottomInset > 0 ? 10 : 24),
       decoration: BoxDecoration(
@@ -1947,8 +1914,6 @@ class _LessonBuilderScreenState extends State<LessonBuilderScreen> {
     );
   }
 }
-
-// ======== Helper internal models ========
 
 class _ModuleData {
   final String tempId;
@@ -2105,8 +2070,6 @@ class _LessonBlock {
     };
   }
 }
-
-// ======== Simple Video/Audio Players for Preview ========
 
 class LessonVideoPlayer extends StatefulWidget {
   final String url;
@@ -2316,8 +2279,7 @@ class _LessonAudioPlayerState extends State<LessonAudioPlayer> {
     }
 
     final maxMs = _duration.inMilliseconds;
-    final posMs =
-        _position.inMilliseconds.clamp(0, maxMs == 0 ? 0 : maxMs);
+    final posMs = _position.inMilliseconds.clamp(0, maxMs == 0 ? 0 : maxMs);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2347,6 +2309,9 @@ class _LessonAudioPlayerState extends State<LessonAudioPlayer> {
                 if (_isPlaying) {
                   await _player.pause();
                 } else {
+                  if (_duration > Duration.zero && _position >= _duration) {
+                    await _player.seek(Duration.zero);
+                  }
                   await _player.resume();
                 }
                 if (!mounted) return;
@@ -2363,8 +2328,6 @@ class _LessonAudioPlayerState extends State<LessonAudioPlayer> {
     );
   }
 }
-
-// ======== Minimal ticker ========
 
 class Ticker {
   Ticker(this.onTick);

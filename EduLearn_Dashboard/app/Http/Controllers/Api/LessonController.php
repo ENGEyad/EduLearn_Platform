@@ -40,19 +40,19 @@ class LessonController extends Controller
             'status' => 'required|in:draft,published',
 
             /**
-     * ------------------------------------------------------------
-     * ⚠️ Backward compatibility:
-     * نستقبل modules/topics لو جاءت من Flutter القديمة،
-     * لكننا لا نخزنها ولا نعتمد عليها في المرحلة الأولى.
-     * ------------------------------------------------------------
-     */
+             * ------------------------------------------------------------
+             * ⚠️ Backward compatibility:
+             * نستقبل modules/topics لو جاءت من Flutter القديمة،
+             * لكننا لا نخزنها ولا نعتمد عليها في المرحلة الأولى.
+             * ------------------------------------------------------------
+             */
             'modules' => 'nullable|array',
             'topics' => 'nullable|array',
 
             // Blocks فقط
             'blocks' => 'nullable|array',
             'blocks.*.id' => 'nullable|integer',
-            'blocks.*.type' => 'required|in:text,image,video,audio',
+            'blocks.*.type' => 'required|in:text,image,video,audio,file',
             'blocks.*.body' => 'nullable|string',
             'blocks.*.caption' => 'nullable|string|max:255',
 
@@ -110,8 +110,7 @@ class LessonController extends Controller
                     ->where('id', $validated['lesson_id'])
                     ->where('teacher_id', $teacher->id)
                     ->firstOrFail();
-            }
-            else {
+            } else {
                 $lesson = new Lesson();
                 $lesson->setConnection('app_mysql');
             }
@@ -181,21 +180,8 @@ class LessonController extends Controller
                 $block->save();
             }
 
-            // ✅ التوليد التلقائي للتمارين عند النشر
-            if ($validated['status'] === 'published') {
-                try {
-                    // استدعاء داخلي لتوليد التمارين
-                    app(AiController::class)->generateExercises(new Request([
-                        'lesson_id' => $lessonId,
-                        'count' => 5,
-                        'difficulty' => 'medium'
-                    ]));
-                }
-                catch (\Exception $e) {
-                    // لا نريد إيقاف حفظ الدرس إذا فشل الـ AI
-                    \Log::error("AI Exercise Generation failed: " . $e->getMessage());
-                }
-            }
+            // ✅ في هذه المرحلة: لا يوجد توليد AI تلقائي.
+            // التمارين تُدار يدويًا عبر نظام التمارين المستقل.
         });
 
         // ============================================================
@@ -205,8 +191,8 @@ class LessonController extends Controller
             ->where('id', $lessonId)
             ->where('teacher_id', $teacher->id)
             ->with(['blocks' => function ($q) {
-            $q->orderBy('position');
-        }])
+                $q->orderBy('position');
+            }])
             ->first();
 
         if (!$lessonRow) {
@@ -230,22 +216,22 @@ class LessonController extends Controller
             }
 
             return [
-            'id' => $b->id,
-            'lesson_id' => $b->lesson_id,
-            'module_id' => null, // ✅ مرحلة 1
-            'topic_id' => null, // ✅ مرحلة 1
-            'type' => $b->type,
-            'body' => $b->body,
-            'caption' => $b->caption,
-            'media_path' => $b->media_path,
-            'media_url' => $url,
-            'media_mime' => $b->media_mime,
-            'media_size' => $b->media_size,
-            'media_duration' => $b->media_duration,
-            'position' => $b->position,
-            'meta' => $b->meta,
-            'created_at' => $b->created_at,
-            'updated_at' => $b->updated_at,
+                'id' => $b->id,
+                'lesson_id' => $b->lesson_id,
+                'module_id' => null, // ✅ مرحلة 1
+                'topic_id' => null, // ✅ مرحلة 1
+                'type' => $b->type,
+                'body' => $b->body,
+                'caption' => $b->caption,
+                'media_path' => $b->media_path,
+                'media_url' => $url,
+                'media_mime' => $b->media_mime,
+                'media_size' => $b->media_size,
+                'media_duration' => $b->media_duration,
+                'position' => $b->position,
+                'meta' => $b->meta,
+                'created_at' => $b->created_at,
+                'updated_at' => $b->updated_at,
             ];
         })->values();
 
@@ -340,8 +326,8 @@ class LessonController extends Controller
             ->where('id', $lesson)
             ->where('teacher_id', $teacher->id)
             ->with(['blocks' => function ($q) {
-            $q->orderBy('position');
-        }])
+                $q->orderBy('position');
+            }])
             ->first();
 
         if (!$lessonRow) {
@@ -364,22 +350,22 @@ class LessonController extends Controller
             }
 
             return [
-            'id' => $b->id,
-            'lesson_id' => $b->lesson_id,
-            'module_id' => null,
-            'topic_id' => null,
-            'type' => $b->type,
-            'body' => $b->body,
-            'caption' => $b->caption,
-            'media_path' => $b->media_path,
-            'media_url' => $url,
-            'media_mime' => $b->media_mime,
-            'media_size' => $b->media_size,
-            'media_duration' => $b->media_duration,
-            'position' => $b->position,
-            'meta' => $b->meta,
-            'created_at' => $b->created_at,
-            'updated_at' => $b->updated_at,
+                'id' => $b->id,
+                'lesson_id' => $b->lesson_id,
+                'module_id' => null,
+                'topic_id' => null,
+                'type' => $b->type,
+                'body' => $b->body,
+                'caption' => $b->caption,
+                'media_path' => $b->media_path,
+                'media_url' => $url,
+                'media_mime' => $b->media_mime,
+                'media_size' => $b->media_size,
+                'media_duration' => $b->media_duration,
+                'position' => $b->position,
+                'meta' => $b->meta,
+                'created_at' => $b->created_at,
+                'updated_at' => $b->updated_at,
             ];
         })->values();
 

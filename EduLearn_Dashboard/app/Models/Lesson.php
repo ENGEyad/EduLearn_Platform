@@ -119,4 +119,9 @@ class Lesson extends Model
             ->where('class_section_id', $classSectionId)
             ->where('subject_id', $subjectId);
     }
+
+    public function exerciseSet()
+{
+    return $this->hasOne(\App\Models\LessonExerciseSet::class, 'lesson_id');
+}
 }

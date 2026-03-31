@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:edulearn/services/api_service.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../theme.dart';
-import 'ai_tutor_screen.dart';
-import 'lesson_completion_screen.dart';
+import 'student_lesson_exercises_screen.dart';
+// import 'ai_tutor_screen.dart';
+// import 'lesson_completion_screen.dart';
 // import '../../services/student_service.dart';
 
 class StudentLessonViewerScreen extends StatefulWidget {
@@ -44,7 +46,14 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
   bool _isCompleting = false;
 
   List<Map<String, dynamic>> _blocks = [];
-  Map<String, dynamic>? _quizData;
+
+  // ==========================================
+  // REMOVED AS AGREED
+  // Old quiz placeholder is no longer used.
+  // Exercises now live in a separate screen:
+  // student_lesson_exercises_screen.dart
+  // Map<String, dynamic>? _quizData;
+  // ==========================================
 
   // ===== UX helpers =====
   final ScrollController _scrollController = ScrollController();
@@ -62,7 +71,7 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
     _durationLabel = widget.initialDurationLabel ?? '';
     _statusForStudent = _normalizeStatus(widget.initialStatus);
 
-    // ✅ أول مرة فقط: نحول not_started -> draft عند أول فتح (مثل الاتفاق)
+    // ✅ أول مرة فقط: نحول not_started -> draft عند أول فتح
     if (_statusForStudent == 'not_started') {
       _setDraftStatusSilently();
     }
@@ -104,7 +113,7 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
         timeSpentSeconds: elapsedSecs,
         status: isCompleted ? 'completed' : 'draft',
       );
-      // Reset stopwatch to avoid counting twice if not disposed
+
       if (!isCompleted) _studyStopwatch.reset();
     } catch (_) {}
   }
@@ -133,10 +142,9 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
   }
 
   // =========================
-  // Media helpers (unified)
+  // Media helpers
   // =========================
   String _mediaValueFromBlock(Map<String, dynamic> block) {
-    // prefer backend helper if exists
     try {
       final v = ApiHelpers.pickMediaValueFromBlock(block);
       if (v is String) return v;
@@ -160,6 +168,8 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
   }
 
   bool _isVideoByMimeOrExt(String url, String mime) {
+    if (_isAudioByMimeOrExt(url, mime)) return false;
+
     final u = url.toLowerCase();
     final m = mime.toLowerCase();
     if (m.startsWith('video/')) return true;
@@ -179,16 +189,16 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
         u.endsWith('.wav') ||
         u.endsWith('.m4a') ||
         u.endsWith('.aac') ||
+        u.endsWith('.ogg') ||
+        u.endsWith('.opus') ||
+        u.endsWith('.weba') ||
+        u.endsWith('.m4b') ||
         u.contains('.mp3?') ||
-        u.contains('.m4a?');
-  }
-
-  int _sortValue(Map<String, dynamic> b, String key) {
-    final v = b[key];
-    if (v is int) return v;
-    if (v is num) return v.toInt();
-    if (v is String) return int.tryParse(v) ?? 0;
-    return 0;
+        u.contains('.m4a?') ||
+        u.contains('.wav?') ||
+        u.contains('.aac?') ||
+        u.contains('.ogg?') ||
+        u.contains('.opus?');
   }
 
   // =========================
@@ -202,22 +212,18 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
     });
 
     try {
-      // ✅ واجهة الطالب فقط (لا نستخدم fetchLessonDetail للأستاذ لأنه يتطلب teacherCode)
       final lesson = await StudentService.fetchStudentLessonDetail(
         academicId: widget.academicId,
         lessonId: widget.lessonId,
       );
 
-      // title
       _title = (lesson['title'] ?? _title).toString();
 
-      // duration_label (لو رجع من السيرفر)
       final dl = (lesson['duration_label'] ?? '').toString().trim();
       if (dl.isNotEmpty) {
         _durationLabel = dl;
       }
 
-      // blocks
       final rawBlocks = lesson['blocks'];
       if (rawBlocks is List) {
         _blocks = rawBlocks
@@ -225,7 +231,6 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
             .map((e) => Map<String, dynamic>.from(e))
             .toList();
 
-        // ✅ ترتيب ثابت: sort_order ثم position ثم id (حسب ما عندكم في Laravel normalize)
         _blocks.sort((a, b) {
           int readInt(dynamic v) {
             if (v is int) return v;
@@ -249,13 +254,16 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
         _blocks = [];
       }
 
-      // quiz (اختياري)
-      final q = lesson['quiz'];
-      if (q is Map) {
-        _quizData = Map<String, dynamic>.from(q);
-      } else {
-        _quizData = null;
-      }
+      // ==========================================
+      // REMOVED AS AGREED
+      // Old embedded quiz data is no longer read.
+      // final q = lesson['quiz'];
+      // if (q is Map) {
+      //   _quizData = Map<String, dynamic>.from(q);
+      // } else {
+      //   _quizData = null;
+      // }
+      // ==========================================
     } catch (e) {
       _error = e.toString().replaceFirst('Exception: ', '');
     } finally {
@@ -284,20 +292,6 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
       _statusForStudent = 'completed';
 
       if (!mounted) return;
-
-      // Reset the stopwatch to 0 so dispose doesn't add more time if they somehow go back.
-      _studyStopwatch.reset();
-
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => LessonCompletionScreen(
-            title: _title,
-            timeSpentSeconds: elapsedSecs,
-          ),
-        ),
-      );
-
-      if (!mounted) return;
       Navigator.of(context).pop('completed');
     } catch (e) {
       if (!mounted) return;
@@ -307,6 +301,18 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
     } finally {
       if (mounted) setState(() => _isCompleting = false);
     }
+  }
+
+  Future<void> _openExercisesScreen() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => StudentLessonExercisesScreen(
+          lessonId: widget.lessonId,
+          academicId: widget.academicId,
+          lessonTitle: _title,
+        ),
+      ),
+    );
   }
 
   Future<bool> _onWillPop() async {
@@ -328,7 +334,6 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
       return;
     }
 
-    // find first audio block index
     int? audioIndex;
     for (int i = 0; i < _blocks.length; i++) {
       final b = _blocks[i];
@@ -349,7 +354,6 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
       return;
     }
 
-    // scroll close to that item (approx)
     final targetOffset = (audioIndex * 210).toDouble();
     await _scrollController.animateTo(
       targetOffset.clamp(0, _scrollController.position.maxScrollExtent),
@@ -357,7 +361,6 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
       curve: Curves.easeOut,
     );
 
-    // try auto-play
     final key = _audioKeysByIndex[audioIndex];
     if (key?.currentState != null) {
       await key!.currentState!.play();
@@ -425,7 +428,7 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
     final titleColor = theme.colorScheme.onSurface;
     final mutedColor =
         theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
-        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+            (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
 
     return Center(
       child: Padding(
@@ -466,7 +469,7 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
     final titleColor = theme.colorScheme.onSurface;
     final mutedColor =
         theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
-        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+            (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
 
     return RefreshIndicator(
       onRefresh: _loadLessonDetail,
@@ -477,7 +480,6 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Text(
               _title,
               style: TextStyle(
@@ -502,18 +504,22 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
               const SizedBox(height: 16),
             ],
 
-            // Blocks
             for (int i = 0; i < _blocks.length; i++) ...[
               _buildBlock(_blocks[i], index: i),
               const SizedBox(height: 16),
             ],
 
-            // Quiz placeholder if present
-            if (_quizData != null) ...[
-              const SizedBox(height: 8),
-              _buildKnowledgeCheckFromData(_quizData!),
-            ],
+            // ==========================================
+            // REMOVED AS AGREED
+            // Old embedded quiz placeholder removed.
+            // if (_quizData != null) ...[
+            //   const SizedBox(height: 8),
+            //   _buildKnowledgeCheckFromData(_quizData!),
+            // ],
+            // ==========================================
 
+            const SizedBox(height: 8),
+            _buildExercisesEntryCard(),
             const SizedBox(height: 18),
             _buildMarkAsCompletedButton(),
             const SizedBox(height: 32),
@@ -523,12 +529,78 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
     );
   }
 
+  Widget _buildExercisesEntryCard() {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+    final titleColor = theme.colorScheme.onSurface;
+    final mutedColor =
+        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
+            (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+    final softBoxColor =
+        isDarkMode ? EduTheme.darkSurface : const Color(0xFFF3F7FF);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: softBoxColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.dividerColor.withValues(alpha: isDarkMode ? 0.35 : 0.20),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'تمارين الدرس',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: titleColor,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'بعد قراءة محتوى الدرس يمكنك الانتقال إلى شاشة التمارين الخاصة بهذا الدرس.',
+            style: TextStyle(
+              fontSize: 13,
+              color: mutedColor,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton.icon(
+              onPressed: _openExercisesScreen,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: EduTheme.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              icon: const Icon(Icons.quiz_outlined),
+              label: const Text(
+                'Open Lesson Exercises',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildEmptyState() {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
     final mutedColor =
         theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
-        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+            (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
     final boxColor =
         isDarkMode ? EduTheme.darkSurface : const Color(0xFFF3F7FF);
 
@@ -559,10 +631,10 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
 
     final caption = (block['caption'] ?? '').toString().trim();
 
-    final isVideo = (type == 'video') || _isVideoByMimeOrExt(url, mime);
-    final isAudio = (type == 'audio') || _isAudioByMimeOrExt(url, mime);
-    final isImage = (type == 'image');
+    final isImage = type == 'image';
     final isFile = (type == 'file') || (type == 'pdf') || mime.contains('pdf');
+    final isAudio = (type == 'audio') || _isAudioByMimeOrExt(url, mime);
+    final isVideo = (type == 'video') || _isVideoByMimeOrExt(url, mime);
 
     if (isImage) {
       return _CardShell(
@@ -573,12 +645,6 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
     if (isFile) {
       return _CardShell(
         child: _FileBlock(url: url, caption: caption),
-      );
-    }
-
-    if (isVideo) {
-      return _CardShell(
-        child: _VideoBlock(url: url, caption: caption),
       );
     }
 
@@ -595,7 +661,12 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
       );
     }
 
-    // text
+    if (isVideo) {
+      return _CardShell(
+        child: _VideoBlock(url: url, caption: caption),
+      );
+    }
+
     final body = (block['body'] ?? '').toString();
     final meta = (block['meta'] is Map)
         ? (block['meta'] as Map).cast<String, dynamic>()
@@ -660,106 +731,13 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
     );
   }
 
-  Widget _buildKnowledgeCheckFromData(Map<String, dynamic> quiz) {
-    final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
-    final titleColor = theme.colorScheme.onSurface;
-    final cardColor = theme.cardColor;
-    final shadowColor = isDarkMode
-        ? Colors.black.withValues(alpha: 0.18)
-        : const Color(0x11000000);
-
-    final title = (quiz['title'] ?? 'Knowledge Check').toString();
-    final question = (quiz['question'] ?? '').toString();
-    final options =
-        (quiz['options'] as List?)?.map((e) => e.toString()).toList() ??
-            <String>[];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: titleColor,
-          ),
-        ),
-        const SizedBox(height: 10),
-        if (question.isNotEmpty) ...[
-          Text(
-            question,
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              color: titleColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-        ],
-        if (options.isNotEmpty)
-          Container(
-            decoration: BoxDecoration(
-              color: cardColor,
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: shadowColor,
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              children: [
-                for (final opt in options) _quizOption(opt),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _quizOption(String text) {
-    final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
-    final titleColor = theme.colorScheme.onSurface;
-    final borderColor =
-        isDarkMode ? EduTheme.darkInputBorder : const Color(0xFFE0E4F0);
-    final mutedColor =
-        theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
-        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
-
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: borderColor),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.radio_button_unchecked,
-            size: 18,
-            color: mutedColor,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                color: titleColor,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // ==========================================
+  // REMOVED AS AGREED
+  // Old quiz placeholder widgets are no longer used.
+  //
+  // Widget _buildKnowledgeCheckFromData(Map<String, dynamic> quiz) { ... }
+  // Widget _quizOption(String text) { ... }
+  // ==========================================
 
   Widget _buildBottomBar() {
     final theme = Theme.of(context);
@@ -792,9 +770,7 @@ class _StudentLessonViewerScreenState extends State<StudentLessonViewerScreen>
             icon: Icons.help_outline_rounded,
             label: 'AI Tutor',
             onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const AITutorScreen()),
-              );
+              // intentionally left inactive
             },
           ),
         ],
@@ -976,6 +952,70 @@ class _FileBlock extends StatelessWidget {
 
   const _FileBlock({required this.url, required this.caption});
 
+  Future<void> _openDocument(BuildContext context) async {
+    if (url.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('File not available')),
+      );
+      return;
+    }
+
+    try {
+      final uri = Uri.parse(url);
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open file')),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open file')),
+        );
+      }
+    }
+  }
+
+  Future<void> _showFileActions(BuildContext context) async {
+    final theme = Theme.of(context);
+
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 14),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.open_in_new_rounded),
+                  title: const Text('Open file'),
+                  subtitle: Text(
+                    caption.isNotEmpty ? caption : 'PDF Documentation',
+                  ),
+                  onTap: () async {
+                    Navigator.of(ctx).pop();
+                    await _openDocument(context);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -983,16 +1023,10 @@ class _FileBlock extends StatelessWidget {
     final titleColor = theme.colorScheme.onSurface;
     final mutedColor =
         theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
-        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+            (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
 
     return InkWell(
-      onTap: () {
-        // In a real app, use url_launcher or a PDF viewer package.
-        // For now, we'll just show a snackbar with the URL.
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Opening document: $url')),
-        );
-      },
+      onTap: () => _showFileActions(context),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -1059,7 +1093,7 @@ class _VideoBlock extends StatelessWidget {
     final isDarkMode = theme.brightness == Brightness.dark;
     final mutedColor =
         theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
-        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+            (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
 
     if (url.isEmpty) {
       return Text(
@@ -1104,7 +1138,7 @@ class _BottomNavItem extends StatelessWidget {
     final isDarkMode = theme.brightness == Brightness.dark;
     final mutedColor =
         theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
-        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+            (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
 
     return InkWell(
       onTap: onTap,
@@ -1130,7 +1164,7 @@ class _BottomNavItem extends StatelessWidget {
   }
 }
 
-// =================== Audio Player (improved & reusable) ===================
+// =================== Audio Player ===================
 
 class LessonAudioPlayer extends StatefulWidget {
   final String url;
@@ -1259,7 +1293,7 @@ class _LessonAudioPlayerState extends State<LessonAudioPlayer> {
     final titleColor = theme.colorScheme.onSurface;
     final mutedColor =
         theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
-        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+            (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
     final softBoxColor =
         isDarkMode ? EduTheme.darkSurface : const Color(0xFFF3F7FF);
 
@@ -1373,7 +1407,7 @@ class _LessonAudioPlayerState extends State<LessonAudioPlayer> {
   }
 }
 
-// =================== Video Player (improved) ===================
+// =================== Video Player ===================
 
 class LessonVideoPlayer extends StatefulWidget {
   final String url;
@@ -1455,7 +1489,7 @@ class _LessonVideoPlayerState extends State<LessonVideoPlayer> {
     final isDarkMode = theme.brightness == Brightness.dark;
     final mutedColor =
         theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.72) ??
-        (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
+            (isDarkMode ? EduTheme.darkTextMuted : EduTheme.textMuted);
     final softBoxColor =
         isDarkMode ? EduTheme.darkSurface : const Color(0xFFEEF1F8);
 
@@ -1513,7 +1547,6 @@ class _LessonVideoPlayerState extends State<LessonVideoPlayer> {
     final c = _controller!;
     final total = c.value.duration;
     final pos = c.value.position;
-
     final isPlaying = c.value.isPlaying;
 
     return ClipRRect(
@@ -1524,8 +1557,6 @@ class _LessonVideoPlayerState extends State<LessonVideoPlayer> {
           alignment: Alignment.center,
           children: [
             VideoPlayer(c),
-
-            // overlay
             Positioned.fill(
               child: GestureDetector(
                 onTap: _togglePlay,
@@ -1543,8 +1574,6 @@ class _LessonVideoPlayerState extends State<LessonVideoPlayer> {
                 ),
               ),
             ),
-
-            // bottom progress
             Positioned(
               left: 10,
               right: 10,

@@ -6,3 +6,4 @@ export 'student_service.dart';
 export 'teacher_service.dart';
 export 'lesson_service.dart';
 export 'chat_service.dart';
+export 'lesson_exercise_service.dart';
