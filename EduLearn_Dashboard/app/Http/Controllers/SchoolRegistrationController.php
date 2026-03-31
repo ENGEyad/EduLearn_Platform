@@ -23,14 +23,35 @@ class SchoolRegistrationController extends Controller
             'phone' => 'required|string|max:20',
             'password' => 'required|string|min:8|confirmed',
             'admin_name' => 'required|string|max:255',
+            'academic_year' => 'required|string|max:20',
+            'school_type' => 'required|string|max:100',
+            'country' => 'required|string|max:100',
+            'city' => 'required|string|max:100',
+            'directorate' => 'required|string|max:100',
+            'address' => 'required|string',
+            'website' => 'required|url|max:255',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
+
+        $logoPath = null;
+        if ($request->hasFile('logo')) {
+            $logoPath = $request->file('logo')->store('schools/logos', 'public');
+        }
 
         $school = School::create([
             'name' => $request->school_name,
-            'slug' => Str::slug($request->school_name),
+            'slug' => \Illuminate\Support\Str::slug($request->school_name),
             'email' => $request->email,
             'phone' => $request->phone,
             'status' => 'pending', // Waiting for super admin approval
+            'academic_year' => $request->academic_year,
+            'school_type' => $request->school_type,
+            'country' => $request->country,
+            'city' => $request->city,
+            'directorate' => $request->directorate,
+            'address' => $request->address,
+            'website' => $request->website,
+            'logo_path' => $logoPath,
         ]);
 
         $user = User::create([

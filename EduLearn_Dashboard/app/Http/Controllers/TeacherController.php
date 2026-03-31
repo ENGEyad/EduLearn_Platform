@@ -3,17 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Teacher;
+use App\Traits\HandlesImageUploads;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 
 class TeacherController extends Controller
 {
+    use HandlesImageUploads;
     public function index()
     {
         return view('teachers', [
-            'pageTitle' => 'Teachers',
-            'pageSubtitle' => 'Add, edit and monitor teachers',
+            'pageTitle' => __('Teachers'),
+            'pageSubtitle' => __('Add, edit and monitor teachers'),
             'TEACHERS_ROUTES' => [
                 'list'    => route('teachers.list'),
                 'store'   => route('teachers.store'),
@@ -47,8 +49,7 @@ class TeacherController extends Controller
 
         // حفظ صورة الأستاذ
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('teachers', 'public');
-            $data['photo_path'] = $path;
+            $data['photo_path'] = $this->uploadAndOptimize($request->file('photo'), 'teachers');
         }
 
         $teacher = Teacher::create($data);
@@ -66,8 +67,8 @@ class TeacherController extends Controller
         $data = $this->sanitize($request);
 
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('teachers', 'public');
-            $data['photo_path'] = $path;
+            $this->deletePreviousImage($teacher->photo_path);
+            $data['photo_path'] = $this->uploadAndOptimize($request->file('photo'), 'teachers');
         }
 
         $teacher->update($data);
@@ -232,9 +233,9 @@ class TeacherController extends Controller
 
         \App\Models\DashboardNotification::logEvent(
             'teacher_event',
-            'استيراد معلمين',
-            "تم استيراد قائمة معلمين جديدة إلى النظام.",
-            'النظام',
+            'Teachers Import',
+            'notifications.teachers_imported',
+            'System',
             'bi-file-earmark-arrow-up'
         );
 

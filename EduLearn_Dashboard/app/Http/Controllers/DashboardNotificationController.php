@@ -17,8 +17,8 @@ class DashboardNotificationController extends Controller
 
         return view('notifications.index', [
             'notifications' => $notifications,
-            'pageTitle' => 'تنبيهات النظام',
-            'pageSubtitle' => 'آخر الأحداث والنشاطات من المعلمين والطلاب'
+            'pageTitle' => __('System Alerts'),
+            'pageSubtitle' => __('Latest events and activities from teachers and students')
         ]);
     }
 

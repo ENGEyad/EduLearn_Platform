@@ -10,8 +10,8 @@ class ClassSectionController extends Controller
     public function index()
     {
         return view('classes', [
-            'pageTitle'         => 'Classes',
-            'pageSubtitle'      => 'Manage classes data',
+            'pageTitle'         => __('Classes'),
+            'pageSubtitle'      => __('Manage classes data'),
             'CLASSES_ROUTES'    => [
                 'list'    => route('classes.list'),
                 'store'   => route('classes.store'),

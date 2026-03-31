@@ -89,10 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function showForm(mode = 'create') {
     currentMode = mode;
     if (mode === 'create') {
-      teacherFormTitle.textContent = 'Add New Teacher';
+      teacherFormTitle.textContent = window.I18N?.addNewTeacher || 'Add New Teacher';
       clearForm();
     } else {
-      teacherFormTitle.textContent = 'Edit Teacher';
+      teacherFormTitle.textContent = window.I18N?.editTeacher || 'Edit Teacher';
     }
     teachersListView.style.display = 'none';
     teacherFormView.style.display = 'block';
@@ -113,9 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!tc) return;
 
     if (teacherName) teacherName.textContent = tc.full_name || '--';
-    if (teacherId) teacherId.textContent = tc.teacher_code
-      ? `Teacher Code: ${tc.teacher_code}`
-      : `Teacher Code: T-${tc.id}`;
+    if (teacherId) teacherId.textContent = (window.I18N?.teacherCodePrefix || 'Teacher Code: ') + (tc.teacher_code || ('T-' + tc.id));
 
     if (teacherAvatar) {
       if (tc.photo_path) {
@@ -227,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>${totalStudents}</td>
           <td>
             <span class="status-pill ${tc.status === 'Active' ? 'status-active' : 'status-inactive'}">
-              ${tc.status ?? ''}
+              ${tc.status === 'Active' ? (window.I18N?.active || 'Active') : (window.I18N?.inactive || 'Inactive')}
             </span>
           </td>
           <td class="text-end">
@@ -280,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         delBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (!confirm('Delete this teacher?')) return;
+          if (!confirm(window.I18N?.deleteTeacherQuestion || 'Delete this teacher?')) return;
           const url = typeof getDeleteUrl === 'function' ? getDeleteUrl(tc.id) : `/teachers/${tc.id}`;
           fetch(url, {
             method: 'DELETE',
@@ -374,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!res.ok) {
           const text = await res.text();
           console.error('Server error:', text);
-          alert('Saving failed. Status: ' + res.status);
+          alert((window.I18N?.savingFailed || 'Saving failed') + '. Status: ' + res.status);
           throw new Error('Request failed');
         }
         return res.json();
@@ -384,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showList();
         clearForm();
         if (teacherSavedAlert) {
-          teacherSavedAlert.textContent = 'Teacher saved successfully.';
+          teacherSavedAlert.textContent = window.I18N?.teacherSaved || 'Teacher saved successfully.';
           teacherSavedAlert.classList.remove('d-none');
         }
       })

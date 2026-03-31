@@ -10,8 +10,8 @@ class SubjectController extends Controller
     public function index()
     {
         return view('subjects', [
-            'pageTitle' => 'Subjects',
-            'pageSubtitle' => 'Manage subjects data',
+            'pageTitle' => __('Subjects'),
+            'pageSubtitle' => __('Manage subjects data'),
             'SUBJECTS_ROUTES' => [
                 'list' => route('subjects.list'),
                 'store' => route('subjects.store'),
@@ -43,10 +43,11 @@ class SubjectController extends Controller
 
         \App\Models\DashboardNotification::logEvent(
             'subject_event',
-            'إضافة مادة تعليمية',
-            "تمت إضافة المادة الجديدة: {$subject->name_ar} ({$subject->name_en}).",
-            'النظام',
-            'bi-book'
+            'Subject Added',
+            'notifications.subject_added',
+            'System',
+            'bi-book',
+            ['name_en' => $subject->name_en, 'name_ar' => $subject->name_ar]
         );
 
         return response()->json([
@@ -70,10 +71,11 @@ class SubjectController extends Controller
 
         \App\Models\DashboardNotification::logEvent(
             'subject_event',
-            'تحديث مادة تعليمية',
-            "تم تحديث بيانات المادة: {$subject->name_ar}.",
-            'النظام',
-            'bi-pencil-square'
+            'Subject Updated',
+            'notifications.subject_updated',
+            'System',
+            'bi-pencil-square',
+            ['name_en' => $subject->name_en, 'name_ar' => $subject->name_ar]
         );
 
         return response()->json([
@@ -89,10 +91,11 @@ class SubjectController extends Controller
 
         \App\Models\DashboardNotification::logEvent(
             'subject_event',
-            'حذف مادة تعليمية',
-            "تم حذف المادة: {$name} من النظام.",
-            'النظام',
-            'bi-journal-x'
+            'Subject Deleted',
+            'notifications.subject_deleted',
+            'System',
+            'bi-journal-x',
+            ['name' => $name]
         );
 
         return response()->json([

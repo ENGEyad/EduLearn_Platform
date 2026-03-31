@@ -420,10 +420,11 @@ class StudentLessonController extends Controller
         if ($status === 'completed') {
             \App\Models\DashboardNotification::logEvent(
                 'student_event',
-                'إكمال درس',
-                "أتم الطالب {$student->full_name} دراسة الدرس \"{$lesson->title}\".",
+                'Lesson Completed',
+                'notifications.lesson_completed',
                 $student->full_name,
-                'bi-check-circle-fill'
+                'bi-check-circle-fill',
+                ['student' => $student->full_name, 'lesson' => $lesson->title]
             );
         }
 
@@ -492,10 +493,15 @@ class StudentLessonController extends Controller
         if ($newlyCompleted) {
             \App\Models\DashboardNotification::logEvent(
                 'student_event',
-                'إكمال درس',
-                "أتم الطالب {$student->full_name} دراسة الدرس \"{$lessonObj->title}\". وقت الدراسة المستغرق: " . floor($progress->time_spent_seconds / 60) . " دقيقة.",
+                'Lesson Completed',
+                'notifications.lesson_completed_with_time',
                 $student->full_name,
-                'bi-check-circle-fill'
+                'bi-check-circle-fill',
+                [
+                    'student' => $student->full_name, 
+                    'lesson' => $lessonObj->title,
+                    'minutes' => floor($progress->time_spent_seconds / 60)
+                ]
             );
         }
 

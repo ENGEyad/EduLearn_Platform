@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
             errorBox.style.display = 'none';
             errorBox.textContent   = '';
 
-            titleEl.textContent = 'Edit Subject';
+            titleEl.textContent = window.I18N.editSubject || 'Edit Subject';
             subjectModal.show();
           });
       });
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     errorBox.style.display = 'none';
     errorBox.textContent   = '';
 
-    titleEl.textContent = 'Add Subject';
+    titleEl.textContent = window.I18N.addSubject || 'Add Subject';
     subjectModal.show();
   });
 

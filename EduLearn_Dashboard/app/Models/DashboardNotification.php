@@ -14,17 +14,24 @@ class DashboardNotification extends Model
         'message',
         'actor_name',
         'icon',
-        'is_read'
+        'is_read',
+        'data'
     ];
 
-    public static function logEvent($type, $title, $message, $actor = null, $icon = 'bi-bell')
+    protected $casts = [
+        'data' => 'array',
+        'is_read' => 'boolean'
+    ];
+
+    public static function logEvent($type, $title, $message, $actor = null, $icon = 'bi-bell', $data = null)
     {
         return self::create([
             'type' => $type,
             'title' => $title,
             'message' => $message,
             'actor_name' => $actor,
-            'icon' => $icon
+            'icon' => $icon,
+            'data' => $data
         ]);
     }
 }

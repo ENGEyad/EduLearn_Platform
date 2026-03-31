@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use App\Models\ClassSection;
+use App\Traits\HandlesImageUploads;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -11,17 +12,20 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class StudentController extends Controller
 {
+    use HandlesImageUploads;
     /**
      * عرض صفحة الطلاب (الواجهة)
      */
     public function index()
     {
         $grades = \App\Models\ClassSection::select('grade')->distinct()->pluck('grade');
+        $allSections = \App\Models\ClassSection::orderBy('grade')->orderBy('section')->get();
         return view('students', [
             'title'        => 'Students – EduLearn',
-            'pageTitle'    => 'Student Management',
-            'pageSubtitle' => 'Manage school students, status and profiles',
+            'pageTitle'    => __('Student Management'),
+            'pageSubtitle' => __('Manage school students, status and profiles'),
             'grades'       => $grades,
+            'allSections'  => $allSections,
         ]);
     }
 
@@ -157,8 +161,7 @@ class StudentController extends Controller
 
         // حفظ الصورة إن وُجدت
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('students', 'public');
-            $student->photo_path = $path;
+            $student->photo_path = $this->uploadAndOptimize($request->file('photo'), 'students');
         }
 
         $student->save();
@@ -214,10 +217,10 @@ class StudentController extends Controller
         $student->guardian_phone          = $validated['guardian_phone'] ?? null;
         $student->notes                   = $validated['notes'] ?? null;
 
-        // لو فيه صورة جديدة نحدّث المسار فقط (ما نحذف القديمة الآن)
+        // لو فيه صورة جديدة → نحذف القديمة ونحفظ الجديدة
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('students', 'public');
-            $student->photo_path = $path;
+            $this->deletePreviousImage($student->photo_path);
+            $student->photo_path = $this->uploadAndOptimize($request->file('photo'), 'students');
         }
 
         $student->save();

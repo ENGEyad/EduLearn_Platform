@@ -69,6 +69,8 @@ class Teacher extends Model
     ];
 
     protected $appends = [
+        'photo_url',
+        'thumb_url',
         'assigned_subjects',
         'assigned_class_sections',
         'total_assigned_students',
@@ -92,14 +94,21 @@ class Teacher extends Model
     }
 
 
-    public function getImageAttribute()
-{
-    if (!$this->photo_path) {
-        return null;
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->photo_path ? asset('storage/' . $this->photo_path) : null;
     }
 
-    return asset('storage/' . $this->photo_path);
-}
+    public function getThumbUrlAttribute(): ?string
+    {
+        if (!$this->photo_path) {
+            return null;
+        }
+        $dir = dirname($this->photo_path);
+        $file = basename($this->photo_path);
+        $thumbPath = $dir . '/thumbs/' . $file;
+        return asset('storage/' . $thumbPath);
+    }
 
     /** أسماء المواد من جدول الربط */
     public function getAssignedSubjectsAttribute()

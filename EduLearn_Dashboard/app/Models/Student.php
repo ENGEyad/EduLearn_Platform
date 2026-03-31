@@ -43,16 +43,27 @@ class Student extends Model
         'password',
     ];
 
+    protected $appends = [
+        'photo_url',
+        'thumb_url',
+    ];
 
 
-    public function getImageAttribute()
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->photo_path ? asset('storage/' . $this->photo_path) : null;
+    }
+
+    public function getThumbUrlAttribute(): ?string
     {
         if (!$this->photo_path) {
             return null;
         }
-
-        // تأكد إنك مشغّل `php artisan storage:link`
-        return asset('storage/' . $this->photo_path);
+        $dir = dirname($this->photo_path);
+        $file = basename($this->photo_path);
+        $thumbPath = $dir . '/thumbs/' . $file;
+        return asset('storage/' . $thumbPath);
     }
 
     /**

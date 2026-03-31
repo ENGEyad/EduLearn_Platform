@@ -4,13 +4,13 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div class="d-flex gap-2">
     <button class="btn btn-outline-secondary" id="importExcelBtn">
-      <i class="bi bi-upload"></i> Import from CSV / Excel
+      <i class="bi bi-upload"></i> {{ __('Import from CSV / Excel') }}
     </button>
     <input type="file" id="excelInput" class="d-none" accept=".csv,.xls,.xlsx" />
   </div>
   <div>
     <button class="btn btn-primary" id="openStudentFormBtn">
-      <i class="bi bi-plus"></i> Add New Student
+      <i class="bi bi-plus"></i> {{ __('Add New Student') }}
     </button>
   </div>
 </div>
@@ -30,30 +30,30 @@
                 type="text"
                 class="form-control border-start-0"
                 id="studentSearch"
-                placeholder="Search by name or ID..."
+                placeholder="{{ __('Search by name or ID') }}..."
               />
             </div>
           </div>
           <div class="col-md-6">
             <select class="form-select" id="gradeFilter">
-              <option value="">All Grades</option>
+              <option value="">{{ __('All Grades') }}</option>
               @for ($i = 1; $i <= 12; $i++)
-                <option value="Grade {{ $i }}">Grade {{ $i }}</option>
+                <option value="Grade {{ $i }}">{{ __('Grade') }} {{ $i }}</option>
               @endfor
             </select>
           </div>
         </div>
 
         <!-- Scrollable table container with fixed height -->
-        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px;">
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px;">
           <table class="table table-hover align-middle mb-0" id="studentsTable">
-            <thead style="position: sticky; top: 0; background-color: white; z-index: 10;">
+            <thead style="position: sticky; top: 0; background-color: var(--card); z-index: 10;">
               <tr>
-                <th>Full Name</th>
-                <th>Academic ID</th>
-                <th>Grade &amp; Class</th>
-                <th>Status</th>
-                <th class="text-end">Actions</th>
+                <th>{{ __('Full Name') }}</th>
+                <th>{{ __('Academic ID') }}</th>
+                <th>{{ __('Grade & Class') }}</th>
+                <th>{{ __('Status') }}</th>
+                <th class="text-end">{{ __('Actions') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -64,7 +64,7 @@
         
         <!-- Optional: Show record count -->
         <div class="mt-2 text-muted small" id="recordCount">
-          Loading students...
+          {{ __('Loading students...') }}
         </div>
       </div>
     </div>
@@ -75,51 +75,51 @@
         <div class="profile-header mb-3">
           <div class="avatar-circle" id="studentAvatar">ST</div>
           <div>
-            <h6 class="profile-name mb-0" id="studentName">Select a student</h6>
-            <div class="profile-meta small text-muted" id="studentId">Academic ID: --</div>
+            <h6 class="profile-name mb-0" id="studentName">{{ __('Select a student') }}</h6>
+            <div class="profile-meta small text-muted" id="studentId">{{ __('Academic ID') }}: --</div>
           </div>
         </div>
 
         <div class="mb-2">
-          <strong>Date of Birth:</strong>
+          <strong>{{ __('Date of Birth') }}:</strong>
           <div id="studentDob" class="text-muted small">--</div>
         </div>
 
         <div class="mb-2">
-          <strong>Email:</strong>
+          <strong>{{ __('Email') }}:</strong>
           <div id="studentEmail" class="text-muted small">--</div>
         </div>
 
         <div class="mb-2">
-          <strong>Address:</strong>
+          <strong>{{ __('Address') }}:</strong>
           <div id="studentAddress" class="text-muted small">--</div>
         </div>
 
         <hr class="my-2" />
 
         <div class="mb-2">
-          <strong>Guardian:</strong>
+          <strong>{{ __('Guardian') }}:</strong>
           <div id="studentGuardian" class="text-muted small">--</div>
         </div>
 
         <div class="mb-2">
-          <strong>Guardian Phone:</strong>
+          <strong>{{ __('Guardian Phone') }}:</strong>
           <div id="studentGuardianPhone" class="text-muted small">--</div>
         </div>
 
         <div class="mb-2">
-          <strong>Grade / Section:</strong>
+          <strong>{{ __('Grade / Section') }}:</strong>
           <div id="studentGradeSection" class="text-muted small">--</div>
         </div>
 
         <hr class="my-2" />
 
         <div class="d-flex justify-content-between mb-1">
-          <span class="small text-muted">Performance Average</span>
+          <span class="small text-muted">{{ __('Average Performance') }}</span>
           <span id="studentPerformance" class="fw-semibold">--</span>
         </div>
         <div class="d-flex justify-content-between">
-          <span class="small text-muted">Attendance Rate</span>
+          <span class="small text-muted">{{ __('Attendance Rate') }}</span>
           <span id="studentAttendance" class="fw-semibold">--</span>
         </div>
       </div>
@@ -131,11 +131,11 @@
 <div id="studentFormView" class="card-panel" style="display:none;">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-      <h5 class="mb-1" id="formTitle">Add New Student</h5>
-      <small class="text-muted">Fill the form to register a new student</small>
+      <h5 class="mb-1" id="formTitle">{{ __('Add New Student') }}</h5>
+      <small class="text-muted">{{ __('Fill the form to register a new student') }}</small>
     </div>
     <button class="btn btn-outline-secondary btn-sm" id="backToStudentsBtn">
-      <i class="bi bi-arrow-left"></i> Back to Students
+      <i class="bi bi-arrow-{{ app()->getLocale() == 'ar' ? 'right' : 'left' }}"></i> {{ __('Back to Students') }}
     </button>
   </div>
 
@@ -143,108 +143,110 @@
 
   <div class="row g-3 mb-3">
     <div class="col-md-4">
-      <label class="form-label">Full Name</label>
+      <label class="form-label">{{ __('Full Name') }}</label>
       <input type="text" class="form-control" id="stFullName" required>
     </div>
     <div class="col-md-2">
-      <label class="form-label">Gender</label>
+      <label class="form-label">{{ __('Gender') }}</label>
       <select class="form-select" id="stGender">
-        <option value="">Select</option>
-        <option>Male</option>
-        <option>Female</option>
+        <option value="">{{ __('Select') }}</option>
+        <option>{{ __('Male') }}</option>
+        <option>{{ __('Female') }}</option>
       </select>
     </div>
     <div class="col-md-3">
-      <label class="form-label">Birth Date</label>
+      <label class="form-label">{{ __('Birth Date') }}</label>
       <input type="date" class="form-control" id="stBirthdate">
     </div>
     <div class="col-md-3">
-      <label class="form-label">Status</label>
+      <label class="form-label">{{ __('Status') }}</label>
       <select class="form-select" id="stStatus">
-        <option>Active</option>
-        <option>Suspended</option>
+        <option>{{ __('Active') }}</option>
+        <option>{{ __('Suspended') }}</option>
       </select>
     </div>
   </div>
 
   <div class="row g-3 mb-3">
     <div class="col-md-3">
-      <label class="form-label">Email</label>
+      <label class="form-label">{{ __('Email') }}</label>
       <input type="email" class="form-control" id="stEmail" placeholder="student@mail.com">
     </div>
     <div class="col-md-3">
-      <label class="form-label">Grade</label>
+      <label class="form-label">{{ __('Grade') }}</label>
       <select class="form-select" id="stGrade">
-        <option value="">Select Grade</option>
+        <option value="">{{ __('Select Grade') }}</option>
         @foreach ($grades as $g)
           <option value="{{ $g }}">{{ $g }}</option>
         @endforeach
       </select>
     </div>
     <div class="col-md-3">
-      <label class="form-label">Class / Section (Optional)</label>
-      <input type="text" class="form-control" id="stClassSection" placeholder="e.g. A, B, C...">
+      <label class="form-label">{{ __('Grade / Section') }} ({{ __('Optional') }})</label>
+      <select class="form-select" id="stClassSection">
+        <option value="">{{ __('Select') }}</option>
+      </select>
     </div>
     <div class="col-md-3">
-      <label class="form-label">Notes</label>
-      <input type="text" class="form-control" id="stNotes" placeholder="Optional">
+      <label class="form-label">{{ __('Notes') }}</label>
+      <input type="text" class="form-control" id="stNotes" placeholder="{{ __('Optional') }}">
     </div>
   </div>
 
   <div class="row g-3 mb-3">
     <div class="col-md-4">
-      <label class="form-label">Student Photo</label>
+      <label class="form-label">{{ __('Student Photo') }}</label>
       <input type="file" class="form-control" id="stPhoto" accept="image/*">
     </div>
   </div>
 
-  <h6 class="mb-2 mt-4">Address</h6>
+  <h6 class="mb-2 mt-4">{{ __('Address') }}</h6>
   <div class="row g-3 mb-3">
     <div class="col-md-4">
-      <label class="form-label">Governorate</label>
+      <label class="form-label">{{ __('Governorate') }}</label>
       <input type="text" class="form-control" id="stGov">
     </div>
     <div class="col-md-4">
-      <label class="form-label">City</label>
+      <label class="form-label">{{ __('City') }}</label>
       <input type="text" class="form-control" id="stCity">
     </div>
     <div class="col-md-4">
-      <label class="form-label">Street</label>
+      <label class="form-label">{{ __('Street') }}</label>
       <input type="text" class="form-control" id="stStreet">
     </div>
   </div>
 
-  <h6 class="mb-2 mt-4">Guardian Information</h6>
+  <h6 class="mb-2 mt-4">{{ __('Guardian Information') }}</h6>
   <div class="row g-3 mb-3">
     <div class="col-md-4">
-      <label class="form-label">Guardian Name</label>
+      <label class="form-label">{{ __('Guardian Name') }}</label>
       <input type="text" class="form-control" id="guardianName" placeholder="e.g. Mohammed Ahmed">
     </div>
     <div class="col-md-3">
-      <label class="form-label">Relationship</label>
+      <label class="form-label">{{ __('Relationship') }}</label>
       <select class="form-select" id="guardianRelation">
-        <option value="">Select</option>
-        <option>Father</option>
-        <option>Mother</option>
-        <option>Brother</option>
-        <option value="other">Other...</option>
+        <option value="">{{ __('Select') }}</option>
+        <option>{{ __('Father') }}</option>
+        <option>{{ __('Mother') }}</option>
+        <option>{{ __('Brother') }}</option>
+        <option value="other">{{ __('Other...') }}</option>
       </select>
     </div>
     <div class="col-md-3">
-      <label class="form-label">Guardian Phone</label>
+      <label class="form-label">{{ __('Guardian Phone') }}</label>
       <input type="text" class="form-control" id="guardianPhone" placeholder="77xxxxxxx">
     </div>
     <div class="col-md-2 d-none" id="guardianRelationOtherWrap">
-      <label class="form-label">Custom Relation</label>
-      <input type="text" class="form-control" id="guardianRelationOther" placeholder="Specify">
+      <label class="form-label">{{ __('Custom Relation') }}</label>
+      <input type="text" class="form-control" id="guardianRelationOther" placeholder="{{ __('Specify') }}">
     </div>
   </div>
 
   <div class="d-flex gap-2 mt-4">
     <button class="btn btn-primary" type="button" id="saveStudentBtn">
-      <i class="bi bi-check2"></i> Save Student
+      <i class="bi bi-check2"></i> {{ __('Save Student') }}
     </button>
-    <button class="btn btn-light" type="button" id="cancelStudentBtn">Cancel</button>
+    <button class="btn btn-light" type="button" id="cancelStudentBtn">{{ __('Cancel') }}</button>
   </div>
 
   <div class="alert alert-success mt-3 d-none" id="studentSavedAlert"></div>
@@ -255,15 +257,15 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="deleteStudentLabel">Confirm Delete</h5>
+        <h5 class="modal-title" id="deleteStudentLabel">{{ __('Confirm Delete') }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        Are you sure you want to delete this student?
+        {{ __('Are you sure you want to delete this student?') }}
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger" id="confirmDeleteStudentBtn">Delete</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteStudentBtn">{{ __('Delete') }}</button>
       </div>
     </div>
   </div>
@@ -318,6 +320,21 @@
   };
 
   window.STORAGE_BASE_URL = "{{ asset('storage') }}";
+  window.ALL_SECTIONS = @json($allSections ?? []);
+  window.I18N = window.I18N || {};
+  Object.assign(window.I18N, {
+    addNewStudent: "{{ __('Add New Student') }}",
+    editStudent: "{{ __('Edit Student') }}",
+    academicIdPrefix: "{{ __('Academic ID') }}: ",
+    guardian: "{{ __('Guardian') }}",
+    active: "{{ __('Active') }}",
+    suspended: "{{ __('Suspended') }}",
+    savingFailed: "{{ __('Saving failed') }}",
+    studentSaved: "{{ __('Student saved successfully.') }}",
+    importFailed: "{{ __('Import failed') }}",
+    studentsImported: "{{ __('Students imported successfully.') }}",
+    unexpectedError: "{{ __('Unexpected error') }}"
+  });
 </script>
 <script src="{{ asset('js/students.js') }}"></script>
 @endpush

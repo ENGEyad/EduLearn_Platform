@@ -298,14 +298,16 @@ class LessonController extends Controller
         $lessonPayload['blocks'] = $blocksPayload;
 
         // Log notification to dashboard
-        $actionTitle = !empty($validated['lesson_id']) ? 'تحديث درس' : 'إضافة درس جديد';
-        $statusAr = ($validated['status'] === 'published') ? 'ونشره' : 'كـ مسودة';
+        $actionKey = !empty($validated['lesson_id']) ? 'notifications.lesson_updated' : 'notifications.lesson_added';
+        $statusAr = ($validated['status'] === 'published') ? 'published' : 'draft';
+        
         \App\Models\DashboardNotification::logEvent(
             'teacher_event',
-            $actionTitle,
-            "قام المعلم {$teacher->full_name} بحفظ الدرس \"{$validated['title']}\" {$statusAr}.",
+            !empty($validated['lesson_id']) ? 'Lesson Updated' : 'Lesson Added',
+            $actionKey,
             $teacher->full_name,
-            'bi-journal-plus'
+            'bi-journal-plus',
+            ['teacher' => $teacher->full_name, 'lesson' => $validated['title'], 'status' => $statusAr]
         );
 
         return response()->json([

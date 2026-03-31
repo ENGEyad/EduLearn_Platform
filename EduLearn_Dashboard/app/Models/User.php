@@ -23,6 +23,8 @@ class User extends Authenticatable
         'password',
         'school_id',
         'role',
+        'theme_mode',
+        'language',
     ];
 
     public function school()

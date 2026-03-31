@@ -35,8 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <td>${c.stage ?? ''}</td>
             <td>
               ${c.is_active
-                ? '<span class="status-pill status-active">Active</span>'
-                : '<span class="status-pill status-inactive">Inactive</span>'
+                ? `<span class="status-pill status-active">${window.I18N.active}</span>`
+                : `<span class="status-pill status-inactive">${window.I18N.inactive}</span>`
               }
             </td>
             <td>

@@ -51,12 +51,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (sel === filterTeacher) {
         const opt = document.createElement('option');
         opt.value = '';
-        opt.textContent = 'All teachers';
+        opt.textContent = window.I18N.allTeachers || 'All teachers';
         sel.appendChild(opt);
       } else {
         const opt = document.createElement('option');
         opt.value = '';
-        opt.textContent = 'Select teacher';
+        opt.textContent = window.I18N.selectTeacher || 'Select teacher';
         sel.appendChild(opt);
       }
 
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     classSelect.innerHTML = '';
     const emptyClass = document.createElement('option');
     emptyClass.value = '';
-    emptyClass.textContent = 'Select class';
+    emptyClass.textContent = window.I18N.selectClass || 'Select class';
     classSelect.appendChild(emptyClass);
 
     const gradesSet = new Set();
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     filterGrade.innerHTML = '';
     const optAllGrades = document.createElement('option');
     optAllGrades.value = '';
-    optAllGrades.textContent = 'All grades';
+    optAllGrades.textContent = window.I18N.allGrades || 'All grades';
     filterGrade.appendChild(optAllGrades);
 
     Array.from(gradesSet).sort().forEach(g => {
@@ -105,12 +105,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (sel === filterSubject) {
         const opt = document.createElement('option');
         opt.value = '';
-        opt.textContent = 'All subjects';
+        opt.textContent = window.I18N.allSubjects || 'All subjects';
         sel.appendChild(opt);
       } else {
         const opt = document.createElement('option');
         opt.value = '';
-        opt.textContent = 'Select subject';
+        opt.textContent = window.I18N.selectSubject || 'Select subject';
         sel.appendChild(opt);
       }
 
@@ -173,8 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${a.weekly_load ?? ''}</td>
         <td>
           ${a.is_active
-            ? '<span class="status-pill status-active">Active</span>'
-            : '<span class="status-pill status-inactive">Inactive</span>'
+            ? `<span class="status-pill status-active">${window.I18N.active}</span>`
+            : `<span class="status-pill status-inactive">${window.I18N.inactive}</span>`
           }
         </td>
         <td>
@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.btn-delete').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.dataset.id;
-        if (!confirm('Delete this assignment?')) return;
+        if (!confirm(window.I18N.deleteAssignmentConfirm || 'Delete this assignment?')) return;
 
         const url = ROUTES.destroy.replace('__ID__', id);
 

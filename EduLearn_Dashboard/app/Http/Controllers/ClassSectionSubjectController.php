@@ -15,8 +15,8 @@ class ClassSectionSubjectController extends Controller
     public function index()
     {
         return view('class_subjects', [
-            'pageTitle'  => 'Class Subjects',
-            'pageSubtitle' => 'Activate subjects per class & section',
+            'pageTitle'  => __('Class Subjects'),
+            'pageSubtitle' => __('Activate subjects per class & section'),
             'CLASS_SUBJECT_ROUTES' => [
                 'list' => route('class-subjects.list'),
                 'save' => route('class-subjects.save'),

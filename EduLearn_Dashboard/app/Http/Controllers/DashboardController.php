@@ -22,25 +22,42 @@ class DashboardController extends Controller
         ];
         $periodLabel = $periodMap[$period] ?? 'هذا الأسبوع';
 
+        // Cache statistics for 5 minutes
+        $cacheKey = "dashboard_stats_school_" . (auth()->user()->school_id ?? 'global');
+        $stats = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addMinutes(5), function () {
+            return [
+                'teachers' => Teacher::count(),
+                'students' => Student::count(),
+                'classes' => ClassSection::count(),
+                'subjects' => Subject::count(),
+                'attendance' => round(Student::avg('attendance_rate') ?? 0),
+                'performance' => round(Student::avg('performance_avg') ?? 0),
+                'danglingStudents' => Student::whereNull('class_section_id')->count(),
+            ];
+        });
+
+        return view('dashboard', [
+            'pageTitle' => __('Dashboard'),
+            'pageSubtitle' => __('Welcome, :name', ['name' => auth()->user()->name]),
+            'period' => $period,
+            'periodLabel' => $periodLabel,
+            'stats' => $stats,
+            'aiInsight' => null // Will be loaded via AJAX
+        ]);
+    }
+
+    public function getAiInsight(Request $request)
+    {
+        $periodLabel = $request->get('period_label', 'هذا الأسبوع');
+        
+        // Fetch fresh stats for AI (or use cached ones if preferred, but AI usually wants latest)
         $teachersCount = Teacher::count();
         $studentsCount = Student::count();
         $classesCount = ClassSection::count();
         $subjectsCount = Subject::count();
-
-        // Calculate averages (simulating historical data for the demo)
         $avgAttendance = Student::avg('attendance_rate') ?? 0;
         $avgPerformance = Student::avg('performance_avg') ?? 0;
 
-        // Simulate some variance based on period
-        if ($period === 'today') {
-            $avgAttendance *= 0.98;
-            $avgPerformance *= 1.05;
-        }
-        elseif ($period === 'month') {
-            $avgAttendance *= 1.02;
-        }
-
-        // Prepare context for AI
         $statsSummary = "إحصائيات المدرسة لـ ($periodLabel): 
         - عدد المعلمين: $teachersCount
         - عدد الطلاب: $studentsCount
@@ -49,40 +66,24 @@ class DashboardController extends Controller
         - متوسط الحضور: " . number_format($avgAttendance, 1) . "%
         - متوسط الأداء الأكاديمي: " . number_format($avgPerformance, 1) . " / 100";
 
-        $aiInsight = "جاري تحليل البيانات لـ ($periodLabel)...";
-
         try {
-            // Call the AI service running on 8001
-            $response = Http::timeout(10)->post('http://127.0.0.1:8001/chat/', [
+            $response = Http::timeout(15)->post('http://127.0.0.1:8001/chat/', [
                 'message' => "بصفتك محلل بيانات تعليمي، قم بتحليل إحصائيات فترة ($periodLabel) وتقديم تقرير (3 نقاط) باللغة العربية حول حالة المدرسة وتوصية واحدة: $statsSummary"
             ]);
 
             if ($response->successful()) {
-                $aiInsight = $response->json('reply') ?? "تعذر الحصول على تحليل دقيق حالياً.";
+                return response()->json([
+                    'success' => true,
+                    'aiInsight' => $response->json('reply') ?? "تعذر الحصول على تحليل دقيق حالياً."
+                ]);
             }
-            else {
-                $aiInsight = "الذكاء الاصطناعي غير متاح حالياً للتحليل.";
-            }
-        }
-        catch (\Exception $e) {
-            $aiInsight = "فشل الاتصال بخدمة الذكاء الاصطناعي: " . $e->getMessage();
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => "فشل الاتصال بخدمة الذكاء الاصطناعي"
+            ], 500);
         }
 
-        return view('dashboard', [
-            'pageTitle' => 'Dashboard',
-            'pageSubtitle' => 'Welcome, Admin!',
-            'period' => $period,
-            'periodLabel' => $periodLabel,
-            'stats' => [
-                'teachers' => $teachersCount,
-                'students' => $studentsCount,
-                'classes' => $classesCount,
-                'subjects' => $subjectsCount,
-                'attendance' => round($avgAttendance),
-                'performance' => round($avgPerformance),
-                'danglingStudents' => Student::whereNull('class_section_id')->count(),
-            ],
-            'aiInsight' => $aiInsight
-        ]);
+        return response()->json(['success' => false, 'error' => 'Unknown error'], 500);
     }
 }

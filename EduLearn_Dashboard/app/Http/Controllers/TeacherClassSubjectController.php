@@ -13,8 +13,8 @@ class TeacherClassSubjectController extends Controller
     public function index()
     {
         return view('assignments', [
-            'pageTitle' => 'Assignments',
-            'pageSubtitle' => 'Link teachers with classes and subjects',
+            'pageTitle' => __('Assignments'),
+            'pageSubtitle' => __('Link teachers with classes and subjects'),
             'ASSIGN_ROUTES' => [
                 'list' => route('assignments.list'),
                 'store' => route('assignments.store'),
@@ -65,10 +65,17 @@ class TeacherClassSubjectController extends Controller
 
         \App\Models\DashboardNotification::logEvent(
             'assignment_event',
-            'ربط معلم بفصل ومادة',
-            "تم ربط المعلم: {$assignment->teacher->full_name} بالمادة: {$assignment->subject->name_ar} للفصل: {$assignment->classSection->grade}/{$assignment->classSection->section}.",
-            'النظام',
-            'bi-link'
+            'Teacher Assignment',
+            'notifications.teacher_assigned',
+            'System',
+            'bi-link',
+            [
+                'teacher' => $assignment->teacher->full_name,
+                'subject_en' => $assignment->subject->name_en,
+                'subject_ar' => $assignment->subject->name_ar,
+                'grade' => $assignment->classSection->grade,
+                'section' => $assignment->classSection->section
+            ]
         );
 
         return response()->json([
@@ -85,10 +92,15 @@ class TeacherClassSubjectController extends Controller
 
         \App\Models\DashboardNotification::logEvent(
             'assignment_event',
-            'إلغاء ربط معلم',
-            "تم إلغاء ربط المعلم: {$teacherName} بمادة: {$subjectName}.",
-            'النظام',
-            'bi-link-45deg'
+            'Assignment Removed',
+            'notifications.teacher_unassigned',
+            'System',
+            'bi-link-45deg',
+            [
+                'teacher' => $teacherName,
+                'subject_en' => $assignment->subject->name_en ?? 'Subject',
+                'subject_ar' => $assignment->subject->name_ar ?? 'مادة'
+            ]
         );
 
         return response()->json([

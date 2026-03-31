@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
       classSelect.innerHTML = '';
       const opt = document.createElement('option');
       opt.value = '';
-      opt.textContent = 'Select class';
+      opt.textContent = window.I18N.selectClass || 'Select class';
       classSelect.appendChild(opt);
 
       classesCache.forEach(c => {
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const cls = classesCache.find(c => String(c.id) === String(classId));
       if (cls) {
-        selectedClassInfo.textContent = `Selected: ${cls.name} (Grade: ${cls.grade}, Section: ${cls.section})`;
+        selectedClassInfo.textContent = `${window.I18N.select || 'Selected'}: ${cls.name} (${cls.grade}, ${cls.section})`;
       } else {
         selectedClassInfo.textContent = '';
       }
@@ -93,8 +93,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${s.name_ar ?? ''}</td>
         <td>
           ${isSubjectActive
-            ? '<span class="status-pill status-active">Active</span>'
-            : '<span class="status-pill status-inactive">Inactive</span>'
+            ? `<span class="status-pill status-active">${window.I18N.active}</span>`
+            : `<span class="status-pill status-inactive">${window.I18N.inactive}</span>`
           }
         </td>
         <td class="text-center">
@@ -148,13 +148,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        const msg = data.message || 'Error saving class subjects';
+        const msg = data.message || window.I18N.errorSaving || 'Error saving class subjects';
         errorBox.textContent = msg;
         errorBox.style.display = 'block';
         throw new Error(msg);
       }
 
-      successBox.textContent = data.message || 'Saved successfully';
+      successBox.textContent = data.message || window.I18N.savedSuccessfully || 'Saved successfully';
       successBox.style.display = 'block';
 
       // نعيد التحميل للتأكد من تزامن البيانات

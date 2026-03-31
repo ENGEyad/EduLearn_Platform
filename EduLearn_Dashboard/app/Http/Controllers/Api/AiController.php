@@ -114,10 +114,11 @@ class AiController extends Controller
         $statusText = $isCorrect ? 'بشكل صحيح' : 'بشكل خاطئ';
         \App\Models\DashboardNotification::logEvent(
             'student_event',
-            'حل تمرين ذكي',
-            "قام الطالب {$student->full_name} بالإجابة على تمرين {$statusText}.",
+            'AI Exercise Result',
+            'notifications.ai_exercise_completed',
             $student->full_name,
-            $isCorrect ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'
+            $isCorrect ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger',
+            ['student' => $student->full_name, 'status' => $isCorrect ? 'correctly' : 'incorrectly']
         );
 
         return response()->json([

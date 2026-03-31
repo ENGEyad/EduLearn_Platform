@@ -12,9 +12,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(append: [
+            \App\Http\Middleware\SetUserPreferences::class,
+        ]);
         $middleware->alias([
             'school.active' => \App\Http\Middleware\EnsureSchoolIsActive::class,
             'super_admin' => \App\Http\Middleware\EnsureIsSuperAdmin::class,
+            'image.cache' => \App\Http\Middleware\SetImageCacheHeaders::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

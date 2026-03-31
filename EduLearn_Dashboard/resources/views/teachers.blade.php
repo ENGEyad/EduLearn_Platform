@@ -4,10 +4,10 @@
 <div class="d-flex justify-content-between align-items-center mb-3" id="teachersHeader">
   <div class="d-flex gap-2">
     <button class="btn btn-outline-secondary" id="importTeachersBtn">
-      <i class="bi bi-upload"></i> استيراد دفعي
+      <i class="bi bi-upload"></i> {{ __('Import Teachers') }}
     </button>
     <button class="btn btn-primary" id="openTeacherFormBtn">
-      <i class="bi bi-plus"></i> إضافة معلم جديد
+      <i class="bi bi-plus"></i> {{ __('Add New Teacher') }}
     </button>
   </div>
 </div>
@@ -28,23 +28,23 @@
                 type="text"
                 id="teacherSearch"
                 class="form-control border-start-0"
-                placeholder="ابحث بالاسم أو الرمز..."
+                placeholder="{{ __('Search by name or ID') }}..."
               />
             </div>
           </div>
           <div class="col-md-3">
             <select class="form-select" id="teacherSubjectFilter">
-              <option value="">تصفية حسب المادة</option>
-              <option>رياضيات</option>
-              <option>تاريخ</option>
-              <option>أحياء</option>
+              <option value="">{{ __('Filter by Subject') }}</option>
+              <option>{{ __('Math') }}</option>
+              <option>{{ __('History') }}</option>
+              <option>{{ __('Biology') }}</option>
             </select>
           </div>
           <div class="col-md-3">
             <select class="form-select" id="teacherStatusFilter">
-              <option value="">تصفية حسب الحالة</option>
-              <option value="Active">نشط</option>
-              <option value="Inactive">غير نشط</option>
+              <option value="">{{ __('Filter by Status') }}</option>
+              <option value="Active">{{ __('Active') }}</option>
+              <option value="Inactive">{{ __('Inactive') }}</option>
             </select>
           </div>
         </div>
@@ -52,14 +52,14 @@
         <!-- Scrollable table container with fixed height -->
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px;">
           <table class="table align-middle mb-0" id="teachersTable">
-            <thead style="position: sticky; top: 0; background-color: white; z-index: 10;">
+            <thead style="position: sticky; top: 0; background-color: var(--card); z-index: 10;">
               <tr>
-                <th>الاسم الكامل</th>
-                <th>رمز المعلم</th>
-                <th>المواد المدرسة</th>
-                <th>الطلاب</th>
-                <th>الحالة</th>
-                <th class="text-end">إجراءات</th>
+                <th>{{ __('Full Name') }}</th>
+                <th>{{ __('Teacher ID') }}</th>
+                <th>{{ __('Subjects Taught') }}</th>
+                <th>{{ __('Students') }}</th>
+                <th>{{ __('Status') }}</th>
+                <th class="text-end">{{ __('Actions') }}</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -68,7 +68,7 @@
 
         <!-- Optional: Show record count -->
         <div class="mt-2 text-muted small" id="recordCount">
-          جاري تحميل المعلمين...
+          {{ __('Loading teachers...') }}
         </div>
       </div>
     </div>
@@ -79,49 +79,49 @@
         <div class="profile-header mb-3">
           <div class="avatar-circle" id="teacherAvatar">TC</div>
           <div>
-            <h6 class="profile-name mb-0" id="teacherName">تحديد معلم</h6>
-            <div class="profile-meta small text-muted" id="teacherId">رمز المعلم: --</div>
+            <h6 class="profile-name mb-0" id="teacherName">{{ __('Select a teacher') }}</h6>
+            <div class="profile-meta small text-muted" id="teacherId">{{ __('Teacher ID') }}: --</div>
           </div>
         </div>
 
         <div class="mb-2">
-          <strong>تاريخ الميلاد:</strong>
+          <strong>{{ __('Date of Birth') }}:</strong>
           <div class="text-muted small" id="spTcBirthdate">--</div>
         </div>
 
         <div class="mb-2">
-          <strong>البريد الإلكتروني:</strong>
+          <strong>{{ __('Email') }}:</strong>
           <div class="text-muted small" id="spTcEmail">--</div>
         </div>
 
         <div class="mb-2">
-          <strong>العنوان:</strong>
+          <strong>{{ __('Address') }}:</strong>
           <div class="text-muted small" id="spTcAddress">--</div>
         </div>
 
         <hr class="my-2" />
 
         <div class="mb-2">
-          <strong>الهاتف:</strong>
+          <strong>{{ __('Phone') }}:</strong>
           <div class="text-muted small" id="spTcPhone">--</div>
         </div>
         <div class="mb-2">
-          <strong>الفصول / الأقسام:</strong>
+          <strong>{{ __('Classes / Sections') }}:</strong>
           <div class="text-muted small" id="spTcClassSection">--</div>
         </div>
         <div class="mb-2">
-          <strong>المواد:</strong>
+          <strong>{{ __('Subjects') }}:</strong>
           <div class="text-muted small" id="spTcSubjects">--</div>
         </div>
 
         <hr class="my-2" />
 
         <div class="d-flex justify-content-between mb-1">
-          <span class="small text-muted">متوسط الأداء</span>
+          <span class="small text-muted">{{ __('Average Performance') }}</span>
           <span id="spTcPerformance" class="fw-semibold">--</span>
         </div>
         <div class="d-flex justify-content-between">
-          <span class="small text-muted">نسبة الحضور</span>
+          <span class="small text-muted">{{ __('Attendance Rate') }}</span>
           <span id="spTcAttendance" class="fw-semibold">--</span>
         </div>
       </div>
@@ -135,90 +135,90 @@
 
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-      <h5 class="mb-1" id="teacherFormTitle">إضافة معلم جديد</h5>
-      <small class="text-muted">أدخل بيانات المعلم الشخصية والتواصل</small>
+      <h5 class="mb-1" id="teacherFormTitle">{{ __('Add New Teacher') }}</h5>
+      <small class="text-muted">{{ __('Personal info and contact details') }}</small>
     </div>
     <button class="btn btn-outline-secondary btn-sm" id="backToTeachersBtn">
-      <i class="bi bi-arrow-right"></i> الرجوع للمعلمين
+      <i class="bi bi-arrow-{{ app()->getLocale() == 'ar' ? 'right' : 'left' }}"></i> {{ __('Back to Teachers') }}
     </button>
   </div>
 
   {{-- Personal Information --}}
-  <h6 class="mb-2">المعلومات الشخصية</h6>
+  <h6 class="mb-2">{{ __('Personal Information') }}</h6>
   <div class="row g-3 mb-3">
     <div class="col-md-4">
-      <label class="form-label">الاسم الكامل</label>
-      <input type="text" class="form-control" id="tcFullName" placeholder="مثال: ياسر عبدالله حسن" required>
+      <label class="form-label">{{ __('Full Name') }}</label>
+      <input type="text" class="form-control" id="tcFullName" placeholder="{{ __('e.g. Yasser Abdullah Hassan') }}" required>
     </div>
     <div class="col-md-3">
-      <label class="form-label">تاريخ الميلاد</label>
+      <label class="form-label">{{ __('Date of Birth') }}</label>
       <input type="date" class="form-control" id="tcBirthdate">
     </div>
     <div class="col-md-2">
-      <label class="form-label">العمر</label>
+      <label class="form-label">{{ __('Age') }}</label>
       <div class="input-group">
         <input type="text" class="form-control" id="tcAge" readonly>
-        <button class="btn btn-outline-secondary" type="button" id="calcAgeBtn">حساب</button>
+        <button class="btn btn-outline-secondary" type="button" id="calcAgeBtn">{{ __('Calculate') }}</button>
       </div>
     </div>
   </div>
 
   {{-- Duty & Attendance --}}
-  <h6 class="mb-2 mt-4">بيانات الدوام</h6>
+  <h6 class="mb-2 mt-4">{{ __('Duty Details') }}</h6>
   <div class="row g-3 mb-3">
     <div class="col-md-3">
-      <label class="form-label">الفترة</label>
+      <label class="form-label">{{ __('Teacher Shift') }}</label>
       <select class="form-select" id="tcShift">
-        <option value="">اختير</option>
-        <option>صباحية</option>
-        <option>مسائية</option>
+        <option value="">{{ __('Choose...') }}</option>
+        <option>{{ __('Morning') }}</option>
+        <option>{{ __('Evening') }}</option>
       </select>
     </div>
     <div class="col-md-3">
-      <label class="form-label">هاتف المعلم</label>
+      <label class="form-label">{{ __('Phone') }}</label>
       <input type="text" class="form-control" id="tcPhone" placeholder="77xxxxxxx">
     </div>
     <div class="col-md-4">
-      <label class="form-label">البريد الإلكتروني (اختياري)</label>
+      <label class="form-label">{{ __('Email') }} ({{ __('Optional') }})</label>
       <input type="email" class="form-control" id="tcEmail" placeholder="example@school.com">
     </div>
   </div>
 
   {{-- Photo + Assigned classes (read only) --}}
-  <h6 class="mb-2 mt-4">الصورة والفصول المعينة</h6>
+  <h6 class="mb-2 mt-4">{{ __('Photo and Assigned Classes') }}</h6>
   <div class="row g-3 mb-3">
     <div class="col-md-4">
-      <label class="form-label">صورة المعلم</label>
+      <label class="form-label">{{ __('Teacher Photo') }}</label>
       <input type="file" class="form-control" id="tcPhoto" accept="image/*">
     </div>
     <div class="col-md-8">
-      <label class="form-label">الفصول / الأقسام (من التعيينات)</label>
-      <input type="text" class="form-control" id="tcAssignedClasses" placeholder="تملأ تلقائياً من التعيينات" readonly>
+      <label class="form-label">{{ __('Classes / Sections') }}</label>
+      <input type="text" class="form-control" id="tcAssignedClasses" placeholder="{{ __('Automatically filled from assignments') }}" readonly>
     </div>
   </div>
 
   {{-- Social & Address --}}
-  <h6 class="mb-2 mt-4">العنوان</h6>
+  <h6 class="mb-2 mt-4">{{ __('Address') }}</h6>
   <div class="row g-3 mb-3">
     <div class="col-md-3">
-      <label class="form-label">المحافظة</label>
-      <input type="text" class="form-control" id="tcDistrict" placeholder="المحافظة">
+      <label class="form-label">{{ __('District') }}</label>
+      <input type="text" class="form-control" id="tcDistrict" placeholder="{{ __('District') }}">
     </div>
     <div class="col-md-3">
-      <label class="form-label">الحي</label>
-      <input type="text" class="form-control" id="tcNeighborhood" placeholder="الحي">
+      <label class="form-label">{{ __('Neighborhood') }}</label>
+      <input type="text" class="form-control" id="tcNeighborhood" placeholder="{{ __('Neighborhood') }}">
     </div>
     <div class="col-md-3">
-      <label class="form-label">الشارع</label>
-      <input type="text" class="form-control" id="tcStreet" placeholder="الشارع">
+      <label class="form-label">{{ __('Street') }}</label>
+      <input type="text" class="form-control" id="tcStreet" placeholder="{{ __('Street') }}">
     </div>
   </div>
 
   <div class="d-flex gap-2 mt-4">
     <button class="btn btn-primary" type="button" id="saveTeacherBtn">
-      <i class="bi bi-check2"></i> حفظ المعلم
+      <i class="bi bi-check2"></i> {{ __('Save Teacher') }}
     </button>
-    <button class="btn btn-light" type="button" id="cancelTeacherBtn">إلغاء</button>
+    <button class="btn btn-light" type="button" id="cancelTeacherBtn">{{ __('Cancel') }}</button>
   </div>
 
   <div class="alert alert-success mt-3 d-none" id="teacherSavedAlert"></div>
@@ -272,6 +272,21 @@
   };
 
   window.STORAGE_BASE_URL = "{{ asset('storage') }}";
+  window.I18N = window.I18N || {};
+  Object.assign(window.I18N, {
+    addNewTeacher: "{{ __('Add New Teacher') }}",
+    editTeacher: "{{ __('Edit Teacher') }}",
+    teacherCodePrefix: "{{ __('Teacher Code') }}: ",
+    confirmDelete: "{{ __('Confirm') }}",
+    deleteTeacherQuestion: "{{ __('Delete this teacher?') }}",
+    teacherSaved: "{{ __('Teacher saved successfully.') }}",
+    savingFailed: "{{ __('Saving failed') }}",
+    guardian: "{{ __('Guardian') }}",
+    academicIdPrefix: "{{ __('Teacher Code') }}: ",
+    active: "{{ __('Active') }}",
+    suspended: "{{ __('Suspended') }}",
+    unexpectedError: "{{ __('Unexpected error') }}"
+  });
 </script>
 <script src="{{ asset('js/teachers.js') }}"></script>
 @endpush

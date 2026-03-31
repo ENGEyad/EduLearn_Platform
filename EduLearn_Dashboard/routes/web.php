@@ -103,10 +103,18 @@ Route::group(['prefix' => 'super-admin', 'middleware' => ['super_admin']], funct
     Route::post('/schools/{school}/notify', [SuperAdminController::class, 'notify'])->name('super-admin.schools.notify');
 });
 
-Route::view('/settings', 'placeholder', [
-    'pageTitle' => 'Settings',
-    'pageSubtitle' => 'Configure school branding, users and notifications'
-])->name('settings.index');
+use App\Http\Controllers\SchoolSettingsController;
+
+Route::group(['middleware' => ['auth', 'school.active']], function () {
+    Route::get('/settings', [SchoolSettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [SchoolSettingsController::class, 'update'])->name('settings.update');
+    
+    // Performance Optimization: Asynchronous AI Insights
+    Route::get('/api/dashboard/ai-insight', [DashboardController::class, 'getAiInsight'])->name('api.dashboard.ai-insight');
+
+    // System Preferences
+    Route::post('/settings/preferences', [SchoolSettingsController::class, 'updatePreferences'])->name('settings.preferences.update');
+});
 
 
 

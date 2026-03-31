@@ -109,15 +109,42 @@ document.addEventListener('DOMContentLoaded', () => {
     if (guardianRelationOther) guardianRelationOther.value = '';
     if (guardianRelationOtherWrap) guardianRelationOtherWrap.classList.add('d-none');
     if (stPhoto) stPhoto.value = '';
+    if (stClassSection) {
+        stClassSection.innerHTML = `<option value="">${window.I18N?.select || 'Select'}</option>`;
+    }
+  }
+
+  // Handle Grade Change to update Sections
+  if (stGrade && stClassSection) {
+    stGrade.addEventListener('change', () => {
+      const selectedGrade = stGrade.value; // e.g. "1" or "Grade 1"
+      const allSections = window.ALL_SECTIONS || [];
+
+      // Clear current options except the first one
+      stClassSection.innerHTML = `<option value="">${window.I18N?.select || 'Select'}</option>`;
+
+      if (selectedGrade) {
+        // Extract numeric part if grade is "Grade 1"
+        const gradeLevel = selectedGrade.toString().replace(/[^0-9]/g, '');
+        
+        const filtered = allSections.filter(s => s.grade == gradeLevel);
+        filtered.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.section;
+          opt.textContent = s.section;
+          stClassSection.appendChild(opt);
+        });
+      }
+    });
   }
 
   function showForm(mode = 'create') {
     currentMode = mode;
     if (mode === 'create') {
-      formTitle.textContent = 'Add New Student';
+      formTitle.textContent = window.I18N?.addNewStudent || 'Add New Student';
       clearForm();
     } else {
-      formTitle.textContent = 'Edit Student';
+      formTitle.textContent = window.I18N?.editStudent || 'Edit Student';
     }
     if (studentsListView) studentsListView.style.display = 'none';
     if (studentFormView) studentFormView.style.display = 'block';
@@ -133,12 +160,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!spName) return;
 
     spName.textContent = st.full_name || '--';
-    spId.textContent = 'Academic ID: ' + (st.academic_id || '--');
+    spId.textContent = (window.I18N?.academicIdPrefix || 'Academic ID: ') + (st.academic_id || '--');
     spDob.textContent = st.birthdate || '--';
     spEmail.textContent = st.email || '--';
     spAddress.textContent = fullAddress(st);
     spGuardian.textContent = st.guardian_name
-      ? `${st.guardian_name} (${st.guardian_relation || st.guardian_relation_other || 'Guardian'})`
+      ? `${st.guardian_name} (${st.guardian_relation || st.guardian_relation_other || (window.I18N?.guardian || 'Guardian')})`
       : '--';
     spGuardianPhone.textContent = st.guardian_phone || '--';
     spGradeSection.textContent = (st.grade || '--') + (st.class_section ? ' / ' + st.class_section : '');
@@ -146,9 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
     spAttendance.textContent = st.attendance_rate ? st.attendance_rate + '%' : '--';
 
     if (spAvatar) {
-      if (st.photo_path) {
-        const url = `${STORAGE_BASE_URL}/${st.photo_path}`;
-        spAvatar.style.backgroundImage = `url('${url}')`;
+      if (st.photo_url) {
+        spAvatar.style.backgroundImage = `url('${st.photo_url}')`;
         spAvatar.style.backgroundSize = 'cover';
         spAvatar.style.backgroundPosition = 'center';
         spAvatar.textContent = '';
@@ -181,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>${(st.grade ?? '')}${st.class_section ? ' / ' + st.class_section : ''}</td>
           <td>
             <span class="status-pill ${st.status === 'Active' ? 'status-active' : 'status-suspended'}">
-              ${st.status ?? ''}
+              ${st.status === 'Active' ? (window.I18N?.active || 'Active') : (window.I18N?.suspended || 'Suspended')}
             </span>
           </td>
           <td class="text-end">
@@ -211,7 +237,13 @@ document.addEventListener('DOMContentLoaded', () => {
           if (stBirthdate) stBirthdate.value = st.birthdate ?? '';
           if (stStatus) stStatus.value = st.status ?? 'Active';
           if (stEmail) stEmail.value = st.email ?? '';
-          if (stGrade) stGrade.value = st.grade ?? '';
+          if (stGrade) {
+            // st.grade is "Grade 1"
+            const gValue = st.grade ? st.grade.replace(/[^0-9]/g, '') : '';
+            stGrade.value = gValue;
+            // Trigger change to populate stClassSection
+            stGrade.dispatchEvent(new Event('change'));
+          }
           if (stClassSection) stClassSection.value = st.class_section ?? '';
           if (stGov) stGov.value = st.address_governorate ?? '';
           if (stCity) stCity.value = st.address_city ?? '';
@@ -322,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!res.ok) {
           const text = await res.text();
           console.error('Server error:', text);
-          alert('Saving failed. Status: ' + res.status);
+          alert((window.I18N?.savingFailed || 'Saving failed') + '. Status: ' + res.status);
           throw new Error('Request failed');
         }
         return res.json();
@@ -405,7 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data && data.message) {
           alert(data.message);
         } else {
-          alert('Students imported successfully.');
+          alert(window.I18N?.studentsImported || 'Students imported successfully.');
         }
         excelInput.value = '';
         fetchStudents();
