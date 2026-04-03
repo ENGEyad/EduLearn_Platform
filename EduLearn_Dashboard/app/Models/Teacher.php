@@ -148,18 +148,21 @@ class Teacher extends Model
     /** إجمالي الطلاب في الصفوف المسندة للأستاذ */
     public function getTotalAssignedStudentsAttribute()
     {
+        // ⚡ Bolt Optimization: Use already loaded 'assignments.classSection' relation to avoid redundant queries.
         $this->loadMissing('assignments.classSection');
 
         return $this->assignments->reduce(function ($carry, $as) {
             $cs = $as->classSection;
             if (!$cs) return $carry;
 
+            // ⚡ Bolt Optimization: Prioritize using pre-calculated 'students_count' attribute.
+            // If not available, use count() query instead of loading the full students collection.
             if (isset($cs->students_count)) {
                 return $carry + (int) $cs->students_count;
             }
 
             if (method_exists($cs, 'students')) {
-                return $carry + $cs->students->count();
+                return $carry + $cs->students()->count();
             }
 
             return $carry;
