@@ -1,0 +1,3 @@
+## 2026-04-06 - [Dashboard & Reports Optimization]
+**Learning:** Consolidating redundant aggregate queries into a shared cached method (`getDashboardStats`) significantly reduces database load during asynchronous AI insight fetching. Additionally, replacing N+1 `count()` queries in loops with a single `groupBy` and `selectRaw` query in `ReportsController` provides a measurable speed boost for listing operations.
+**Action:** Always check if dashboard stats used in primary views can be reused for secondary AJAX-loaded components like AI summaries. Look for `count()` or `exists()` calls inside loops in listing controllers to replace with grouped aggregations.

@@ -22,19 +22,7 @@ class DashboardController extends Controller
         ];
         $periodLabel = $periodMap[$period] ?? 'هذا الأسبوع';
 
-        // Cache statistics for 5 minutes
-        $cacheKey = "dashboard_stats_school_" . (auth()->user()->school_id ?? 'global');
-        $stats = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addMinutes(5), function () {
-            return [
-                'teachers' => Teacher::count(),
-                'students' => Student::count(),
-                'classes' => ClassSection::count(),
-                'subjects' => Subject::count(),
-                'attendance' => round(Student::avg('attendance_rate') ?? 0),
-                'performance' => round(Student::avg('performance_avg') ?? 0),
-                'danglingStudents' => Student::whereNull('class_section_id')->count(),
-            ];
-        });
+        $stats = $this->getDashboardStats();
 
         return view('dashboard', [
             'pageTitle' => __('Dashboard'),
@@ -49,22 +37,17 @@ class DashboardController extends Controller
     public function getAiInsight(Request $request)
     {
         $periodLabel = $request->get('period_label', 'هذا الأسبوع');
-        
-        // Fetch fresh stats for AI (or use cached ones if preferred, but AI usually wants latest)
-        $teachersCount = Teacher::count();
-        $studentsCount = Student::count();
-        $classesCount = ClassSection::count();
-        $subjectsCount = Subject::count();
-        $avgAttendance = Student::avg('attendance_rate') ?? 0;
-        $avgPerformance = Student::avg('performance_avg') ?? 0;
+
+        // Use cached stats to avoid redundant database queries
+        $stats = $this->getDashboardStats();
 
         $statsSummary = "إحصائيات المدرسة لـ ($periodLabel): 
-        - عدد المعلمين: $teachersCount
-        - عدد الطلاب: $studentsCount
-        - عدد الفصول: $classesCount
-        - عدد المواد: $subjectsCount
-        - متوسط الحضور: " . number_format($avgAttendance, 1) . "%
-        - متوسط الأداء الأكاديمي: " . number_format($avgPerformance, 1) . " / 100";
+        - عدد المعلمين: {$stats['teachers']}
+        - عدد الطلاب: {$stats['students']}
+        - عدد الفصول: {$stats['classes']}
+        - عدد المواد: {$stats['subjects']}
+        - متوسط الحضور: {$stats['attendance']}%
+        - متوسط الأداء الأكاديمي: {$stats['performance']} / 100";
 
         try {
             $response = Http::timeout(15)->post('http://127.0.0.1:8001/chat/', [
@@ -85,5 +68,25 @@ class DashboardController extends Controller
         }
 
         return response()->json(['success' => false, 'error' => 'Unknown error'], 500);
+    }
+
+    /**
+     * Get cached dashboard statistics.
+     * Bolt Optimization: Consolidates redundant queries into a single cached result.
+     */
+    private function getDashboardStats()
+    {
+        $cacheKey = "dashboard_stats_school_" . (auth()->user()->school_id ?? 'global');
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addMinutes(5), function () {
+            return [
+                'teachers' => Teacher::count(),
+                'students' => Student::count(),
+                'classes' => ClassSection::count(),
+                'subjects' => Subject::count(),
+                'attendance' => round(Student::avg('attendance_rate') ?? 0),
+                'performance' => round(Student::avg('performance_avg') ?? 0),
+                'danglingStudents' => Student::whereNull('class_section_id')->count(),
+            ];
+        });
     }
 }
