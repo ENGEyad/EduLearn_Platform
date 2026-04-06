@@ -70,14 +70,18 @@ class ReportsController extends Controller
             }
         }
 
-        // To handle the search string safely without breaking `group by`, we will fetch the grouped classes
-        // then filter in memory if the search string is present.
+        // Bolt Optimization: Use a single grouped query to fetch all class counts at once, avoiding N+1 count queries.
+        $classCounts = Student::select('grade', 'class_section', DB::raw('count(*) as students_count'))
+            ->groupBy('grade', 'class_section')
+            ->get()
+            ->keyBy(fn($item) => "{$item->grade}-{$item->class_section}");
+
         $baseClasses = $query->orderBy('grade')->orderBy('class_section')->get();
 
         $items = collect();
         foreach ($baseClasses as $row) {
-            // Check student count
-            $studentQuery = Student::where('grade', $row->grade)->where('class_section', $row->class_section);
+            $classKey = "{$row->grade}-{$row->class_section}";
+            $count = $classCounts[$classKey]->students_count ?? 0;
 
             // if we have a search term, we can check if it matches the class name or any student in the class
             $matchesSearch = true;
@@ -87,10 +91,12 @@ class ReportsController extends Controller
 
                 // If it doesn't match class name, check if any student matches
                 if (strpos($className, $s) === false) {
-                    $hasMatchingStudent = (clone $studentQuery)->where(function ($q) use ($search) {
-                        $q->where('full_name', 'like', "%{$search}%")
-                            ->orWhere('academic_id', 'like', "%{$search}%");
-                    })->exists();
+                    $hasMatchingStudent = Student::where('grade', $row->grade)
+                        ->where('class_section', $row->class_section)
+                        ->where(function ($q) use ($search) {
+                            $q->where('full_name', 'like', "%{$search}%")
+                                ->orWhere('academic_id', 'like', "%{$search}%");
+                        })->exists();
                     if (!$hasMatchingStudent) {
                         $matchesSearch = false; // Does not match class name or student name
                     }
@@ -101,7 +107,7 @@ class ReportsController extends Controller
                 $items->push([
                     'grade' => $row->grade,
                     'class_section' => $row->class_section,
-                    'students_count' => $studentQuery->count(),
+                    'students_count' => $count,
                 ]);
             }
         }
