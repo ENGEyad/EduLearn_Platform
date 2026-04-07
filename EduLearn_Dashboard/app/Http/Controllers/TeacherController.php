@@ -28,7 +28,10 @@ class TeacherController extends Controller
 
     public function list()
     {
-        $teachers = Teacher::with(['assignments.subject', 'assignments.classSection'])
+        $teachers = Teacher::with([
+            'assignments.subject',
+            'assignments.classSection' => fn($q) => $q->withCount('students')
+        ])
             ->orderBy('id', 'desc')
             ->get();
 
