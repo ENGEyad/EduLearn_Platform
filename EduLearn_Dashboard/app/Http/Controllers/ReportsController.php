@@ -47,10 +47,13 @@ class ReportsController extends Controller
         $classFilter = trim($request->get('class', ''));
         $subjectFilter = trim($request->get('subject', ''));
 
-        // Start with a base query of distinct classes
-        $query = Student::select('grade', 'class_section')->distinct()
+        // Optimization: Use GROUP BY and count students in one query instead of N+1 loop.
+        // We also handle the search logic within the query for better performance.
+        $query = Student::select('grade', 'class_section')
+            ->selectRaw('count(*) as students_count')
             ->whereNotNull('grade')
-            ->whereNotNull('class_section');
+            ->whereNotNull('class_section')
+            ->groupBy('grade', 'class_section');
 
         // If filtering by subject, finding the class matching the subject Filter in memory or DB
         if ($subjectFilter !== '') {
@@ -70,41 +73,26 @@ class ReportsController extends Controller
             }
         }
 
-        // To handle the search string safely without breaking `group by`, we will fetch the grouped classes
-        // then filter in memory if the search string is present.
-        $baseClasses = $query->orderBy('grade')->orderBy('class_section')->get();
-
-        $items = collect();
-        foreach ($baseClasses as $row) {
-            // Check student count
-            $studentQuery = Student::where('grade', $row->grade)->where('class_section', $row->class_section);
-
-            // if we have a search term, we can check if it matches the class name or any student in the class
-            $matchesSearch = true;
-            if ($search !== '') {
-                $s = strtolower($search);
-                $className = strtolower($row->grade . ' - ' . $row->class_section);
-
-                // If it doesn't match class name, check if any student matches
-                if (strpos($className, $s) === false) {
-                    $hasMatchingStudent = (clone $studentQuery)->where(function ($q) use ($search) {
-                        $q->where('full_name', 'like', "%{$search}%")
-                            ->orWhere('academic_id', 'like', "%{$search}%");
-                    })->exists();
-                    if (!$hasMatchingStudent) {
-                        $matchesSearch = false; // Does not match class name or student name
-                    }
-                }
-            }
-
-            if ($matchesSearch) {
-                $items->push([
-                    'grade' => $row->grade,
-                    'class_section' => $row->class_section,
-                    'students_count' => $studentQuery->count(),
-                ]);
-            }
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $concat = DB::connection()->getDriverName() === 'sqlite'
+                    ? "grade || ' - ' || class_section"
+                    : "CONCAT(grade, ' - ', class_section)";
+                $q->where(DB::raw($concat), 'like', "%{$search}%")
+                    ->orWhereExists(function ($sub) use ($search) {
+                        $sub->select(DB::raw(1))
+                            ->from('students as s2')
+                            ->whereColumn('s2.grade', 'students.grade')
+                            ->whereColumn('s2.class_section', 'students.class_section')
+                            ->where(function ($q2) use ($search) {
+                                $q2->where('s2.full_name', 'like', "%{$search}%")
+                                   ->orWhere('s2.academic_id', 'like', "%{$search}%");
+                            });
+                    });
+            });
         }
+
+        $items = $query->orderBy('grade')->orderBy('class_section')->get();
 
         // If search matches students, grab them directly
         $matchingStudents = collect();
