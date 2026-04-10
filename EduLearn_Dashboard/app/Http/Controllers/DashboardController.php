@@ -49,6 +49,7 @@ class DashboardController extends Controller
     public function getAiInsight(Request $request)
     {
         $periodLabel = $request->get('period_label', 'هذا الأسبوع');
+        $period = $request->get('period', 'week');
         
         // Fetch fresh stats for AI (or use cached ones if preferred, but AI usually wants latest)
         $teachersCount = Teacher::count();
@@ -66,15 +67,33 @@ class DashboardController extends Controller
         - متوسط الحضور: " . number_format($avgAttendance, 1) . "%
         - متوسط الأداء الأكاديمي: " . number_format($avgPerformance, 1) . " / 100";
 
+        // ⚡ Bolt Optimization: Cache AI response to avoid redundant external API calls.
+        // Cache key is based on the period and a hash of the current stats.
+        $statsHash = md5($statsSummary);
+        $cacheKey = "ai_insight_{$period}_{$statsHash}";
+
+        if ($cached = \Illuminate\Support\Facades\Cache::get($cacheKey)) {
+            return response()->json([
+                'success' => true,
+                'aiInsight' => $cached,
+                'cached' => true
+            ]);
+        }
+
         try {
             $response = Http::timeout(15)->post('http://127.0.0.1:8001/chat/', [
                 'message' => "بصفتك محلل بيانات تعليمي، قم بتحليل إحصائيات فترة ($periodLabel) وتقديم تقرير (3 نقاط) باللغة العربية حول حالة المدرسة وتوصية واحدة: $statsSummary"
             ]);
 
             if ($response->successful()) {
+                $reply = $response->json('reply') ?? "تعذر الحصول على تحليل دقيق حالياً.";
+
+                // Cache the response for 1 hour (3600 seconds)
+                \Illuminate\Support\Facades\Cache::put($cacheKey, $reply, 3600);
+
                 return response()->json([
                     'success' => true,
-                    'aiInsight' => $response->json('reply') ?? "تعذر الحصول على تحليل دقيق حالياً."
+                    'aiInsight' => $reply
                 ]);
             }
         } catch (\Exception $e) {
