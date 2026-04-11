@@ -47,19 +47,21 @@ class ReportsController extends Controller
         $classFilter = trim($request->get('class', ''));
         $subjectFilter = trim($request->get('subject', ''));
 
-        // Start with a base query of distinct classes
-        $query = Student::select('grade', 'class_section')->distinct()
+        // Start with a base query that groups by grade and class_section
+        // Optimized: Single query for counts and grouping instead of N+1
+        $query = Student::query()
+            ->select('grade', 'class_section', DB::raw('count(*) as students_count'))
             ->whereNotNull('grade')
-            ->whereNotNull('class_section');
+            ->whereNotNull('class_section')
+            ->groupBy('grade', 'class_section');
 
-        // If filtering by subject, finding the class matching the subject Filter in memory or DB
+        // If filtering by subject
         if ($subjectFilter !== '') {
             $query->whereHas('classSection', function ($q) use ($subjectFilter) {
                 $q->whereHas('subjects', function ($q2) use ($subjectFilter) {
-                        $q2->where('subject_id', $subjectFilter);
-                    }
-                    );
+                    $q2->where('subject_id', $subjectFilter);
                 });
+            });
         }
 
         if ($classFilter !== '') {
@@ -70,46 +72,41 @@ class ReportsController extends Controller
             }
         }
 
-        // To handle the search string safely without breaking `group by`, we will fetch the grouped classes
-        // then filter in memory if the search string is present.
-        $baseClasses = $query->orderBy('grade')->orderBy('class_section')->get();
+        // Incorporate search logic into the database query
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                // Determine driver for concatenation
+                $driver = DB::connection()->getDriverName();
+                $concat = $driver === 'sqlite'
+                    ? "grade || ' - ' || class_section"
+                    : "CONCAT(grade, ' - ', class_section)";
 
-        $items = collect();
-        foreach ($baseClasses as $row) {
-            // Check student count
-            $studentQuery = Student::where('grade', $row->grade)->where('class_section', $row->class_section);
-
-            // if we have a search term, we can check if it matches the class name or any student in the class
-            $matchesSearch = true;
-            if ($search !== '') {
-                $s = strtolower($search);
-                $className = strtolower($row->grade . ' - ' . $row->class_section);
-
-                // If it doesn't match class name, check if any student matches
-                if (strpos($className, $s) === false) {
-                    $hasMatchingStudent = (clone $studentQuery)->where(function ($q) use ($search) {
-                        $q->where('full_name', 'like', "%{$search}%")
-                            ->orWhere('academic_id', 'like', "%{$search}%");
-                    })->exists();
-                    if (!$hasMatchingStudent) {
-                        $matchesSearch = false; // Does not match class name or student name
-                    }
-                }
-            }
-
-            if ($matchesSearch) {
-                $items->push([
-                    'grade' => $row->grade,
-                    'class_section' => $row->class_section,
-                    'students_count' => $studentQuery->count(),
-                ]);
-            }
+                $q->where(DB::raw($concat), 'like', "%{$search}%")
+                    ->orWhereExists(function ($sub) use ($search) {
+                        $sub->select(DB::raw(1))
+                            ->from('students as s2')
+                            ->whereColumn('s2.grade', 'students.grade')
+                            ->whereColumn('s2.class_section', 'students.class_section')
+                            ->where(function ($inner) use ($search) {
+                                $inner->where('s2.full_name', 'like', "%{$search}%")
+                                    ->orWhere('s2.academic_id', 'like', "%{$search}%");
+                            });
+                    });
+            });
         }
+
+        $items = $query->orderBy('grade')->orderBy('class_section')->get()->map(function ($item) {
+            return [
+                'grade' => $item->grade,
+                'class_section' => $item->class_section,
+                'students_count' => (int) $item->students_count,
+            ];
+        });
 
         // If search matches students, grab them directly
         $matchingStudents = collect();
         if ($search !== '') {
-            $matchingStudents = Student::where(function ($q) use ($search) {
+            $matchingStudentsQuery = Student::where(function ($q) use ($search) {
                 $q->where('full_name', 'like', "%{$search}%")
                     ->orWhere('academic_id', 'like', "%{$search}%");
             });
@@ -117,16 +114,16 @@ class ReportsController extends Controller
             if ($classFilter !== '') {
                 $parts = explode('-', $classFilter);
                 if (count($parts) == 2) {
-                    $matchingStudents->where('grade', trim($parts[0]))
+                    $matchingStudentsQuery->where('grade', trim($parts[0]))
                         ->where('class_section', trim($parts[1]));
                 }
             }
 
-            $matchingStudents = $matchingStudents->get(['id', 'full_name', 'academic_id', 'grade', 'class_section', 'photo_path']);
+            $matchingStudents = $matchingStudentsQuery->get(['id', 'full_name', 'academic_id', 'grade', 'class_section', 'photo_path']);
         }
 
         return response()->json([
-            'data' => $items->values(),
+            'data' => $items,
             'students' => $matchingStudents,
             'meta' => ['total' => $items->count() + $matchingStudents->count()],
         ]);
@@ -144,7 +141,7 @@ class ReportsController extends Controller
             ->orderBy('id', 'asc')
             ->get(['id', 'full_name', 'academic_id', 'class_section', 'photo_path']);
 
-        $studentsTable = $students->map(fn($s) => [
+        $studentsTable = $students->map(fn ($s) => [
             'id' => $s->id,
             'name' => $s->full_name,
             'academic_id' => $s->academic_id,
@@ -152,7 +149,7 @@ class ReportsController extends Controller
             'photo_url' => $s->photo_url,
             'score' => null,
             'attendance' => null,
-            ]);
+        ]);
 
         $totalStudyTimeSec = Student::query()
             ->where('grade', $grade)
@@ -161,7 +158,7 @@ class ReportsController extends Controller
         $totalStudyTimeHrs = round($totalStudyTimeSec / 3600, 1);
 
         $stats = [
-            'students' => $students->count() . ' / ' . $students->count(),
+            'students' => $students->count().' / '.$students->count(),
             'avg_score' => 88.2,
             'pass_rate' => 0.94,
             'attendance' => 0.98,
@@ -204,23 +201,22 @@ class ReportsController extends Controller
                 ->get();
 
             $studyTimeSecSub = $progressRecords->sum('time_spent_seconds');
-            $studyTimeHrsSubStr = round($studyTimeSecSub / 3600, 1) . ' hrs';
+            $studyTimeHrsSubStr = round($studyTimeSecSub / 3600, 1).' hrs';
 
             // simple placeholders for score and rank right now
             $score = 0.85;
             $status = $score >= 0.5 ? 'Pass' : 'Fail';
 
             return [
-            'id' => $sub->id,
-            'name' => $sub->name_en,
-            'score' => $score,
-            'rank' => 'N/A',
-            'time' => $studyTimeHrsSubStr, // e.g. "40 hrs"
-            'numeric_time' => round($studyTimeSecSub / 3600, 1), // numeric for charting
-            'status' => $status,
+                'id' => $sub->id,
+                'name' => $sub->name_en,
+                'score' => $score,
+                'rank' => 'N/A',
+                'time' => $studyTimeHrsSubStr, // e.g. "40 hrs"
+                'numeric_time' => round($studyTimeSecSub / 3600, 1), // numeric for charting
+                'status' => $status,
             ];
         })->values()->toArray();
-
 
         return response()->json([
             'student' => [
@@ -249,9 +245,10 @@ class ReportsController extends Controller
                 ],
             ],
             'subjects' => collect($subjectsData)->map(function ($s) {
-            unset($s['numeric_time']); // Remove numeric time before sending array to frontend to match structure
-            return $s;
-        })->toArray(),
+                unset($s['numeric_time']); // Remove numeric time before sending array to frontend to match structure
+
+                return $s;
+            })->toArray(),
         ]);
     }
 }
