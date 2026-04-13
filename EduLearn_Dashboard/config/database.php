@@ -42,7 +42,7 @@ return [
 
         // 👇 قاعدة الداشبورد الرئيسية (edulearn_db)
         'mysql' => [
-            'driver' => 'mysql',
+            'driver' => env('DB_DRIVER', 'mysql'),
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
@@ -56,14 +56,14 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
+            'options' => (env('DB_DRIVER', 'mysql') === 'mysql' && extension_loaded('pdo_mysql')) ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
 
         // 👇 قاعدة التطبيق (دروس التطبيق / الشات للموبايل) edulearn_app
         'app_mysql' => [
-            'driver' => 'mysql',
+            'driver' => env('APP_DB_DRIVER', 'mysql'),
             'url' => env('APP_DB_URL'),
             'host' => env('APP_DB_HOST', '127.0.0.1'),
             'port' => env('APP_DB_PORT', '3306'),
@@ -77,7 +77,7 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
+            'options' => (env('APP_DB_DRIVER', 'mysql') === 'mysql' && extension_loaded('pdo_mysql')) ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],

@@ -1,0 +1,3 @@
+## 2025-05-15 - [N+1 Optimization in Reports]
+**Learning:** Dashboard reporting endpoints often suffer from N+1 query problems when aggregating counts for grouped data (e.g., students per class). Using `groupBy` and `selectRaw` for counts is essential. Additionally, when searching across grouped results, `whereExists` allows for efficient filtering without breaking the grouping.
+**Action:** Always check for loops that perform database queries inside controllers. When using raw SQL for concatenation (e.g., `grade - section`), detect the DB driver to handle SQLite (`||`) vs MySQL (`CONCAT`) differences.
