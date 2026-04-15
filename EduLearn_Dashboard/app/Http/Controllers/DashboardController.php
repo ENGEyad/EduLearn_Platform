@@ -8,6 +8,7 @@ use App\Models\Student;
 use App\Models\ClassSection;
 use App\Models\Subject;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {
@@ -24,7 +25,7 @@ class DashboardController extends Controller
 
         // Cache statistics for 5 minutes
         $cacheKey = "dashboard_stats_school_" . (auth()->user()->school_id ?? 'global');
-        $stats = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addMinutes(5), function () {
+        $stats = Cache::remember($cacheKey, now()->addMinutes(5), function () {
             return [
                 'teachers' => Teacher::count(),
                 'students' => Student::count(),
@@ -49,8 +50,9 @@ class DashboardController extends Controller
     public function getAiInsight(Request $request)
     {
         $periodLabel = $request->get('period_label', 'هذا الأسبوع');
+        $period = $request->get('period', 'week');
         
-        // Fetch fresh stats for AI (or use cached ones if preferred, but AI usually wants latest)
+        // Fetch fresh stats for AI
         $teachersCount = Teacher::count();
         $studentsCount = Student::count();
         $classesCount = ClassSection::count();
@@ -66,15 +68,32 @@ class DashboardController extends Controller
         - متوسط الحضور: " . number_format($avgAttendance, 1) . "%
         - متوسط الأداء الأكاديمي: " . number_format($avgPerformance, 1) . " / 100";
 
+        // ⚡ Optimization: Cache AI response for 1 hour to save external API costs and improve speed
+        // The statsSummary includes periodLabel, making the hash unique per period and data state.
+        $cacheKey = 'ai_insight_' . $period . '_' . md5($statsSummary);
+
+        $cached = Cache::get($cacheKey);
+        if ($cached) {
+            return response()->json([
+                'success' => true,
+                'aiInsight' => $cached,
+                'cached' => true
+            ]);
+        }
+
         try {
             $response = Http::timeout(15)->post('http://127.0.0.1:8001/chat/', [
                 'message' => "بصفتك محلل بيانات تعليمي، قم بتحليل إحصائيات فترة ($periodLabel) وتقديم تقرير (3 نقاط) باللغة العربية حول حالة المدرسة وتوصية واحدة: $statsSummary"
             ]);
 
             if ($response->successful()) {
+                $reply = $response->json('reply') ?? "تعذر الحصول على تحليل دقيق حالياً.";
+
+                Cache::put($cacheKey, $reply, now()->addHour());
+
                 return response()->json([
                     'success' => true,
-                    'aiInsight' => $response->json('reply') ?? "تعذر الحصول على تحليل دقيق حالياً."
+                    'aiInsight' => $reply
                 ]);
             }
         } catch (\Exception $e) {
