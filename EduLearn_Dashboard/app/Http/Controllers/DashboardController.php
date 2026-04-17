@@ -46,11 +46,16 @@ class DashboardController extends Controller
         ]);
     }
 
+    /**
+     * Get AI-generated insight for the dashboard.
+     * ⚡ Bolt: Implemented 1-hour caching for AI responses to improve performance and reduce API costs.
+     */
     public function getAiInsight(Request $request)
     {
         $periodLabel = $request->get('period_label', 'هذا الأسبوع');
-        
-        // Fetch fresh stats for AI (or use cached ones if preferred, but AI usually wants latest)
+        $period = $request->get('period', 'week');
+
+        // Fetch stats for AI
         $teachersCount = Teacher::count();
         $studentsCount = Student::count();
         $classesCount = ClassSection::count();
@@ -66,15 +71,26 @@ class DashboardController extends Controller
         - متوسط الحضور: " . number_format($avgAttendance, 1) . "%
         - متوسط الأداء الأكاديمي: " . number_format($avgPerformance, 1) . " / 100";
 
-        try {
-            $response = Http::timeout(15)->post('http://127.0.0.1:8001/chat/', [
-                'message' => "بصفتك محلل بيانات تعليمي، قم بتحليل إحصائيات فترة ($periodLabel) وتقديم تقرير (3 نقاط) باللغة العربية حول حالة المدرسة وتوصية واحدة: $statsSummary"
-            ]);
+        // Cache for 1 hour, key includes stats hash to refresh if data changes
+        $cacheKey = "ai_insight_" . $period . "_" . md5($statsSummary);
 
-            if ($response->successful()) {
+        try {
+            $aiInsight = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addHour(), function () use ($statsSummary, $periodLabel) {
+                $response = Http::timeout(15)->post('http://127.0.0.1:8001/chat/', [
+                    'message' => "بصفتك محلل بيانات تعليمي، قم بتحليل إحصائيات فترة ($periodLabel) وتقديم تقرير (3 نقاط) باللغة العربية حول حالة المدرسة وتوصية واحدة: $statsSummary"
+                ]);
+
+                if ($response->successful()) {
+                    return $response->json('reply') ?? "تعذر الحصول على تحليل دقيق حالياً.";
+                }
+
+                return null;
+            });
+
+            if ($aiInsight) {
                 return response()->json([
                     'success' => true,
-                    'aiInsight' => $response->json('reply') ?? "تعذر الحصول على تحليل دقيق حالياً."
+                    'aiInsight' => $aiInsight
                 ]);
             }
         } catch (\Exception $e) {
