@@ -1,0 +1,4 @@
+## 2025-05-15 - [N+1 query with cross-connection models]
+**Learning:** In EduLearn_Dashboard, the `ReportsController::list` had an N+1 query pattern because it looped over distinct classes to count students. Even though `Student` models are on the main connection, the search logic involved `whereExists` and complex string concatenation. Additionally, when testing with multiple connections (`mysql` and `app_mysql`), standard `RefreshDatabase` might fail if not properly configured to use SQLite in-memory for both, especially when migrations explicitly reference connections.
+
+**Action:** Use `groupBy` with `selectRaw('count(*)')` for aggregations. Use `DB::connection()->getDriverName()` to handle SQLite/MySQL syntax differences. For multi-connection tests, override `refreshTestDatabase` to manually configure connections and migrate.
