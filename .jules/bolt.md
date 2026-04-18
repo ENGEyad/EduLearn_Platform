@@ -1,0 +1,3 @@
+## 2024-05-22 - [Optimizing Grouped Aggregates and Multi-Connection Migrations]
+**Learning:** In a multi-database Laravel setup, migrations that use `Schema::connection('secondary')->hasTable()` will fail if the secondary connection is not reachable, even if the primary connection is working. For testing, all connections must be explicitly mapped to a functional driver (like SQLite). Additionally, SQL `COUNT(*)` in grouped queries often returns a string in PHP; explicit casting to `int` is required to maintain API response type consistency.
+**Action:** Always ensure `.env.testing` or test `setUp()` overrides all database connections used in migrations. Cast aggregate results to their expected types before returning JSON responses.
