@@ -1,0 +1,3 @@
+## 2024-04-19 - Testing with Dual SQLite In-Memory Connections
+**Learning:** Laravel's `RefreshDatabase` trait and `migrate:fresh` artisan command can struggle with multiple database connections in a single test, especially when using SQLite `:memory:`. Manual configuration overrides and explicit artisan calls in `refreshTestDatabase` are necessary to ensure all connections are migrated and isolated.
+**Action:** When testing dual-database setups (like Dashboard vs App DB), override `refreshTestDatabase` to manually configure both connections to `sqlite`/`:memory:` and call `migrate:fresh` for each, or ensure migrations use explicit `Schema::connection()` calls.
