@@ -113,8 +113,8 @@ class Teacher extends Model
     /** أسماء المواد من جدول الربط */
     public function getAssignedSubjectsAttribute()
     {
-        $this->loadMissing('assignments.subject');
-
+        // ⚡ Bolt: Removed loadMissing to enforce eager loading from the controller.
+        // This ensures developers are aware of N+1 issues during development.
         return $this->assignments
             ->map(fn($as) => optional($as->subject)->name)
             ->filter()
@@ -126,8 +126,7 @@ class Teacher extends Model
     /** الصفوف/الشُعب التي يدرّسها */
     public function getAssignedClassSectionsAttribute()
     {
-        $this->loadMissing('assignments.classSection');
-
+        // ⚡ Bolt: Removed loadMissing to enforce eager loading.
         return $this->assignments
             ->map(function ($as) {
                 $cs = $as->classSection;
@@ -148,21 +147,18 @@ class Teacher extends Model
     /** إجمالي الطلاب في الصفوف المسندة للأستاذ */
     public function getTotalAssignedStudentsAttribute()
     {
-        $this->loadMissing('assignments.classSection');
-
+        // ⚡ Bolt: Optimized to use eager-loaded 'students_count' if available.
         return $this->assignments->reduce(function ($carry, $as) {
             $cs = $as->classSection;
             if (!$cs) return $carry;
 
+            // students_count is available if withCount('students') was used.
             if (isset($cs->students_count)) {
                 return $carry + (int) $cs->students_count;
             }
 
-            if (method_exists($cs, 'students')) {
-                return $carry + $cs->students->count();
-            }
-
-            return $carry;
+            // Fallback for cases where eager loading wasn't used (triggers query).
+            return $carry + $cs->students()->count();
         }, 0);
     }
 }
