@@ -28,7 +28,12 @@ class TeacherController extends Controller
 
     public function list()
     {
-        $teachers = Teacher::with(['assignments.subject', 'assignments.classSection'])
+        $teachers = Teacher::with([
+            'assignments.subject',
+            'assignments.classSection' => function ($query) {
+                $query->withCount('students');
+            }
+        ])
             ->orderBy('id', 'desc')
             ->get();
 
@@ -53,7 +58,12 @@ class TeacherController extends Controller
         }
 
         $teacher = Teacher::create($data);
-        $teacher->load(['assignments.subject', 'assignments.classSection']);
+        $teacher->load([
+            'assignments.subject',
+            'assignments.classSection' => function ($query) {
+                $query->withCount('students');
+            }
+        ]);
 
         return response()->json($teacher, 201);
     }
@@ -73,7 +83,12 @@ class TeacherController extends Controller
 
         $teacher->update($data);
         $teacher->refresh();
-        $teacher->load(['assignments.subject', 'assignments.classSection']);
+        $teacher->load([
+            'assignments.subject',
+            'assignments.classSection' => function ($query) {
+                $query->withCount('students');
+            }
+        ]);
 
         return response()->json($teacher);
     }
