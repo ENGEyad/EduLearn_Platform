@@ -1,0 +1,3 @@
+## 2025-05-22 - Optimized ReportsController::list with single query
+**Learning:** The previous implementation of `ReportsController::list` had an N+1 query bottleneck, performing a separate count query for each class. By using `groupBy` and `selectRaw`, I reduced the number of queries from O(N) to O(1). Additionally, moving search logic from in-memory collection filtering to database-level `whereExists` further improved performance for large datasets.
+**Action:** Always check for `foreach` loops performing database queries or `exists()` checks on collections. Use Eloquent's `groupBy`, `selectRaw`, and `whereExists` to consolidate logic into a single database hit.
