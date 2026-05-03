@@ -1,0 +1,3 @@
+## 2026-05-03 - Optimizing Grouped Aggregate Queries with N+1 Bottlenecks
+**Learning:** In Laravel, performing manual loops over distinct records to fetch aggregate counts (like `count(*)`) creates an O(N) database query bottleneck. This is worsened when search logic is also moved into the loop, potentially doubling the query count per iteration.
+**Action:** Use `groupBy` with `selectRaw('count(*) as count_alias')` to fetch aggregates in a single query. Move complex search logic (like concatenated field matching or related record exists checks) into the database layer using `whereRaw` and `whereExists` to maintain O(1) query performance regardless of dataset size.
