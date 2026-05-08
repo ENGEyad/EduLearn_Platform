@@ -1,0 +1,3 @@
+## 2025-05-15 - N+1 Query in ReportsController::list
+**Learning:** The `ReportsController::list` method was performing a `distinct()` query to get classes, and then looping over each class to perform individual `count()` queries for student totals and `exists()` queries for search. This resulted in O(N) database queries where N is the number of classes.
+**Action:** Use `groupBy('grade', 'class_section')` combined with `selectRaw('count(*) as students_count')` to fetch all class summaries in a single query. Move complex search logic (class name concatenation and student-level matches) into the database using `whereRaw` and `orWhereExists` to maintain O(1) query performance.
