@@ -148,21 +148,20 @@ class Teacher extends Model
     /** إجمالي الطلاب في الصفوف المسندة للأستاذ */
     public function getTotalAssignedStudentsAttribute()
     {
-        $this->loadMissing('assignments.classSection');
+        // We expect assignments.classSection to be loaded with withCount('students')
+        // to avoid N+1 queries. If not loaded, we fallback but it will be slow.
 
         return $this->assignments->reduce(function ($carry, $as) {
             $cs = $as->classSection;
             if (!$cs) return $carry;
 
+            // Priority: pre-loaded count via withCount('students')
             if (isset($cs->students_count)) {
                 return $carry + (int) $cs->students_count;
             }
 
-            if (method_exists($cs, 'students')) {
-                return $carry + $cs->students->count();
-            }
-
-            return $carry;
+            // Fallback (triggers N+1)
+            return $carry + $cs->students()->count();
         }, 0);
     }
 }
