@@ -150,41 +150,35 @@ class LessonController extends Controller
             // - لو position غير موجودة: نستخدم ترتيب المصفوفة
             // - نجعل module_id/topic_id = null دائمًا (مرحلة 1)
             // ============================================================
+            $blocksData = [];
             $blocks = $validated['blocks'] ?? [];
+            $now = now();
             foreach ($blocks as $index => $blockData) {
-
                 $pos = isset($blockData['position'])
                     ? (int)$blockData['position']
                     : ($index + 1);
 
-                $block = new LessonBlock();
-                $block->setConnection('app_mysql');
+                $blocksData[] = [
+                    'lesson_id'      => $lesson->id,
+                    'type'           => $blockData['type'],
+                    'body'           => $blockData['body'] ?? null,
+                    'caption'        => $blockData['caption'] ?? null,
+                    'media_path'     => $blockData['media_path'] ?? null,
+                    'media_url'      => null,
+                    'media_mime'     => $blockData['media_mime'] ?? null,
+                    'media_size'     => $blockData['media_size'] ?? null,
+                    'media_duration' => $blockData['media_duration'] ?? null,
+                    'position'       => $pos,
+                    'meta'           => isset($blockData['meta']) ? json_encode($blockData['meta']) : null,
+                    'module_id'      => null,
+                    'topic_id'       => null,
+                    'created_at'     => $now,
+                    'updated_at'     => $now,
+                ];
+            }
 
-                $block->lesson_id = $lesson->id;
-                $block->type = $blockData['type'];
-                $block->body = $blockData['body'] ?? null;
-                $block->caption = $blockData['caption'] ?? null;
-
-                // ✅ نخزن path فقط
-                $block->media_path = $blockData['media_path'] ?? null;
-
-                // ✅ لا نخزن media_url
-                $block->media_url = null;
-
-                $block->media_mime = $blockData['media_mime'] ?? null;
-                $block->media_size = $blockData['media_size'] ?? null;
-                $block->media_duration = $blockData['media_duration'] ?? null;
-
-                // ✅ ترتيب ثابت
-                $block->position = $pos;
-
-                $block->meta = $blockData['meta'] ?? null;
-
-                // ✅ المرحلة الأولى: لا تقسيم داخلي
-                $block->module_id = null;
-                $block->topic_id = null;
-
-                $block->save();
+            if (!empty($blocksData)) {
+                LessonBlock::on('app_mysql')->insert($blocksData);
             }
 
             // ============================================================
@@ -193,7 +187,7 @@ class LessonController extends Controller
             if (isset($validated['exercises']) && is_array($validated['exercises'])) {
                 $exercise = LessonExercise::firstOrCreate(
                     ['lesson_id' => $lesson->id],
-                    ['version' => clone $lesson->version ?? 1, 'is_active' => true] 
+                    ['version' => ($lesson->version ? clone $lesson->version : 1), 'is_active' => true]
                 );
 
                 // Increment version if updating an existing exercise to break cache
@@ -202,10 +196,12 @@ class LessonController extends Controller
                 }
 
                 // Delete old questions to rebuild them easily 
+                $qIds = $exercise->questions()->pluck('id');
+                LessonExerciseOption::on('app_mysql')->whereIn('question_id', $qIds)->delete();
                 $exercise->questions()->delete();
 
                 foreach ($validated['exercises'] as $index => $qData) {
-                    $question = LessonExerciseQuestion::create([
+                    $question = LessonExerciseQuestion::on('app_mysql')->create([
                         'exercise_id' => $exercise->id,
                         'type' => $qData['type'],
                         'question_text' => $qData['question_text'],
@@ -214,13 +210,19 @@ class LessonController extends Controller
                     ]);
 
                     if ($qData['type'] === 'mcq' && isset($qData['options']) && is_array($qData['options'])) {
+                        $optionsData = [];
                         foreach ($qData['options'] as $idx => $oData) {
-                            LessonExerciseOption::create([
+                            $optionsData[] = [
                                 'question_id' => $question->id,
                                 'option_text' => $oData['text'] ?? $oData['option_text'] ?? '',
                                 'is_correct' => isset($oData['is_correct']) ? (bool)$oData['is_correct'] : false,
                                 'position' => $oData['position'] ?? ($idx + 1),
-                            ]);
+                                'created_at' => $now,
+                                'updated_at' => $now,
+                            ];
+                        }
+                        if (!empty($optionsData)) {
+                            LessonExerciseOption::on('app_mysql')->insert($optionsData);
                         }
                     }
                 }
@@ -526,14 +528,14 @@ class LessonController extends Controller
         }
 
         DB::connection('app_mysql')->transaction(function () use ($validated, $teacher) {
-            $lessons = Lesson::on('app_mysql')
+            $lessonIds = Lesson::on('app_mysql')
                 ->where('teacher_id', $teacher->id)
                 ->whereIn('id', $validated['lesson_ids'])
-                ->get();
+                ->pluck('id');
 
-            foreach ($lessons as $lesson) {
-                $lesson->blocks()->delete();
-                $lesson->delete();
+            if ($lessonIds->isNotEmpty()) {
+                LessonBlock::on('app_mysql')->whereIn('lesson_id', $lessonIds)->delete();
+                Lesson::on('app_mysql')->whereIn('id', $lessonIds)->delete();
             }
         });
 
