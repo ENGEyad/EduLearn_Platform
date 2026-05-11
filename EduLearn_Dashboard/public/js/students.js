@@ -71,6 +71,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let studentsData = [];
   let currentMode = 'create';
 
+  /**
+   * Debounce function to limit the rate of execution of a function.
+   * @param {Function} func - The function to debounce.
+   * @param {number} wait - The delay in milliseconds.
+   * @returns {Function}
+   */
+  function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  }
+
   function fullAddress(st) {
     const parts = [];
     if (st.address_governorate) parts.push(st.address_governorate);
@@ -285,8 +299,14 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchStudents();
 
   if (studentSearch) {
+    // Debounce search input to prevent expensive re-renders on every keystroke.
+    // This improves UI responsiveness, especially with large datasets.
+    const debouncedRender = debounce((value) => {
+      renderStudents(value, gradeFilter ? gradeFilter.value : '');
+    }, 300);
+
     studentSearch.addEventListener('input', e => {
-      renderStudents(e.target.value, gradeFilter ? gradeFilter.value : '');
+      debouncedRender(e.target.value);
     });
   }
 
