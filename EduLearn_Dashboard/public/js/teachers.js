@@ -60,6 +60,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let teachersData = [];
   let currentMode = 'create';
 
+  /**
+   * Debounce function to limit the rate of execution of a function.
+   * @param {Function} func - The function to debounce.
+   * @param {number} wait - The delay in milliseconds.
+   * @returns {Function}
+   */
+  function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  }
+
   function getInitials(name) {
     if (!name) return 'TC';
     return name
@@ -308,7 +322,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   fetchTeachers();
 
-  if (teacherSearch) teacherSearch.addEventListener('input', renderTeachers);
+  if (teacherSearch) {
+    // Debounce search input to prevent expensive re-renders on every keystroke.
+    // This improves UI responsiveness, especially with large datasets.
+    const debouncedRender = debounce(renderTeachers, 300);
+    teacherSearch.addEventListener('input', debouncedRender);
+  }
   if (teacherSubjectFilter) teacherSubjectFilter.addEventListener('change', renderTeachers);
   if (teacherStatusFilter) teacherStatusFilter.addEventListener('change', renderTeachers);
 
