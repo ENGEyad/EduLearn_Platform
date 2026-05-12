@@ -28,9 +28,15 @@ class TeacherController extends Controller
 
     public function list()
     {
-        $teachers = Teacher::with(['assignments.subject', 'assignments.classSection'])
-            ->orderBy('id', 'desc')
-            ->get();
+        // ⚡ Bolt: Eager load assignments.classSection with students count to avoid N+1 in getTotalAssignedStudentsAttribute
+        $teachers = Teacher::with([
+            'assignments.subject',
+            'assignments.classSection' => function($q) {
+                $q->withCount('students');
+            }
+        ])
+        ->orderBy('id', 'desc')
+        ->get();
 
         return response()->json($teachers);
     }
@@ -53,7 +59,13 @@ class TeacherController extends Controller
         }
 
         $teacher = Teacher::create($data);
-        $teacher->load(['assignments.subject', 'assignments.classSection']);
+        // ⚡ Bolt: Eager load assignments.classSection with students count to avoid N+1
+        $teacher->load([
+            'assignments.subject',
+            'assignments.classSection' => function($q) {
+                $q->withCount('students');
+            }
+        ]);
 
         return response()->json($teacher, 201);
     }
@@ -73,7 +85,13 @@ class TeacherController extends Controller
 
         $teacher->update($data);
         $teacher->refresh();
-        $teacher->load(['assignments.subject', 'assignments.classSection']);
+        // ⚡ Bolt: Eager load assignments.classSection with students count to avoid N+1
+        $teacher->load([
+            'assignments.subject',
+            'assignments.classSection' => function($q) {
+                $q->withCount('students');
+            }
+        ]);
 
         return response()->json($teacher);
     }
