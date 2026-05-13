@@ -3,46 +3,146 @@
 @section('content')
 
 <div class="reports-skin"><!-- سكوب التصميم الخاص بالتقارير -->
+  <!-- الهيدر الخاص بالطباعة فقط -->
+  <div id="globalPrintHeader" class="d-none">
+    <div class="d-flex align-items-center justify-content-between p-4 mb-4 border-bottom border-3 border-orange">
+        <div class="d-flex align-items-center gap-3">
+            <img src="{{ auth()->user()->school->logo_url ?? asset('images/logo-placeholder.png') }}" alt="Logo" style="width: 100px; height: 100px; object-fit: contain;">
+            <div>
+                <h3 class="mb-0 fw-bold text-navy">{{ auth()->user()->school->name }}</h3>
+                <p class="text-muted small mb-0">{{ __('Official Academic Report') }}</p>
+                <div class="text-navy small">{{ __('Academic Year') }}: {{ auth()->user()->school->academic_year ?? '2023-2024' }}</div>
+            </div>
+        </div>
+        <div class="text-end">
+            <h1 id="printReportTitle" class="text-navy fw-800 mb-1" style="font-size: 2.5rem;">{{ __('REPORT') }}</h1>
+            <p class="text-muted small mb-0">{{ __('Date') }}: {{ date('Y/m/d') }}</p>
+        </div>
+    </div>
+  </div>
 
   {{-- ===== View 1: Class Reports List ===== --}}
   <div id="reportsListView">
     <div class="content-wrap">
-      <div class="page-header">
+      <div class="page-header flex-column flex-md-row align-items-start align-items-md-center gap-3 mb-4">
         <div>
           <h2 class="page-title">{{ __('Class & Student Reports') }}</h2>
-          <div class="text-muted small">{{ __('Search students by name or academic ID, or filter by class.') }}</div>
+          <div class="text-muted small">{{ __('Analyze performance data and generate official academic reports.') }}</div>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap gap-2 w-100 w-md-auto justify-content-start justify-content-md-end">
           <button class="btn btn-outline-secondary js-refresh-list" title="{{ __('Refresh') }}">
             <i class="bi bi-arrow-clockwise"></i>
           </button>
-          <button class="btn btn-primary js-generate">
-            <i class="bi bi-file-bar-graph me-1"></i> {{ __('Generate Report') }}
+          <button class="btn btn-ai-strategic js-generate-ai shadow-sm px-4 flex-grow-1 flex-md-grow-0">
+            <i class="bi bi-cpu-fill me-2 text-orange"></i> {{ __('Strategic AI Report') }}
+          </button>
+          <button class="btn btn-primary js-generate shadow-sm px-4 flex-grow-1 flex-md-grow-0">
+            <i class="bi bi-file-bar-graph-fill me-2"></i> {{ __('Generate Report') }}
           </button>
         </div>
       </div>
 
-      <div class="filters mb-3">
-        <div class="input-group" style="max-width:320px">
+      <!-- Quick Stats Overview -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="cardy p-3 h-100 d-flex flex-column justify-content-between" style="border-left: 4px solid var(--primary) !important;">
+            <div class="text-muted small mb-2 fw-bold text-uppercase">{{ __('Total Students') }}</div>
+            <div class="d-flex align-items-center justify-content-between">
+              <h3 class="mb-0 fw-800" id="topStatStudents">0</h3>
+              <div class="rounded-pill px-2 py-1 bg-primary-soft text-primary small"><i class="bi bi-people"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="cardy p-3 h-100 d-flex flex-column justify-content-between" style="border-left: 4px solid #10b981 !important;">
+            <div class="text-muted small mb-2 fw-bold text-uppercase">{{ __('Avg. Score') }}</div>
+            <div class="d-flex align-items-center justify-content-between">
+              <h3 class="mb-0 fw-800" id="topStatAvg">0%</h3>
+              <div class="rounded-pill px-2 py-1 bg-success-soft text-success small"><i class="bi bi-graph-up"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="cardy p-3 h-100 d-flex flex-column justify-content-between" style="border-left: 4px solid #f59e0b !important;">
+            <div class="text-muted small mb-2 fw-bold text-uppercase">{{ __('Attendance') }}</div>
+            <div class="d-flex align-items-center justify-content-between">
+              <h3 class="mb-0 fw-800" id="topStatAtt">0%</h3>
+              <div class="rounded-pill px-2 py-1 bg-warning-soft text-warning small"><i class="bi bi-calendar-check"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="cardy p-3 h-100 d-flex flex-column justify-content-between" style="border-left: 4px solid #ef4444 !important;">
+            <div class="text-muted small mb-2 fw-bold text-uppercase">{{ __('Lessons Done') }}</div>
+            <div class="d-flex align-items-center justify-content-between">
+              <h3 class="mb-0 fw-800" id="topStatLessons">0</h3>
+              <div class="rounded-pill px-2 py-1 bg-danger-soft text-danger small"><i class="bi bi-book"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {{-- AI Report Archive --}}
+      @if(isset($aiReports) && $aiReports->count() > 0)
+      <div class="cardy mb-4 border-0 shadow-sm overflow-hidden" style="background: linear-gradient(135deg, #001A33 0%, #003366 100%); border-radius: 24px;">
+          <div class="p-4">
+              <div class="d-flex align-items-center justify-content-between mb-4">
+                  <div>
+                      <h5 class="text-white mb-1 fw-bold"><i class="bi bi-archive me-2 text-orange"></i> {{ __('Strategic Report Archive') }}</h5>
+                      <p class="text-white-50 small mb-0">{{ __('Revisit your past AI-powered analytical insights.') }}</p>
+                  </div>
+                  <div class="d-flex align-items-center gap-3">
+                      <a href="#" class="text-white-50 text-decoration-none small hover-white js-view-all-reports">
+                          {{ __('View History') }} <i class="bi bi-arrow-right ms-1"></i>
+                      </a>
+                      <span class="badge rounded-pill bg-orange px-3 py-2 fw-bold">{{ $aiReports->count() }} {{ __('Reports Available') }}</span>
+                  </div>
+              </div>
+              <div class="row g-3">
+                  @foreach($aiReports->take(3) as $report)
+                  <div class="col-md-4">
+                      <div class="bg-white bg-opacity-10 rounded-4 p-4 border border-white border-opacity-10 h-100 transition-all hover-translate-y card-hover-glow">
+                          <div class="d-flex justify-content-between align-items-start mb-3">
+                              <div class="text-white fw-bold">{{ $report->title }}</div>
+                              <div class="badge bg-white bg-opacity-20 text-white x-small">{{ $report->created_at->format('M d, Y') }}</div>
+                          </div>
+                          <div class="text-white-50 x-small mb-4 line-clamp-3" style="min-height: 3.5em;">
+                              {{ Str::limit(strip_tags($report->dashboard_summary ?? $report->content), 120) }}
+                          </div>
+                          <button class="btn btn-orange btn-sm w-100 rounded-pill py-2 fw-bold js-view-archived-report" data-id="{{ $report->id }}">
+                              <i class="bi bi-eye me-1"></i> {{ __('View Strategic Insights') }}
+                          </button>
+                      </div>
+                  </div>
+                  @endforeach
+              </div>
+          </div>
+      </div>
+      @endif
+
+      <div class="filters flex-column flex-md-row mb-3 gap-3">
+        <div class="input-group w-100" style="max-width:320px">
           <span class="input-group-text border-end-0"><i class="bi bi-search"></i></span>
           <input id="filterSearch" type="text" class="form-control border-start-0" placeholder="{{ __('Search by student, teacher, class') }}">
         </div>
 
-        <select id="filterClass" class="form-select" style="max-width:220px">
-          <option value="">{{ __('All Classes') }}</option>
-          @foreach($classes_dropdown as $cls)
-              <option value="{{ $cls->grade }} - {{ $cls->class_section }}">{{ $cls->grade }} - {{ $cls->class_section }}</option>
-          @endforeach
-        </select>
+        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
+          <select id="filterClass" class="form-select flex-grow-1" style="max-width:220px">
+            <option value="">{{ __('All Classes') }}</option>
+            @foreach($classes_dropdown as $cls)
+                <option value="{{ $cls->grade }} - {{ $cls->class_section }}">{{ $cls->grade }} - {{ $cls->class_section }}</option>
+            @endforeach
+          </select>
 
-        <select id="filterSubject" class="form-select" style="max-width:240px">
-          <option value="">{{ __('All Subjects') }}</option>
-          @foreach($subjects_dropdown as $sub)
-              <option value="{{ $sub->id }}">{{ $sub->name }}</option>
-          @endforeach
-        </select>
-        
-        <button id="applyFiltersBtn" class="btn btn-primary px-4"><i class="bi bi-funnel me-1"></i> {{ __('Apply') }}</button>
+          <select id="filterSubject" class="form-select flex-grow-1" style="max-width:240px">
+            <option value="">{{ __('All Subjects') }}</option>
+            @foreach($subjects_dropdown as $sub)
+                <option value="{{ $sub->id }}">{{ $sub->name }}</option>
+            @endforeach
+          </select>
+          
+          <button id="applyFiltersBtn" class="btn btn-primary px-4 w-100 w-sm-auto"><i class="bi bi-funnel me-1"></i> {{ __('Apply') }}</button>
+        </div>
       </div>
 
       <div class="table-shell">
@@ -71,53 +171,63 @@
   {{-- ===== View 2: Class Report ===== --}}
   <div id="classReportView" style="display:none;">
     <div class="page">
-      <!-- Header -->
-      <div class="d-flex align-items-center justify-content-between">
-        <div>
-          <div class="title">{{ __('Class Report') }}: <span class="js-class-title">--</span></div>
-          <div class="subtitle">{{ __('A detailed overview of class performance and student data.') }}</div>
+      <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-3">
+        <div class="crumbs">
+          {{ __('Classes') }} <span class="sep">/</span> <span class="js-class-title">--</span> <span class="sep">/</span> <strong>{{ __('Class Performance') }}</strong>
         </div>
-        <div class="d-flex gap-2 no-print">
+        <div class="no-print d-flex flex-wrap gap-2 w-100 w-md-auto">
           <button class="btn btn-outline-secondary js-refresh-class" title="{{ __('Refresh') }}"><i class="bi bi-arrow-clockwise"></i></button>
-          <button class="btn btn-outline-secondary js-back-to-list"><i class="bi bi-arrow-left me-1"></i>{{ __('Back to List') }}</button>
-          <button class="btn btn-info text-white js-view-cards"><i class="bi bi-person-badge me-1"></i>{{ __('Student Cards Report') }}</button>
-          <button class="btn-ghost js-print"><i class="bi bi-printer me-1"></i>{{ __('Print') }}</button>
-          <button class="btn-cta js-export"><i class="bi bi-download me-1"></i>{{ __('Export CSV / PDF') }}</button>
+          <button class="btn btn-outline-secondary js-print" onclick="window.print()"><i class="bi bi-printer me-1"></i> {{ __('Print') }}</button>
+          <button class="btn btn-info text-white js-view-cards"><i class="bi bi-person-badge me-1"></i> {{ __('Student Cards') }}</button>
+          <button class="btn btn-soft btn-sm js-export"><i class="bi bi-file-earmark-pdf me-1"></i> {{ __('Export PDF') }}</button>
+          <button class="btn btn-cta js-back-to-list"><i class="bi bi-arrow-left me-1"></i> {{ __('Back to List') }}</button>
         </div>
       </div>
 
-      <!-- Stat cards -->
-      <div class="stats">
-        <div class="cardy stat"><div class="k">{{ __('Students') }}</div><div class="v js-students-count">--</div><div class="delta g d-none">+0%</div></div>
-        <div class="cardy stat"><div class="k">{{ __('Avg Score') }}</div><div class="v js-avg-score">--</div><div class="delta g d-none">+0%</div></div>
-        <div class="cardy stat"><div class="k">{{ __('Pass Rate') }}</div><div class="v js-pass-rate">--</div><div class="delta r d-none">0%</div></div>
-        <div class="cardy stat"><div class="k">{{ __('Attendance') }}</div><div class="v js-attendance">--</div><div class="delta g d-none">0%</div></div>
-        <div class="cardy stat"><div class="k">{{ __('Study Time') }}</div><div class="v js-study-time">--</div><div class="delta g d-none">0</div></div>
+      <div class="cardy panel mb-4" style="border: none !important; background: transparent !important;">
+        <div class="d-flex align-items-center gap-4" style="padding: 20px; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
+          <div class="rounded-circle bg-primary-soft d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; font-size: 2rem; color: var(--primary);">
+            <i class="bi bi-door-open"></i>
+          </div>
+          <div>
+            <h3 class="js-class-title mb-1">--</h3>
+            <div class="text-muted small">
+              <span class="me-3"><i class="bi bi-people me-1"></i> <span class="js-students-count">--</span> {{ __('Students') }}</span>
+              <span><i class="bi bi-calendar3 me-1"></i> {{ __('Academic Year') }}: 2023/2024</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Grade Distribution -->
-      <div class="cardy panel mt-3">
+      <!-- Stats Grid -->
+      <div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
+        <div class="col"><div class="cardy stat h-100 mb-0"><h6>{{ __('Avg Score') }}</h6><div class="val js-avg-score">--</div></div></div>
+        <div class="col"><div class="cardy stat h-100 mb-0"><h6>{{ __('Pass Rate') }}</h6><div class="val js-pass-rate">--</div></div></div>
+        <div class="col"><div class="cardy stat h-100 mb-0"><h6>{{ __('Attendance %') }}</h6><div class="val js-attendance">--</div></div></div>
+        <div class="col"><div class="cardy stat h-100 mb-0"><h6>{{ __('Total Study Time') }}</h6><div class="val js-study-time">--</div></div></div>
+      </div>
+
+      <div class="cardy panel mt-4">
         <h6>{{ __('Grade Distribution') }}</h6>
-        <div class="chart-wrap"><canvas id="gradeChart"></canvas></div>
+        <div class="chart-wrap" style="height: 350px; padding: 20px;"><canvas id="gradeChart"></canvas></div>
       </div>
 
-      <!-- Students by Section -->
-      <div class="cardy table-shell mt-3">
-        <h6 class="mb-2">{{ __('Students by Section') }}</h6>
-        <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px;">
-          <table class="table align-middle mb-0" id="studentsTable">
-            <thead style="position: sticky; top: 0; background: var(--card); z-index: 5; border-bottom: 2px solid var(--border);">
-              <tr>
-                <th>{{ __('STUDENT NAME') }}</th>
-                <th>{{ __('ID') }}</th>
-                <th>{{ __('SECTION') }}</th>
-                <th>{{ __('SCORE') }}</th>
-                <th>{{ __('ATTENDANCE') }}</th>
-                <th>{{ __('ACTIONS') }}</th>
-              </tr>
-            </thead>
-            <tbody><!-- filled dynamically --></tbody>
-          </table>
+      <div class="cardy table-shell mt-4">
+        <div class="section-title">{{ __('Students in this Class') }}</div>
+        <div style="padding: 0px 15px 15px 15px;">
+            <table class="table align-middle mb-0" id="studentsTable">
+              <thead>
+                <tr style="background: var(--card);">
+                  <th style="background: #001A33; color:#fff">{{ __('Student Name') }}</th>
+                  <th style="background: #001A33; color:#fff">{{ __('ID') }}</th>
+                  <th style="background: #001A33; color:#fff">{{ __('Section') }}</th>
+                  <th style="background: #001A33; color:#fff">{{ __('Score') }}</th>
+                  <th style="background: #001A33; color:#fff">{{ __('Attendance') }}</th>
+                  <th style="background: #001A33; color:#fff" class="text-end">{{ __('Actions') }}</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
         </div>
       </div>
     </div>
@@ -125,188 +235,256 @@
 
   {{-- ===== View 3: Student Report ===== --}}
   <div id="studentReportView" style="display:none;">
-    <div class="page-wrap">
-      <!-- Breadcrumb + Actions -->
-      <div class="d-flex align-items-center justify-content-between">
+    <div class="page">
+      <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-3">
         <div class="crumbs">
-          {{ __('Students') }} <span class="sep">/</span> <span class="js-student-name-breadcrumb">--</span> <span class="sep">/</span> <strong>{{ __('Report') }}</strong>
+          {{ __('Students') }} <span class="sep">/</span> <span class="js-student-name">--</span> <span class="sep">/</span> <strong>{{ __('Performance Report') }}</strong>
         </div>
-        <div class="no-print d-flex gap-2">
-          <button class="btn btn-outline-secondary btn-sm js-refresh-student" title="{{ __('Refresh') }}"><i class="bi bi-arrow-clockwise"></i></button>
-          <button class="btn btn-outline-secondary btn-sm js-back-to-class"><i class="bi bi-arrow-left"></i> {{ __('Back to Class') }}</button>
-          <button class="btn btn-outline btn-sm js-print"><i class="bi bi-printer"></i> {{ __('Print student report') }}</button>
-          <button class="btn btn-soft btn-sm js-export"><i class="bi bi-file-earmark-pdf"></i> {{ __('Export PDF') }}</button>
+        <div class="no-print d-flex flex-wrap gap-2 w-100 w-md-auto">
+          <button class="btn btn-outline-secondary js-refresh-student" title="{{ __('Refresh') }}"><i class="bi bi-arrow-clockwise"></i></button>
+          <button class="btn btn-outline-secondary js-print" onclick="window.print()"><i class="bi bi-printer me-1"></i> {{ __('Print') }}</button>
+          <button class="btn btn-soft btn-sm js-export"><i class="bi bi-file-earmark-pdf me-1"></i> {{ __('Export PDF') }}</button>
+          <button class="btn btn-cta js-back-to-list"><i class="bi bi-arrow-left me-1"></i> {{ __('Back to List') }}</button>
         </div>
       </div>
 
-      <div class="page-head">
-        <div class="page-title">{{ __('Student Report') }}</div>
-      </div>
-
-      <!-- Header -->
-      <div class="cardy student-head d-flex align-items-center">
-        <div class="kvs flex-grow-1">
-          <div class="avatar">--</div>
-          <div class="meta">
-            <div class="name js-student-name">--</div>
-            <div class="sub js-student-class">--</div>
-            <div class="sub js-student-teacher">{{ __('Supervising Teacher') }}: --</div>
+      <div class="cardy panel mb-4" style="border: none !important; background: transparent !important;">
+        <div class="d-flex align-items-center gap-4" style="padding: 20px; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
+          <img class="js-student-avatar" src="" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary);">
+          <div>
+            <h3 class="js-student-name mb-1">--</h3>
+            <div class="text-muted small">
+              <span class="me-3"><i class="bi bi-door-open me-1"></i> <span class="js-student-class">--</span></span>
+              <span><i class="bi bi-person-badge me-1"></i> {{ __('Supervising Teacher') }}: <span class="js-student-teacher">--</span></span>
+            </div>
           </div>
-          <span class="status-pill"><span class="status-dot"></span> {{ __('On Track') }}</span>
         </div>
       </div>
 
-      <!-- Stats -->
-      <div class="stats stats--student">
-        <div class="cardy stat"><h6>{{ __('Avg Score') }}</h6><div class="val js-s-avg">--</div></div>
-        <div class="cardy stat"><h6>{{ __('Pass Rate') }}</h6><div class="val js-s-pass">--</div></div>
-        <div class="cardy stat"><h6>{{ __('Attendance %') }}</h6><div class="val js-s-att">--</div></div>
-        <div class="cardy stat"><h6>{{ __('Total Study Time') }}</h6><div class="val js-s-time">--</div></div>
+      <!-- Stats Grid -->
+      <div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
+        <div class="col"><div class="cardy stat h-100 mb-0"><h6>{{ __('Avg Score') }}</h6><div class="val js-s-avg">--</div></div></div>
+        <div class="col"><div class="cardy stat h-100 mb-0"><h6>{{ __('Pass Rate') }}</h6><div class="val js-s-pass">--</div></div></div>
+        <div class="col"><div class="cardy stat h-100 mb-0"><h6>{{ __('Attendance %') }}</h6><div class="val js-s-att">--</div></div></div>
+        <div class="col"><div class="cardy stat h-100 mb-0"><h6>{{ __('Total Study Time') }}</h6><div class="val js-s-time">--</div></div></div>
       </div>
 
-      <!-- Charts -->
-      <div class="row-charts">
-        <div class="cardy panel">
-          <h6>{{ __('Grade Progression') }}</h6>
-          <div class="chart-wrap"><canvas id="progressChart"></canvas></div>
+      <div class="row">
+        <div class="col-md-7">
+          <div class="cardy panel">
+            <h6>{{ __('Grade Progression') }}</h6>
+            <div class="chart-wrap" style="height:300px; padding: 20px;"><canvas id="progressChart"></canvas></div>
+          </div>
         </div>
-        <div class="cardy panel">
-          <h6>{{ __('Study Time by Subject') }}</h6>
-          <div class="chart-wrap"><canvas id="timeChart"></canvas></div>
+        <div class="col-md-5">
+           <div class="cardy panel">
+            <h6>{{ __('Study Time by Subject') }}</h6>
+            <div class="chart-wrap" style="height:300px; padding: 20px;"><canvas id="timeChart"></canvas></div>
+          </div>
         </div>
       </div>
 
-      <!-- Subjects table -->
-      <div class="cardy table-shell mt-3">
+      <div class="cardy table-shell mt-4">
         <div class="section-title">{{ __('Subject Performance Breakdown') }}</div>
-        <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px;">
-          <table class="table align-middle mb-0 js-subjects-table">
-            <thead style="position: sticky; top: 0; background: var(--card); z-index: 5; border-bottom: 2px solid var(--border);">
-              <tr>
-                <th>{{ __('Subject') }}</th>
-                <th>{{ __('Score') }}</th>
-                <th>{{ __('Rank in Class') }}</th>
-                <th>{{ __('Time Spent') }}</th>
-                <th>{{ __('Status') }}</th>
-                <th class="text-end">{{ __('Action') }}</th>
-              </tr>
-            </thead>
-            <tbody><!-- filled dynamically --></tbody>
-          </table>
+        <div style="padding: 0px 15px 15px 15px;">
+            <table class="table align-middle mb-0 js-subjects-table">
+              <thead>
+                <tr style="background: var(--card);">
+                  <th style="background: #001A33; color:#fff">{{ __('Subject') }}</th>
+                  <th style="background: #001A33; color:#fff">{{ __('Score') }}</th>
+                  <th style="background: #001A33; color:#fff">{{ __('Rank') }}</th>
+                  <th style="background: #001A33; color:#fff">{{ __('Time Spent') }}</th>
+                  <th style="background: #001A33; color:#fff" class="text-end">{{ __('Action') }}</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
         </div>
       </div>
-    </div>
-  </div>
-
   {{-- ===== View 4: Subject Report ===== --}}
   <div id="subjectReportView" style="display:none;">
     <div class="page">
-      <!-- Breadcrumbs & CTA -->
-      <div class="d-flex align-items-center justify-content-between">
+      <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-3">
         <div class="crumbs">
           {{ __('Students') }} <span class="sep">/</span> <span class="js-sr-student">--</span> <span class="sep">/</span> {{ __('Reports') }} <span class="sep">/</span>
           <strong class="js-sr-subject">{{ __('Subject') }}</strong>
         </div>
-        <div class="no-print d-flex gap-2">
+        <div class="no-print d-flex flex-wrap gap-2 w-100 w-md-auto">
           <button class="btn btn-outline-secondary js-refresh-subject" title="{{ __('Refresh') }}"><i class="bi bi-arrow-clockwise"></i></button>
-          <button class="btn btn-outline-secondary js-print"><i class="bi bi-printer me-1"></i> {{ __('Print') }}</button>
+          <button class="btn btn-outline-secondary js-print" onclick="window.print()"><i class="bi bi-printer me-1"></i> {{ __('Print') }}</button>
           <button class="btn btn-cta js-back-to-student"><i class="bi bi-arrow-left me-1"></i> {{ __('Back to Student') }}</button>
         </div>
       </div>
 
-      <!-- Header -->
-      <div class="d-flex align-items-center justify-content-between topbar">
-        <div>
-          <div class="title js-sr-title">{{ __('Subject Progress') }}</div>
-          <div class="subtitle js-sr-subtitle">--</div>
-        </div>
-      </div>
-
-      <!-- Hero row -->
-      <div class="grid-hero mt-2">
-        <!-- Subject Completion -->
-        <div class="cardy panel">
-          <h6>{{ __('Subject Completion') }}</h6>
-          <div class="row align-items-center">
-            <div class="col-6">
-              <div class="chart-wrap" style="height:180px"><canvas id="completionChart"></canvas></div>
-            </div>
-            <div class="col-6">
-              <p class="muted mb-1 js-sr-completion-note">{{ __('Keep going to reach 100%.') }}</p>
-            </div>
+      <div class="cardy panel mb-4" style="border: none !important; background: transparent !important;">
+        <div class="d-flex align-items-center gap-4" style="padding: 20px; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
+          <div class="rounded-circle bg-primary-soft d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; font-size: 2rem; color: var(--primary);">
+            <i class="bi bi-journal-text"></i>
           </div>
-        </div>
-        <!-- Recent Tests -->
-        <div class="cardy panel">
-          <div class="d-flex align-items-center justify-content-between">
-            <h6 class="mb-0">{{ __('Recent Test Scores') }}</h6>
-            <div class="trend-note">
-              <span class="muted">{{ __('Last 5 tests trend') }}</span> <span class="js-sr-trend">--</span> <i class="bi bi-arrow-up-right"></i>
-            </div>
-          </div>
-          <div class="chart-wrap mt-2" style="height:180px"><canvas id="testsChart"></canvas></div>
-        </div>
-      </div>
-
-      <!-- Mini stats -->
-      <div class="mini-two mt-3">
-        <div class="cardy stat-mini">
-          <div class="icn-badge"><i class="bi bi-trophy"></i></div>
           <div>
-            <div class="label">{{ __('Average Score') }}</div>
-            <div class="val js-sr-avg">--</div>
-          </div>
-        </div>
-        <div class="cardy stat-mini">
-          <div class="icn-badge"><i class="bi bi-alarm"></i></div>
-          <div>
-            <div class="label">{{ __('Learning Time') }}</div>
-            <div class="val js-sr-time">--</div>
+            <h3 class="js-sr-title mb-1">--</h3>
+            <div class="text-muted small">
+              <span class="me-3"><i class="bi bi-person me-1"></i> <span class="js-sr-student">--</span></span>
+              <span><i class="bi bi-info-circle me-1"></i> <span class="js-sr-subtitle">--</span></span>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Achievements -->
-      <div class="cardy panel mt-3">
+      <!-- Stats Grid -->
+      <div class="row row-cols-2 g-3 mb-4">
+        <div class="col"><div class="cardy stat h-100 mb-0"><h6>{{ __('Average Score') }}</h6><div class="val js-sr-avg">--</div></div></div>
+        <div class="col"><div class="cardy stat h-100 mb-0"><h6>{{ __('Learning Time') }}</h6><div class="val js-sr-time">--</div></div></div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="cardy panel">
+            <h6>{{ __('Subject Completion') }}</h6>
+            <div class="chart-wrap" style="height:250px; padding: 20px;"><canvas id="completionChart"></canvas></div>
+            <div class="text-center pb-3">
+              <p class="muted mb-1 js-sr-completion-note small">{{ __('Keep going to reach 100%.') }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+           <div class="cardy panel">
+            <div class="d-flex align-items-center justify-content-between p-2 px-3">
+              <h6 class="mb-0" style="background:transparent; color:#fff; border:none; padding:0">{{ __('Recent Test Scores') }}</h6>
+              <div class="trend-note small" style="color:#fff">
+                 <span class="js-sr-trend">--</span> <i class="bi bi-arrow-up-right"></i>
+              </div>
+            </div>
+            <div class="chart-wrap" style="height:250px; padding: 20px;"><canvas id="testsChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cardy panel mt-4">
         <div class="section-title">{{ __('Latest Achievements') }}</div>
-        <div class="ach-grid">
-          <div class="ach-card">
-            <div class="ach-icn star"><i class="bi bi-star-fill"></i></div>
+        <div class="ach-grid p-3">
+          <div class="ach-card d-flex align-items-center gap-3 p-3" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
+            <div class="ach-icn star text-warning fs-3"><i class="bi bi-star-fill"></i></div>
             <div>
-              <div class="ach-title js-sr-ach1">—</div>
-              <div class="ach-sub js-sr-ach1-sub">—</div>
+              <div class="ach-title js-sr-ach1 fw-bold">—</div>
+              <div class="ach-sub js-sr-ach1-sub text-muted small">—</div>
             </div>
           </div>
-          <div class="ach-card">
-            <div class="ach-icn book"><i class="bi bi-journal-bookmark-fill"></i></div>
+          <div class="ach-card d-flex align-items-center gap-3 p-3 mt-2" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
+            <div class="ach-icn book text-primary fs-3"><i class="bi bi-journal-bookmark-fill"></i></div>
             <div>
-              <div class="ach-title js-sr-ach2">—</div>
-              <div class="ach-sub js-sr-ach2-sub">—</div>
+              <div class="ach-title js-sr-ach2 fw-bold">—</div>
+              <div class="ach-sub js-sr-ach2-sub text-muted small">—</div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+  </div>
+ </div>
 
     </div>
   </div>
 
-  {{-- ===== View 5: Student Cards Report ===== --}}
+  {{-- ===== View 5: Teacher Report ===== --}}
+  <div id="teacherReportView" style="display:none;">
+    <div class="page">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="crumbs">
+          {{ __('Teachers') }} <span class="sep">/</span> <span class="js-tr-name">--</span> <span class="sep">/</span> <strong>{{ __('Performance Report') }}</strong>
+        </div>
+        <div class="no-print d-flex gap-2">
+          <button class="btn btn-outline-secondary js-refresh-teacher" title="{{ __('Refresh') }}"><i class="bi bi-arrow-clockwise"></i></button>
+          <button class="btn btn-outline-secondary js-print" onclick="window.print()"><i class="bi bi-printer me-1"></i> {{ __('Print') }}</button>
+          <button class="btn btn-soft btn-sm js-export"><i class="bi bi-file-earmark-pdf me-1"></i> {{ __('Export PDF') }}</button>
+          <button class="btn btn-soft btn-sm js-export-excel"><i class="bi bi-file-earmark-spreadsheet me-1"></i> {{ __('Export Excel') }}</button>
+          <button class="btn btn-cta js-back-to-list"><i class="bi bi-arrow-left me-1"></i> {{ __('Back to List') }}</button>
+        </div>
+      </div>
+
+      <div class="cardy panel mb-4" style="border: none !important; background: transparent !important;">
+        <div class="d-flex align-items-center gap-4" style="padding: 20px; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
+          <img class="js-tr-avatar" src="" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary);">
+          <div>
+            <h3 class="js-tr-name mb-1">--</h3>
+            <div class="text-muted small">
+              <span class="me-3"><i class="bi bi-person-badge me-1"></i> <span class="js-tr-code">--</span></span>
+              <span><i class="bi bi-envelope me-1"></i> <span class="js-tr-email">--</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3 mb-4">
+        <div class="col"><div class="cardy stat h-100 mb-0"><h6>{{ __('Total Lessons') }}</h6><div class="val js-tr-lessons">--</div></div></div>
+        <div class="col"><div class="cardy stat h-100 mb-0"><h6>{{ __('Total Exercises') }}</h6><div class="val js-tr-exercises">--</div></div></div>
+        <div class="col"><div class="cardy stat h-100 mb-0"><h6>{{ __('Students Impacted') }}</h6><div class="val js-tr-students">--</div></div></div>
+        <div class="col"><div class="cardy stat h-100 mb-0"><h6>{{ __('Avg. Student Score') }}</h6><div class="val js-tr-score">--</div></div></div>
+        <div class="col">
+            <div class="cardy stat h-100 mb-0">
+                <h6>{{ __('School comparison') }}</h6>
+                <div class="val js-tr-comparison">--</div>
+                <div class="text-muted x-small" style="font-size: 10px;">{{ __('vs School Average') }}</div>
+            </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-7">
+          <div class="cardy panel">
+            <h6>{{ __('Activity Timeline (Last 8 Weeks)') }}</h6>
+            <div class="chart-wrap" style="height:300px; padding: 20px;"><canvas id="teacherActivityChart"></canvas></div>
+          </div>
+        </div>
+        <div class="col-md-5">
+           <div class="cardy panel">
+            <h6>{{ __('Score by Class (%)') }}</h6>
+            <div class="chart-wrap" style="height:300px; padding: 20px;"><canvas id="teacherClassChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cardy table-shell mt-4">
+        <div class="section-title">{{ __('Class-wise Performance') }}</div>
+        <div style="padding: 0px 15px 15px 15px;">
+            <table class="table align-middle mb-0 js-tr-classes-table">
+              <thead>
+                <tr style="background: var(--card);">
+                  <th style="background: #001A33; color:#fff">{{ __('Class / Section') }}</th>
+                  <th style="background: #001A33; color:#fff">{{ __('Subject') }}</th>
+                  <th style="background: #001A33; color:#fff">{{ __('Lessons') }}</th>
+                  <th style="background: #001A33; color:#fff">{{ __('Avg Score') }}</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- ===== View 6: Student Cards Report ===== --}}
   <div id="classCardsView" style="display:none;">
     <div class="page">
-        <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
             <div>
                 <div class="title">{{ __('Student ID Cards') }}: <span class="js-cards-class-title">---</span></div>
                 <div class="subtitle">{{ __('Official student identification cards for the selected class.') }}</div>
             </div>
-            <div class="d-flex align-items-center gap-3 no-print">
-                <div class="form-check mb-0">
+            <div class="d-flex flex-wrap align-items-center gap-2 no-print w-100 w-md-auto">
+                <div class="form-check mb-0 me-2">
                     <input class="form-check-input js-select-all-cards" type="checkbox" id="selectAllCards">
                     <label class="form-check-label text-muted small" for="selectAllCards">{{ __('Select All') }}</label>
                 </div>
-                <button class="btn btn-outline-secondary js-back-to-class-report"><i class="bi bi-arrow-left me-1"></i>{{ __('Back to Report') }}</button>
-                <button class="btn btn-soft-info js-print-selected-cards"><i class="bi bi-check2-square me-1"></i>{{ __('Print Selected') }}</button>
-                <button class="btn btn-primary js-print-cards"><i class="bi bi-printer me-1"></i>{{ __('Print All Cards') }}</button>
+                <button class="btn btn-outline-secondary js-back-to-class-report flex-grow-1 flex-md-grow-0"><i class="bi bi-arrow-left me-1"></i>{{ __('Back') }}</button>
+                <button class="btn btn-soft-info js-print-selected-cards flex-grow-1 flex-md-grow-0"><i class="bi bi-check2-square me-1"></i>{{ __('Selected') }}</button>
+                <button class="btn btn-primary js-print-cards flex-grow-1 flex-md-grow-0"><i class="bi bi-printer me-1"></i>{{ __('Print All') }}</button>
             </div>
+        </div>
+
+        <div class="cards-print-title" style="display: none;">
+            {{ __('Student ID Cards') }} — <span class="js-cards-print-class-title"></span>
         </div>
 
         <div class="row g-4" id="studentCardsContainer">
@@ -315,9 +493,238 @@
     </div>
   </div>
 
-</div>
+  {{-- ##### NEW: View 6: At-Risk Students Report (Printable) ##### --}}
+  <div id="atRiskReportView" style="display: none;">
+    <div class="content-wrap">
+      <div class="page-header flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 d-print-none mb-4">
+        <div>
+          <h2 class="page-title text-danger"><i class="bi bi-exclamation-triangle-fill"></i> {{ __('At-Risk Students Report') }}</h2>
+          <div class="text-muted small">{{ __('List of students whose performance or attendance is below threshold.') }}</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 w-100 w-md-auto">
+            <button class="btn btn-soft-info js-view-cards no-print flex-grow-1 flex-md-grow-0">
+                <i class="bi bi-person-badge me-1"></i> {{ __('Cards') }}
+            </button>
+            <button class="btn btn-soft-danger js-print no-print flex-grow-1 flex-md-grow-0">
+                <i class="bi bi-file-earmark-pdf me-1"></i> {{ __('PDF') }}
+            </button>
+            <button class="btn btn-soft-success js-export-excel no-print flex-grow-1 flex-md-grow-0">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> {{ __('Excel') }}
+            </button>
+            <button class="btn btn-outline-secondary js-back-to-list no-print flex-grow-1 flex-md-grow-0">
+                <i class="bi bi-arrow-left me-1"></i> {{ __('Back') }}
+            </button>
+        </div>
+      </div>
+      </div>
+
+      <div class="cardy">
+        <div class="p-4">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle" id="atRiskTable">
+              <thead class="bg-light">
+                <tr>
+                  <th>{{ __('Student Name') }}</th>
+                  <th>{{ __('Class') }}</th>
+                  <th>{{ __('Avg Score') }}</th>
+                  <th>{{ __('Attendance') }}</th>
+                  <th>{{ __('Reason / Risk') }}</th>
+                  <th class="text-end">{{ __('Action') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- ##### NEW: Generate Report Modal ##### --}}
+  <div class="modal fade" id="generateReportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+        <div class="modal-header bg-primary text-white p-4 border-0">
+          <h5 class="modal-title d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-bar-graph-fill fs-4"></i>
+            {{ __('Generate Performance Report') }}
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-4">
+            <label class="form-label fw-bold small text-uppercase tracking-wider text-muted mb-2">{{ __('Report Type') }}</label>
+            <div class="row g-2">
+              <div class="col-6">
+                <input type="radio" class="btn-check" name="report_type" id="rt_summary" value="summary" checked>
+                <label class="btn btn-outline-soft w-100 py-3 d-flex flex-column align-items-center gap-2" for="rt_summary">
+                  <i class="bi bi-pie-chart fs-3"></i>
+                  <span class="small fw-bold">{{ __('Summary') }}</span>
+                </label>
+              </div>
+              <div class="col-6">
+                <input type="radio" class="btn-check" name="report_type" id="rt_students" value="students">
+                <label class="btn btn-outline-soft w-100 py-3 d-flex flex-column align-items-center gap-2" for="rt_students">
+                  <i class="bi bi-people fs-3"></i>
+                  <span class="small fw-bold">{{ __('Students List') }}</span>
+                </label>
+              </div>
+              <div class="col-6">
+                <input type="radio" class="btn-check" name="report_type" id="rt_performance" value="performance">
+                <label class="btn btn-outline-soft w-100 py-3 d-flex flex-column align-items-center gap-2" for="rt_performance">
+                  <i class="bi bi-graph-up-arrow fs-3"></i>
+                  <span class="small fw-bold">{{ __('Performance') }}</span>
+                </label>
+              </div>
+              <div class="col-6">
+                <input type="radio" class="btn-check" name="report_type" id="rt_risk" value="at_risk">
+                <label class="btn btn-outline-soft w-100 py-3 d-flex flex-column align-items-center gap-2" for="rt_risk">
+                  <i class="bi bi-exclamation-triangle fs-3 text-warning"></i>
+                  <span class="small fw-bold">{{ __('At-Risk') }}</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="alert alert-soft-primary border-0 small d-flex align-items-start gap-2 mb-0">
+            <i class="bi bi-info-circle-fill mt-1"></i>
+            <span>{{ __('The report will be generated and displayed on screen based on your filters.') }}</span>
+          </div>
+        </div>
+        <div class="modal-footer bg-light p-3 border-0">
+          <button type="button" class="btn btn-link text-muted fw-bold text-decoration-none" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+          <button id="confirmGenerateBtn" type="button" class="btn btn-primary px-4 py-2 rounded-pill shadow-sm d-flex align-items-center gap-2">
+            {{ __('View Report') }}
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+  
+  {{-- ##### NEW: AI Analytics Report Modal ##### --}}
+  <div class="modal fade" id="aiAnalyticsReportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; background: #f8fafc;">
+        <div class="modal-header bg-navy text-white p-4 border-0">
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-orange d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                <i class="bi bi-robot fs-4 text-white"></i>
+            </div>
+            <div>
+                <h5 class="modal-title mb-0 fw-bold">{{ __('Strategic Academic AI Insights') }}</h5>
+                <div class="text-white-50 x-small">{{ __('Powered by EduLearn AI Analytics Engine') }}</div>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-outline-light btn-sm js-print-ai-report" onclick="window.print()">
+                  <i class="bi bi-printer me-1"></i> {{ __('Print') }}
+              </button>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+        </div>
+        <div class="modal-body p-5">
+          {{-- Loading State --}}
+          <div id="aiReportLoading" class="text-center py-5">
+            <div class="spinner-grow text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+            <h4 class="fw-bold text-navy">{{ __('Analyzing School Data...') }}</h4>
+            <p class="text-muted">{{ __('Gemini is processing thousands of data points to generate your strategic report.') }}</p>
+            
+            <div class="progress mt-4 mx-auto" style="height: 6px; max-width: 400px;">
+              <div class="progress-bar progress-bar-striped progress-bar-animated bg-orange" style="width: 100%"></div>
+            </div>
+          </div>
+
+          {{-- Report Content --}}
+          <div id="aiReportContent" style="display:none;">
+            <div id="aiReportMarkdown" class="markdown-body p-4 bg-white rounded-4 shadow-sm border">
+                <!-- AI content will be rendered here -->
+            </div>
+            
+            <div class="mt-4 d-flex justify-content-center gap-3 no-print">
+                <button class="btn btn-outline-secondary px-4 py-2 rounded-pill" onclick="window.print()">
+                    <i class="bi bi-printer me-2"></i> {{ __('Print Full Report') }}
+                </button>
+                <button id="copyAiInsight" class="btn btn-navy px-4 py-2 rounded-pill" onclick="copyAiText()" style="display:none;">
+                    <i class="bi bi-clipboard me-2"></i> {{ __('Copy Text') }}
+                </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light p-3 border-0">
+          <button type="button" class="btn btn-secondary px-4 rounded-pill" data-bs-dismiss="modal">{{ __('Close') }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- ##### NEW: AI Reports Archive Modal (Full List) ##### --}}
+  <div class="modal fade" id="aiReportsArchiveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+        <div class="modal-header bg-light p-4 border-0">
+          <h5 class="modal-title fw-bold text-navy"><i class="bi bi-archive me-2 text-orange"></i> {{ __('Report History') }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>{{ __('Date') }}</th>
+                  <th>{{ __('Report Title') }}</th>
+                  <th class="text-end">{{ __('Action') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if(isset($aiReports))
+                @foreach($aiReports as $report)
+                <tr>
+                  <td class="small text-muted">{{ $report->created_at->format('Y-m-d H:i') }}</td>
+                  <td class="fw-bold text-navy">{{ $report->title }}</td>
+                  <td class="text-end">
+                    <button class="btn btn-sm btn-soft-primary js-view-archived-report" data-id="{{ $report->id }}" data-bs-dismiss="modal">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                  </td>
+                </tr>
+                @endforeach
+                @endif
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+ </div>
 
 <style>
+/* AI Strategic Button Premium Styling */
+.btn-ai-strategic {
+    background: linear-gradient(135deg, #001A33 0%, #003366 100%);
+    border: 1px solid rgba(255, 102, 0, 0.3);
+    color: #ffffff !important;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-ai-strategic:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(255, 102, 0, 0.2);
+    border-color: var(--accent);
+    filter: brightness(1.1);
+}
+
+body.dark-mode .btn-ai-strategic {
+    background: linear-gradient(135deg, #001020 0%, #001A33 100%);
+    border-color: rgba(255, 102, 0, 0.5);
+}
+
+body.dark-mode .btn-ai-strategic:hover {
+    box-shadow: 0 5px 20px rgba(255, 102, 0, 0.3);
+}
+
 /* =============== NEW STUDENT ID CARD STYLING =============== */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Libre+Barcode+39&family=Manrope:wght@400;600;800&family=Noto+Sans+Arabic:wght@400;600;800&display=swap');
 
@@ -341,17 +748,17 @@
     direction: ltr;
 }
 
-.bg-accent-teal {
+.bg-accent-navy {
     position: absolute; bottom: 0; left: 0; width: 40%; height: 35%;
-    background-color: #a7f3d0;
+    background-color: #001A33;
     clip-path: polygon(0 0, 80% 0, 100% 100%, 0% 100%);
     z-index: 1;
     -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
 }
 
-.bg-accent-blue {
+.bg-accent-orange {
     position: absolute; bottom: 0; left: 20%; width: 30%; height: 25%;
-    background-color: #0ea5e9;
+    background-color: #FF6600;
     clip-path: polygon(20% 0%, 100% 0%, 100% 100%, 0% 100%);
     z-index: 2;
     -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
@@ -359,13 +766,15 @@
 
 .ribbon-banner {
     position: absolute; top: 0; right: 40px; width: 140px; height: 200px;
-    background-color: #0ea5e9;
+    background-color: #001A33;
     clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%);
     z-index: 3;
     display: flex; flex-direction: column; align-items: center; padding-top: 20px;
     color: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
 }
+
 .ribbon-banner .school-logo-c {
     width: 64px; height: 64px; margin-bottom: 8px; border: 2px solid white; border-radius: 50%;
     display: flex; align-items: center; justify-content: center; background: white; overflow: hidden;
@@ -374,17 +783,19 @@
 .ribbon-banner span { font-size: 12px; font-weight: bold; text-align: center; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 8px; }
 
 .profile-img-container {
-    position: relative; z-index: 10; border: 8px solid #0ea5e9; border-radius: 50%;
+    position: relative; z-index: 10; border: 8px solid #FF6600; border-radius: 50%;
     width: 240px; height: 240px; overflow: hidden;
     box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
     background: #e2e8f0;
 }
+
 .profile-img-container img { width: 100%; height: 100%; object-fit: cover; }
 
 .card-decorative-circles {
     position: absolute; right: 40px; bottom: 160px; width: 80px; height: 80px;
-    border: 2px solid #a7f3d0; border-radius: 50%;
+    border: 2px solid #FF6600; border-radius: 50%; opacity: 0.3;
 }
+
 .card-decorative-circles::after {
     content: ''; position: absolute; top: 0; left: 20px; width: 80px; height: 80px;
     border: 2px solid #a7f3d0; border-radius: 50%;
@@ -393,12 +804,14 @@
 .barcode-font { font-family: 'Libre Barcode 39', cursive; font-size: 64px; color: black; line-height: 1; }
 
 .id-content { position: relative; z-index: 10; padding: 48px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
-.id-title { font-size: 48px; font-weight: 800; color: #0284c7; letter-spacing: -0.025em; margin-bottom: 32px; text-transform: uppercase; line-height:1; }
+.id-title { font-size: 48px; font-weight: 800; color: #001A33; letter-spacing: -0.025em; margin-bottom: 32px; text-transform: uppercase; line-height:1; }
+
 
 .id-flex-row { display: flex; align-items: flex-start; gap: 48px; }
 .id-details { flex-grow: 1; display: flex; flex-direction: column; gap: 16px; color: #0c4a6e; margin-top: 10px; }
-.id-label { font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; color: #0284c7; margin: 0; }
-.id-value { font-size: 24px; font-weight: 600; border-bottom: 2px solid #d1d5db; padding-bottom: 4px; margin: 0; text-transform: uppercase; }
+.id-label { font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; color: #FF6600; margin: 0; }
+.id-value { font-size: 24px; font-weight: 600; border-bottom: 2px solid #ff660066; padding-bottom: 4px; margin: 0; text-transform: uppercase; }
+
 
 .id-footer { display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto; }
 .id-valid p { margin: 0; color: #0c4a6e; }
@@ -414,11 +827,11 @@
     text-align: right;
     font-family: 'Manrope', 'Noto Sans Arabic', 'Inter', sans-serif;
 }
-[dir="rtl"] .bg-accent-teal {
+[dir="rtl"] .bg-accent-navy {
     left: auto; right: 0;
     clip-path: polygon(20% 0, 100% 0, 100% 100%, 0% 100%);
 }
-[dir="rtl"] .bg-accent-blue {
+[dir="rtl"] .bg-accent-orange {
     left: auto; right: 20%;
     clip-path: polygon(0 0, 80% 0, 100% 100%, 0% 100%);
 }
@@ -440,168 +853,67 @@
 }
 
 @media print {
-    .d-none-print { display: none !important; }
-    .card-scale-wrapper { zoom: 1 !important; transform: none !important; margin-bottom: 20px !important; }
-    .student-id-card-new { border: 1px solid #e2e8f0; box-shadow: none; }
-    body { background: #fff !important; color: #000 !important; overflow: visible !important; height: auto !important; }
-    .main-wrapper { 
-        margin: 0 !important; 
-        padding: 0 !important; 
-        height: auto !important; 
-        overflow: visible !important; 
+    /* Main Control: Hide everything then selectively show the current view */
+    body { background: #fff !important; color: #000 !important; overflow: visible !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .sidebar, .topbar, .no-print, .btn, .crumbs, .mobile-nav, .modal-backdrop, .modal, .floating-actions, .input-group, .pagination-wrap, .page-header, .no-print-area { 
+        display: none !important; 
+    }
+    .main-wrapper, .content-area { padding: 0 !important; margin: 0 !important; width: 100% !important; display: block !important; }
+    
+    /* Institutional Head */
+    #globalPrintHeader { display: block !important; visibility: visible !important; }
+    
+    /* Isolation Logic for Report Views */
+    #reportsListView, #classReportView, #studentReportView, #subjectReportView, #teacherReportView, #classCardsView, #atRiskReportView {
+        display: none !important;
+    }
+    
+    /* Reveal only the current active onscreen view */
+    #reportsListView:not([style*="display: none"]),
+    #classReportView:not([style*="display: none"]),
+    #studentReportView:not([style*="display: none"]),
+    #subjectReportView:not([style*="display: none"]),
+    #teacherReportView:not([style*="display: none"]),
+    #classCardsView:not([style*="display: none"]),
+    #atRiskReportView:not([style*="display: none"]) {
         display: block !important;
     }
-    .sidebar, .topbar { display: none !important; }
-    .content-area { 
-        padding: 0 !important; 
-        margin: 0 !important;
-        overflow: visible !important; 
-        width: 100% !important;
-    }
-    .cardy, .table-shell, .panel, .stat, .stat-mini, .stat-card { 
-        border: 1px solid #eaedf0 !important; 
-        box-shadow: none !important; 
-        margin-bottom: 1.5rem !important; 
-        break-inside: avoid; 
-        background: #fff !important;
-    }
-    .chart-wrap { height: 280px !important; margin-bottom: 1rem; }
-    canvas { max-width: 100% !important; }
     
-    /* Force background printing */
-    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    
-    /* Table Print Fixes */
-    thead { display: table-header-group !important; position: static !important; }
-    tr { break-inside: avoid; break-after: auto; }
-    div[style*="overflow-y: auto"] { overflow: visible !important; max-height: none !important; border: none !important; }
-    
-    .reports-skin .content-wrap, .reports-skin .page, .reports-skin .page-wrap {
-        max-width: 100% !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    
-    /* Photo-like Print Layout Overrides */
-    
-    /* Big Blue Header (Reversing flex to put image on right, title on left) */
-    #globalPrintHeader {
-        background-color: #2b3a8c !important;
-        margin: -15px -15px 30px -15px !important;
-        padding: 30px 40px !important;
-        border: none !important;
-        display: flex !important;
-        flex-direction: row-reverse !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-    }
-    #globalPrintHeader .text-end {
-        text-align: left !important;
-        flex-grow: 1 !important;
-    }
-    #globalPrintHeader h4#printReportTitle {
-        font-size: 32px !important;
-        font-weight: 800 !important;
-        color: white !important;
-        margin-bottom: 10px !important;
-    }
-    #globalPrintHeader h3, #globalPrintHeader p, #globalPrintHeader .text-muted, #globalPrintHeader .text-dark, #globalPrintHeader .text-primary {
-        color: rgba(255,255,255,0.9) !important;
-        text-align: left !important;
-    }
-    
-    #globalPrintHeader .d-flex.align-items-center.gap-3 {
-        flex-direction: column !important; /* Stack school name below logo */
-    }
-    #globalPrintHeader img {
-        width: 130px !important;
-        height: 130px !important;
-        border-radius: 50% !important;
-        border: 4px solid white !important;
-        box-shadow: 0 0 10px rgba(0,0,0,0.2) !important;
-        object-fit: cover !important;
-    }
+    /* Specific overrides for ID cards */
+    body.printing-id-cards #globalPrintHeader { display: none !important; }
+    body.printing-id-cards #classCardsView { display: block !important; }
 
-    /* Cards/Panels shape to match photo (Light blue top bars with rounded cutouts) */
+    /* Professional Styling for Printed Elements */
     .reports-skin .cardy, .reports-skin .panel, .reports-skin .table-shell, .reports-skin .stat {
-        border: 1px solid #dcdcdc !important;
-        border-radius: 0 !important;
-        padding: 0 !important;
-        margin-bottom: 25px !important;
-        overflow: visible !important;
+        border: 2px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        background: #fff !important;
+        margin-bottom: 30px !important;
         page-break-inside: avoid !important;
+        box-shadow: none !important;
     }
-    
-    /* Headers inside panels */
-    .reports-skin .cardy h6, .reports-skin .panel h6, .reports-skin .table-shell h6, 
-    .reports-skin .section-title, .reports-skin .stat h6, .reports-skin .cardy .k {
-        background-color: #26c6da !important;
-        color: white !important;
-        text-align: center !important;
-        font-weight: bold !important;
-        font-size: 16px !important;
-        padding: 10px !important;
-        margin: 0 0 15px 0 !important;
+
+    .reports-skin h6, .reports-skin .section-title {
+        background: #001A33 !important;
+        color: #fff !important;
+        padding: 12px 20px !important;
+        border-bottom: 4px solid #FF6600 !important;
+        font-size: 18px !important;
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
         display: block !important;
-        position: relative !important;
     }
 
-    /* Cyan header cutouts (simulating photo style tags) */
-    .reports-skin .cardy h6::before, .reports-skin .panel h6::before, .reports-skin .table-shell h6::before, 
-    .reports-skin .section-title::before, .reports-skin .stat h6::before, .reports-skin .cardy .k::before {
-        content: '' !important;
-        position: absolute !important;
-        top: 50% !important; left: -5px !important;
-        width: 10px !important; height: 10px !important;
-        background: white !important; border-radius: 50% !important;
-        transform: translateY(-50%) !important;
-        border-right: 1px solid #26c6da !important;
-    }
-    .reports-skin .cardy h6::after, .reports-skin .panel h6::after, .reports-skin .table-shell h6::after, 
-    .reports-skin .section-title::after, .reports-skin .stat h6::after, .reports-skin .cardy .k::after {
-        content: '' !important;
-        position: absolute !important;
-        top: 50% !important; right: -5px !important;
-        width: 10px !important; height: 10px !important;
-        background: white !important; border-radius: 50% !important;
-        transform: translateY(-50%) !important;
-        border-left: 1px solid #26c6da !important;
-    }
+    .reports-skin table { width: 100% !important; border-collapse: collapse !important; margin: 0 !important; }
+    .reports-skin th { background-color: #f8fafc !important; color: #001A33 !important; border: 1px solid #94a3b8 !important; padding: 12px !important; font-weight: bold !important; text-align: center !important; }
+    .reports-skin td { border: 1px solid #cbd5e1 !important; padding: 10px !important; text-align: center !important; }
 
-    /* Prevent default grid gaps destroying flex */
-    .reports-skin .stats { gap: 10px !important; }
-    
-    /* Inner Padding for content (so it doesn't touch borders) */
-    .reports-skin .cardy > div:not(h6):not(.section-title):not(.k), 
-    .reports-skin .panel > div:not(h6):not(.section-title), 
-    .reports-skin .table-shell > div:not(h6):not(.section-title) {
-        padding: 0 15px 15px 15px !important;
-    }
+    .chart-wrap { height: 350px !important; width: 100% !important; margin-bottom: 20px !important; background: #fff !important; border: 1px solid #f1f5f9; }
+    .val { font-size: 32px !important; font-weight: 800 !important; color: #001A33 !important; }
 
-    /* Table styling to match photo (dark blue table headers) */
-    .reports-skin table {
-        border-collapse: collapse !important;
-        width: 100% !important;
-        margin-bottom: 0 !important;
-    }
-    .reports-skin table th {
-        background-color: #2b3a8c !important;
-        color: white !important;
-        text-align: center !important;
-        font-weight: 600 !important;
-        border: 1px solid #2b3a8c !important;
-        padding: 8px !important;
-    }
-    .reports-skin table td {
-        border: 1px solid #dcdcdc !important;
-        text-align: center !important;
-        padding: 8px !important;
-        color: #333 !important;
-    }
-    .reports-skin .val, .reports-skin .v, .reports-skin .js-sr-avg, .reports-skin .js-sr-time {
-        font-size: 20px !important; font-weight: bold !important; text-align: center !important;
-    }
+    @page { margin: 1.5cm; size: A4 portrait; }
 }
+
 
 /* Custom scrollbar styling from students page */
 div[style*="overflow-y: auto"]::-webkit-scrollbar {
@@ -624,6 +936,101 @@ body.dark-mode div[style*="overflow-y: auto"]::-webkit-scrollbar-track {
 }
 body.dark-mode div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
   background: rgba(255,255,255,0.1);
+}
+
+/* Dark Mode for Generate Report Modal */
+body.dark-mode #generateReportModal .modal-content {
+    background-color: #1e293b;
+    color: #f1f5f9;
+}
+body.dark-mode #generateReportModal .modal-header {
+    background-color: #0f172a !important;
+}
+body.dark-mode #generateReportModal .modal-body {
+    background-color: #1e293b;
+}
+body.dark-mode #generateReportModal .modal-footer {
+    background-color: #0f172a !important;
+}
+body.dark-mode #generateReportModal .btn-outline-soft {
+    border-color: #475569; /* Brighter border */
+    color: #cbd5e1;        /* Brighter text */
+    background-color: rgba(255, 255, 255, 0.03); /* Subtle backdrop */
+}
+body.dark-mode #generateReportModal .btn-outline-soft:hover {
+    border-color: #64748b;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+body.dark-mode #generateReportModal .btn-check:checked + .btn-outline-soft {
+    background-color: rgba(56, 189, 248, 0.15);
+    border-color: #38bdf8;
+    color: #38bdf8;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.1);
+}
+body.dark-mode #generateReportModal .alert-soft-primary {
+    background-color: rgba(56, 189, 248, 0.05);
+    color: #7dd3fc;
+}
+body.dark-mode #generateReportModal .text-muted {
+    color: #94a3b8 !important;
+}
+
+/* Specific button contrast for Excel & PDF in Dark Mode */
+body.dark-mode #generateReportModal .btn-soft-success {
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981 !important; /* Emerald Green */
+    background-color: rgba(16, 185, 129, 0.05);
+}
+body.dark-mode #generateReportModal .btn-check:checked + .btn-soft-success {
+    background-color: #10b981 !important;
+    color: #fff !important;
+    border-color: #10b981 !important;
+}
+
+body.dark-mode #generateReportModal .btn-soft-danger {
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444 !important; /* Rose Red */
+    background-color: rgba(239, 68, 68, 0.05);
+}
+body.dark-mode #generateReportModal .btn-check:checked + .btn-soft-danger {
+    background-color: #ef4444 !important;
+    color: #fff !important;
+    border-color: #ef4444 !important;
+}
+/* AI Report Styles */
+#aiAnalyticsReportModal .bg-navy { background-color: #001A33 !important; }
+#aiAnalyticsReportModal .text-orange { color: #FF6600 !important; }
+#aiAnalyticsReportModal .bg-orange { background-color: #FF6600 !important; }
+
+.ai-report-paper {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.7;
+    color: #1e293b;
+}
+
+.markdown-body h1 { border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1.5rem; color: #0f172a; font-weight: 800; }
+.markdown-body h2 { margin-top: 2rem; margin-bottom: 1rem; color: #0f172a; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.markdown-body h2::before { content: ''; display: inline-block; width: 4px; height: 1.2em; background: #FF6600; border-radius: 2px; }
+.markdown-body h3 { margin-top: 1.5rem; color: #334155; font-weight: 600; }
+.markdown-body ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+.markdown-body li { margin-bottom: 0.5rem; }
+.markdown-body strong { color: #0f172a; }
+.markdown-body blockquote { border-left: 4px solid #cbd5e1; padding-left: 1rem; color: #64748b; font-style: italic; margin: 1.5rem 0; }
+.markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+.markdown-body th, .markdown-body td { border: 1px solid #e2e8f0; padding: 0.75rem; text-align: left; }
+.markdown-body th { background: #f8fafc; font-weight: 600; }
+
+body.dark-mode .ai-report-paper { background-color: #1e293b !important; color: #cbd5e1 !important; border-color: #334155 !important; }
+body.dark-mode .markdown-body h1, 
+body.dark-mode .markdown-body h2, 
+body.dark-mode .markdown-body h3 { color: #f1f5f9; }
+body.dark-mode .markdown-body th { background: #334155; }
+body.dark-mode .markdown-body td { border-color: #334155; }
+
+@media print {
+    .modal-header, .modal-footer, .no-print { display: none !important; }
+    #aiAnalyticsReportModal .modal-content { border: none !important; box-shadow: none !important; }
+    .ai-report-paper { box-shadow: none !important; border: none !important; padding: 0 !important; }
 }
 </style>
 
@@ -662,10 +1069,27 @@ body.dark-mode div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
       programLabel: "{{ __('Program:') }}",
       yearLabel: "{{ __('Year:') }}",
       validUntilLabel: "{{ __('Valid Until:') }}",
-      selectAtLeastOne: "{{ __('Please select at least one card to print.') }}"
+      selectAtLeastOne: "{{ __('Please select at least one card to print.') }}",
+      lessons: "{{ __('Lessons') }}",
+      exercises: "{{ __('Exercises') }}",
+      generatingReport: "{{ __('Generating report...') }}",
+      reportReady: "{{ __('Report is ready!') }}",
+      preparingData: "{{ __('Preparing data...') }}",
+      downloading: "{{ __('Downloading...') }}",
+      noAtRiskFound: "{{ __('No students currently meet the At-Risk criteria.') }}",
+      refresh: "{{ __('Refresh Page') }}",
+      generatingReport: "{{ __('Generating Report') }}",
+      backgroundGenerationNote: "{{ __('The AI is analyzing school data in the background. You can continue using the site.') }}",
+      generatingStrategicReport: "{{ __('Generating Strategic Report...') }}",
+      canCloseModalNote: "{{ __('You can close this window; the report will continue generating in the background.') }}",
+      aiReportReady: "{{ __('AI Report Ready!') }}",
+      strategicAnalysisComplete: "{{ __('Strategic analysis has been completed.') }}",
+      viewReport: "{{ __('View Report') }}",
+      close: "{{ __('Close') }}"
     });
     window.DEFAULT_AVATAR = "{{ asset('images/default-avatar.png') }}";
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="{{ asset('js/reports.js') }}"></script>
 @endpush

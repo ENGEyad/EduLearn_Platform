@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# EduLearn Platform Custom
+Dashboard Documents/
+

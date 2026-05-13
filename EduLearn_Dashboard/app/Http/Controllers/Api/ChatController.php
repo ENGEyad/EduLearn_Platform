@@ -2,20 +2,23 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\MessageSent;
+use App\Events\MessageStatusUpdated;
+use App\Events\TypingStatusChanged;
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Student;
 use App\Models\Teacher;
-use App\Events\MessageSent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class ChatController extends Controller
 {
     /**
-     * فتح / إنشاء محادثة بين أستاذ وطالب
+     * فتح / إنشاء محادثة فردية بين أستاذ وطالب
      * POST /api/chat/conversations/open
      */
     public function openConversation(Request $request)
@@ -28,8 +31,7 @@ class ChatController extends Controller
             'as' => 'nullable|in:teacher,student',
         ]);
 
-        $as = $validated['as'] ?? 'teacher';
-        $forTeacher = $as === 'teacher';
+        $forTeacher = ($validated['as'] ?? 'teacher') === 'teacher';
 
         $teacher = Teacher::where('teacher_code', $validated['teacher_code'])->first();
         if (!$teacher) {
@@ -50,28 +52,31 @@ class ChatController extends Controller
         $classSectionId = $validated['class_section_id'] ?? $student->class_section_id;
         $subjectId = $validated['subject_id'] ?? null;
 
-        // ملاحظة: نُبقي المنطق كما هو (بدون تغيير DB)
         $conversation = Conversation::firstOrCreate(
-        [
-            'teacher_id' => $teacher->id,
-            'student_id' => $student->id,
-            'class_section_id' => $classSectionId,
-            'subject_id' => $subjectId,
-        ],
-        [
-            'last_message' => null,
-            'last_message_at' => null,
-            'unread_for_teacher' => 0,
-            'unread_for_student' => 0,
-        ]
+            [
+                'teacher_id' => $teacher->id,
+                'student_id' => $student->id,
+                'class_section_id' => $classSectionId,
+                'subject_id' => $subjectId,
+            ],
+            [
+                'last_message' => null,
+                'last_message_at' => null,
+                'unread_for_teacher' => 0,
+                'unread_for_student' => 0,
+            ]
         );
 
-        // تحميل الطرفين مرة واحدة لتفادي تكرار الاستعلامات
-        [$teacherMap, $studentMap, $classMap] = $this->loadActorsForConversations(collect([$conversation]));
+        [$teacherMap, $studentMap] = $this->loadActorsForConversations(collect([$conversation]));
 
         return response()->json([
             'success' => true,
-            'conversation' => $this->formatConversation($conversation, $forTeacher, $teacherMap, $studentMap, $classMap),
+            'conversation' => $this->formatConversation(
+                $conversation,
+                $forTeacher,
+                $teacherMap,
+                $studentMap
+            ),
         ]);
     }
 
@@ -98,13 +103,18 @@ class ChatController extends Controller
             ->orderByDesc('updated_at')
             ->get();
 
-        [$teacherMap, $studentMap, $classMap] = $this->loadActorsForConversations($conversations);
+        [$teacherMap, $studentMap] = $this->loadActorsForConversations($conversations);
 
         return response()->json([
             'success' => true,
             'conversations' => $conversations->map(
-        fn(Conversation $c) => $this->formatConversation($c, true, $teacherMap, $studentMap, $classMap)
-        ),
+                fn(Conversation $conversation) => $this->formatConversation(
+                    $conversation,
+                    true,
+                    $teacherMap,
+                    $studentMap
+                )
+            )->values(),
         ]);
     }
 
@@ -127,56 +137,22 @@ class ChatController extends Controller
         }
 
         $conversations = Conversation::where('student_id', $student->id)
-            ->orWhere(function ($q) use ($student) {
-            $q->whereNull('student_id')->where('class_section_id', $student->class_section_id);
-        })
             ->orderByDesc('last_message_at')
             ->orderByDesc('updated_at')
             ->get();
 
-        [$teacherMap, $studentMap, $classMap] = $this->loadActorsForConversations($conversations);
+        [$teacherMap, $studentMap] = $this->loadActorsForConversations($conversations);
 
         return response()->json([
             'success' => true,
             'conversations' => $conversations->map(
-        fn(Conversation $c) => $this->formatConversation($c, false, $teacherMap, $studentMap, $classMap)
-        ),
-        ]);
-    }
-
-    /**
-     * فتح / إنشاء محادثة جماعية للفصل
-     * POST /api/chat/conversations/open-group
-     */
-    public function openGroupConversation(Request $request)
-    {
-        $validated = $request->validate([
-            'teacher_code' => 'required|string',
-            'class_section_id' => 'required|integer',
-            'as' => 'nullable|in:teacher,student',
-        ]);
-
-        $teacher = Teacher::where('teacher_code', $validated['teacher_code'])->first();
-        if (!$teacher)
-            return response()->json(['success' => false, 'message' => 'Teacher not found.'], 404);
-
-        $conversation = Conversation::firstOrCreate(
-        [
-            'teacher_id' => $teacher->id,
-            'student_id' => null, // Null means Group
-            'class_section_id' => $validated['class_section_id'],
-        ],
-        [
-            'last_message' => null,
-            'last_message_at' => null,
-        ]
-        );
-
-        [$teacherMap, $studentMap, $classMap] = $this->loadActorsForConversations(collect([$conversation]));
-
-        return response()->json([
-            'success' => true,
-            'conversation' => $this->formatConversation($conversation, ($validated['as'] ?? 'teacher') === 'teacher', $teacherMap, $studentMap, $classMap),
+                fn(Conversation $conversation) => $this->formatConversation(
+                    $conversation,
+                    false,
+                    $teacherMap,
+                    $studentMap
+                )
+            )->values(),
         ]);
     }
 
@@ -184,9 +160,12 @@ class ChatController extends Controller
      * جلب رسائل محادثة معيّنة
      * GET /api/chat/conversations/{conversation}/messages?as=teacher|student
      *
-     * تحسين UX بدون كسر: إذا أرسلت limit يرجّع صفحة + next_cursor
-     * - limit (اختياري): عدد الرسائل (مثلاً 30)
-     * - before_id (اختياري): لجلب رسائل أقدم من هذا الـ id
+     * يدعم pagination اختياري:
+     * - limit
+     * - before_id
+     *
+     * مهم: هنا نعتبر الرسائل "وصلت" للطرف عند فتح المحادثة / تحميلها،
+     * لكن لا نعتبرها "مقروءة" إلا عبر endpoint القراءة الصريح.
      */
     public function messages(Request $request, Conversation $conversation)
     {
@@ -194,55 +173,19 @@ class ChatController extends Controller
             'as' => 'required|in:teacher,student',
             'teacher_code' => 'nullable|string',
             'academic_id' => 'nullable|string',
-
             'limit' => 'nullable|integer|min:1|max:200',
             'before_id' => 'nullable|integer|min:1',
         ]);
 
-        // تحقق صلاحية الطرف على المحادثة + جلب actor
-        $actor = $this->resolveAndAuthorizeActor($validated, $conversation);
+        $this->resolveAndAuthorizeActor($validated, $conversation);
+        $this->markIncomingMessagesDelivered($conversation, $validated['as']);
 
-        // تعليم الرسائل كمقروءة (حسب الطرف)
-        DB::transaction(function () use ($validated, $conversation) {
-            if ($validated['as'] === 'teacher') {
-                $updated = Message::where('conversation_id', $conversation->id)
-                    ->where('sender_type', 'student')
-                    ->whereNull('read_at')
-                    ->update(['read_at' => now()]);
-
-                if ($updated > 0) {
-                    $conversation->update(['unread_for_teacher' => 0]);
-                }
-            }
-            else {
-                $updated = Message::where('conversation_id', $conversation->id)
-                    ->where('sender_type', 'teacher')
-                    ->whereNull('read_at')
-                    ->update(['read_at' => now()]);
-
-                if ($updated > 0) {
-                    $conversation->update(['unread_for_student' => 0]);
-                }
-            }
-        });
-
-        // الاستعلام الأساسي
-        $query = Message::where('conversation_id', $conversation->id)->orderBy('created_at');
-
-        // Pagination اختياري (بدون كسر القديم)
         $limit = $validated['limit'] ?? null;
         $beforeId = $validated['before_id'] ?? null;
 
-        if ($beforeId) {
-            $query->where('id', '<', $beforeId);
-        }
-
         if ($limit) {
-            // نجيب الأقدم/الأحدث حسب ترتيبك الحالي (created_at ASC).
-            // بما أن ASC، "before_id" يعني أقدم، فسنحافظ على ASC ونأخذ limit من النهاية؟
-            // لتبسيط وعدم كسر: سنغيّر على id DESC ثم نعكس النتائج.
             $paged = Message::where('conversation_id', $conversation->id)
-                ->when($beforeId, fn($q) => $q->where('id', '<', $beforeId))
+                ->when($beforeId, fn($query) => $query->where('id', '<', $beforeId))
                 ->orderByDesc('id')
                 ->limit($limit + 1)
                 ->get();
@@ -253,27 +196,38 @@ class ChatController extends Controller
             }
 
             $messages = $paged->reverse()->values();
-            $nextCursor = $hasMore ? $messages->first()->id : null;
+            $nextCursor = $hasMore && $messages->isNotEmpty()
+                ? $messages->first()->id
+                : null;
+
+            $senderMaps = $this->loadSenderNames($messages);
 
             return response()->json([
                 'success' => true,
-                'messages' => $messages->map(fn(Message $m) => $this->formatMessage($m)),
-                'next_cursor' => $nextCursor, // استخدمه كـ before_id لجلب الأقدم
+                'messages' => $messages->map(
+                    fn(Message $message) => $this->formatMessage(
+                        $message,
+                        $senderMaps[$message->sender_type][$message->sender_id] ?? 'Unknown'
+                    )
+                )->values(),
+                'next_cursor' => $nextCursor,
             ]);
         }
 
-        // السلوك القديم: كل الرسائل
-        $messages = $query->get();
+        $messages = Message::where('conversation_id', $conversation->id)
+            ->orderBy('created_at')
+            ->get();
 
-        // تحميل أسماء المرسلين بكفاءة
         $senderMaps = $this->loadSenderNames($messages);
 
         return response()->json([
             'success' => true,
-            'messages' => $messages->map(fn(Message $m) => $this->formatMessage(
-        $m,
-        $senderMaps[$m->sender_type][$m->sender_id] ?? 'Unknown'
-        )),
+            'messages' => $messages->map(
+                fn(Message $message) => $this->formatMessage(
+                    $message,
+                    $senderMaps[$message->sender_type][$message->sender_id] ?? 'Unknown'
+                )
+            )->values(),
         ]);
     }
 
@@ -290,89 +244,253 @@ class ChatController extends Controller
             'body' => 'required|string|min:1|max:5000',
         ]);
 
-        // تحقق صلاحية المرسل على المحادثة + sender_id
         $sender = $this->resolveAndAuthorizeSender($validated, $conversation);
         $senderId = $sender['id'];
 
         $now = Carbon::now();
 
-        // Transaction لضمان عدم حصول inconsistency
-        $result = DB::transaction(function () use ($validated, $conversation, $senderId, $now) {
+        [$message, $freshConversation] = DB::transaction(function () use (
+            $validated,
+            $conversation,
+            $senderId,
+            $now
+        ) {
             $message = Message::create([
                 'conversation_id' => $conversation->id,
                 'sender_type' => $validated['sender_type'],
                 'sender_id' => $senderId,
-                'body' => $validated['body'],
+                'body' => trim($validated['body']),
                 'sent_at' => $now,
             ]);
 
-            // تحديث المحادثة
-            $conversation->last_message = $validated['body'];
+            $conversation->last_message = trim($validated['body']);
             $conversation->last_message_at = $now;
 
             if ($validated['sender_type'] === 'teacher') {
-                $conversation->unread_for_student = (int)$conversation->unread_for_student + 1;
-            }
-            else {
-                $conversation->unread_for_teacher = (int)$conversation->unread_for_teacher + 1;
+                $conversation->unread_for_student = (int) $conversation->unread_for_student + 1;
+            } else {
+                $conversation->unread_for_teacher = (int) $conversation->unread_for_teacher + 1;
             }
 
             $conversation->save();
             $conversation->refresh();
 
-            return [$message, $conversation];
+            return [$message->fresh(), $conversation];
         });
 
-
-        /** @var Conversation $freshConversation */
-        /** @var Message $message */
-        [$message, $freshConversation] = $result;
-
-        // بثّ الرسالة للطرف الآخر (للوصول الفوري)
         broadcast(new MessageSent($message, $freshConversation))->toOthers();
 
-        // تجهيز خرائط الطرفين للمحادثة
-        [$teacherMap, $studentMap, $classMap] = $this->loadActorsForConversations(collect([$freshConversation]));
+        [$teacherMap, $studentMap] = $this->loadActorsForConversations(collect([$freshConversation]));
 
         return response()->json([
             'success' => true,
-            'message' => $this->formatMessage($message, $sender['full_name'] ?? 'Unknown'),
+            'message' => $this->formatMessage(
+                $message,
+                $sender['full_name'] ?? 'Unknown'
+            ),
             'conversation' => $this->formatConversation(
-            $freshConversation,
-            $validated['sender_type'] === 'teacher',
-            $teacherMap,
-            $studentMap,
-            $classMap
-        ),
+                $freshConversation,
+                $validated['sender_type'] === 'teacher',
+                $teacherMap,
+                $studentMap,
+                $message
+            ),
         ]);
     }
 
     /**
-     * تحميل بيانات المعلمين والطلاب لمجموعة محادثات مرة واحدة لتفادي N+1
-     * @return array{0: array<int,Teacher>, 1: array<int,Student>, 2: array<int,ClassSection>}
+     * تحديد الرسائل الواردة على أنها وصلت للطرف الحالي (double gray)
+     * POST /api/chat/conversations/{conversation}/delivered
      */
-    protected function loadActorsForConversations($conversations): array
+    public function markDelivered(Request $request, Conversation $conversation)
     {
-        $teacherIds = $conversations->pluck('teacher_id')->filter()->unique()->values();
-        $studentIds = $conversations->pluck('student_id')->filter()->unique()->values();
-        $classIds = $conversations->pluck('class_section_id')->filter()->unique()->values();
+        $validated = $request->validate([
+            'as' => 'required|in:teacher,student',
+            'teacher_code' => 'nullable|string',
+            'academic_id' => 'nullable|string',
+        ]);
 
-        $teachers = Teacher::whereIn('id', $teacherIds)->get()->keyBy('id');
-        $students = Student::whereIn('id', $studentIds)->get()->keyBy('id');
-        $classes = \App\Models\ClassSection::whereIn('id', $classIds)->get()->keyBy('id');
+        $this->resolveAndAuthorizeActor($validated, $conversation);
+        $updatedMessages = $this->markIncomingMessagesDelivered($conversation, $validated['as']);
 
-        return [$teachers->all(), $students->all(), $classes->all()];
+        $freshConversation = $conversation->fresh();
+        [$teacherMap, $studentMap] = $this->loadActorsForConversations(collect([$freshConversation]));
+        $latestMessage = $this->findLatestMessageForConversation($freshConversation);
+
+        return response()->json([
+            'success' => true,
+            'updated_count' => $updatedMessages->count(),
+            'messages' => $updatedMessages->map(fn(Message $message) => $this->formatMessage($message))->values(),
+            'conversation' => $this->formatConversation(
+                $freshConversation,
+                $validated['as'] === 'teacher',
+                $teacherMap,
+                $studentMap,
+                $latestMessage
+            ),
+        ]);
     }
 
     /**
-     * توحيد التحقق من هوية الطرف الذي يطلب الرسائل (as)
-     * يعيد الكائن (Teacher/Student) أو يرمي 403
+     * تحديد الرسائل الواردة على أنها مقروءة (double blue)
+     * POST /api/chat/conversations/{conversation}/read
      */
-    protected function resolveAndAuthorizeActor(array $validated, Conversation $conversation)
+    public function markRead(Request $request, Conversation $conversation)
+    {
+        $validated = $request->validate([
+            'as' => 'required|in:teacher,student',
+            'teacher_code' => 'nullable|string',
+            'academic_id' => 'nullable|string',
+        ]);
+
+        $this->resolveAndAuthorizeActor($validated, $conversation);
+
+        $incomingSenderType = $validated['as'] === 'teacher' ? 'student' : 'teacher';
+        $now = now();
+
+        $updatedMessages = DB::transaction(function () use ($conversation, $validated, $incomingSenderType, $now) {
+            $messages = Message::where('conversation_id', $conversation->id)
+                ->where('sender_type', $incomingSenderType)
+                ->whereNull('read_at')
+                ->orderBy('id')
+                ->get();
+
+            if ($messages->isEmpty()) {
+                if ($validated['as'] === 'teacher' && (int) $conversation->unread_for_teacher !== 0) {
+                    $conversation->update(['unread_for_teacher' => 0]);
+                }
+
+                if ($validated['as'] === 'student' && (int) $conversation->unread_for_student !== 0) {
+                    $conversation->update(['unread_for_student' => 0]);
+                }
+
+                return collect();
+            }
+
+            $ids = $messages->pluck('id')->values();
+
+            Message::whereIn('id', $ids)->update([
+                'delivered_at' => DB::raw('COALESCE(delivered_at, CURRENT_TIMESTAMP)'),
+                'read_at' => $now,
+            ]);
+
+            if ($validated['as'] === 'teacher') {
+                $conversation->update(['unread_for_teacher' => 0]);
+            } else {
+                $conversation->update(['unread_for_student' => 0]);
+            }
+
+            return Message::whereIn('id', $ids)->orderBy('id')->get();
+        });
+
+        $freshConversation = $conversation->fresh();
+        [$teacherMap, $studentMap] = $this->loadActorsForConversations(collect([$freshConversation]));
+        $latestMessage = $this->findLatestMessageForConversation($freshConversation);
+        $conversationPayload = $this->formatConversation(
+            $freshConversation,
+            $validated['as'] === 'teacher',
+            $teacherMap,
+            $studentMap,
+            $latestMessage
+        );
+
+        if ($updatedMessages->isNotEmpty()) {
+            broadcast(new MessageStatusUpdated(
+                $freshConversation,
+                $updatedMessages,
+                'read',
+                $conversationPayload
+            ))->toOthers();
+        }
+
+        return response()->json([
+            'success' => true,
+            'updated_count' => $updatedMessages->count(),
+            'messages' => $updatedMessages->map(fn(Message $message) => $this->formatMessage($message))->values(),
+            'conversation' => $conversationPayload,
+        ]);
+    }
+
+    /**
+     * بدأ الكتابة
+     * POST /api/chat/conversations/{conversation}/typing/start
+     */
+    public function typingStart(Request $request, Conversation $conversation)
+    {
+        $validated = $request->validate([
+            'as' => 'required|in:teacher,student',
+            'teacher_code' => 'nullable|string',
+            'academic_id' => 'nullable|string',
+        ]);
+
+        $actor = $this->resolveAndAuthorizeActor($validated, $conversation);
+
+        broadcast(new TypingStatusChanged(
+            $conversation,
+            $validated['as'],
+            'start',
+            $actor->full_name ?? null
+        ))->toOthers();
+
+        return response()->json([
+            'success' => true,
+            'typing' => true,
+        ]);
+    }
+
+    /**
+     * توقف الكتابة
+     * POST /api/chat/conversations/{conversation}/typing/stop
+     */
+    public function typingStop(Request $request, Conversation $conversation)
+    {
+        $validated = $request->validate([
+            'as' => 'required|in:teacher,student',
+            'teacher_code' => 'nullable|string',
+            'academic_id' => 'nullable|string',
+        ]);
+
+        $actor = $this->resolveAndAuthorizeActor($validated, $conversation);
+
+        broadcast(new TypingStatusChanged(
+            $conversation,
+            $validated['as'],
+            'stop',
+            $actor->full_name ?? null
+        ))->toOthers();
+
+        return response()->json([
+            'success' => true,
+            'typing' => false,
+        ]);
+    }
+
+    /**
+     * تحميل بيانات المعلمين والطلاب لمجموعة محادثات مرة واحدة
+     *
+     * @return array{0: array<int, Teacher>, 1: array<int, Student>}
+     */
+    protected function loadActorsForConversations(Collection $conversations): array
+    {
+        $teacherIds = $conversations->pluck('teacher_id')->filter()->unique()->values();
+        $studentIds = $conversations->pluck('student_id')->filter()->unique()->values();
+
+        $teachers = Teacher::whereIn('id', $teacherIds)->get()->keyBy('id');
+        $students = Student::whereIn('id', $studentIds)->get()->keyBy('id');
+
+        return [$teachers->all(), $students->all()];
+    }
+
+    /**
+     * التحقق من صلاحية الطرف الذي يطلب الرسائل
+     */
+    protected function resolveAndAuthorizeActor(array $validated, Conversation $conversation): Teacher|Student
     {
         if (($validated['as'] ?? null) === 'teacher') {
             $teacherCode = $validated['teacher_code'] ?? null;
-            $teacher = $teacherCode ?Teacher::where('teacher_code', $teacherCode)->first() : null;
+            $teacher = $teacherCode
+                ? Teacher::where('teacher_code', $teacherCode)->first()
+                : null;
 
             if (!$teacher || $teacher->id !== $conversation->teacher_id) {
                 abort(response()->json([
@@ -385,32 +503,32 @@ class ChatController extends Controller
         }
 
         $academicId = $validated['academic_id'] ?? null;
-        $student = $academicId ?Student::where('academic_id', $academicId)->first() : null;
+        $student = $academicId
+            ? Student::where('academic_id', $academicId)->first()
+            : null;
 
-        if ($conversation->student_id === null) {
-            // Group Chat: Check if student belongs to the class
-            if (!$student || $student->class_section_id != $conversation->class_section_id) {
-                abort(response()->json(['success' => false, 'message' => 'Unauthorized student for this group.'], 403));
-            }
-        }
-        else {
-            if (!$student || $student->id !== $conversation->student_id) {
-                abort(response()->json(['success' => false, 'message' => 'Unauthorized student.'], 403));
-            }
+        if (!$student || $student->id !== $conversation->student_id) {
+            abort(response()->json([
+                'success' => false,
+                'message' => 'Unauthorized student.',
+            ], 403));
         }
 
         return $student;
     }
 
     /**
-     * توحيد التحقق من هوية المرسل عند الإرسال
-     * @return array{id:int,type:string}
+     * التحقق من صلاحية المرسل عند الإرسال
+     *
+     * @return array{id:int,type:string,full_name:string|null}
      */
     protected function resolveAndAuthorizeSender(array $validated, Conversation $conversation): array
     {
         if ($validated['sender_type'] === 'teacher') {
             $teacherCode = $validated['teacher_code'] ?? null;
-            $teacher = $teacherCode ?Teacher::where('teacher_code', $teacherCode)->first() : null;
+            $teacher = $teacherCode
+                ? Teacher::where('teacher_code', $teacherCode)->first()
+                : null;
 
             if (!$teacher || $teacher->id !== $conversation->teacher_id) {
                 abort(response()->json([
@@ -419,30 +537,41 @@ class ChatController extends Controller
                 ], 403));
             }
 
-            return ['id' => $teacher->id, 'type' => 'teacher', 'full_name' => $teacher->full_name];
+            return [
+                'id' => $teacher->id,
+                'type' => 'teacher',
+                'full_name' => $teacher->full_name,
+            ];
         }
 
         $academicId = $validated['academic_id'] ?? null;
-        $student = $academicId ?Student::where('academic_id', $academicId)->first() : null;
+        $student = $academicId
+            ? Student::where('academic_id', $academicId)->first()
+            : null;
 
-        if ($conversation->student_id === null) {
-            if (!$student || $student->class_section_id != $conversation->class_section_id) {
-                abort(response()->json(['success' => false, 'message' => 'Unauthorized student for this group.'], 403));
-            }
-        }
-        else {
-            if (!$student || $student->id !== $conversation->student_id) {
-                abort(response()->json(['success' => false, 'message' => 'Unauthorized student.'], 403));
-            }
+        if (!$student || $student->id !== $conversation->student_id) {
+            abort(response()->json([
+                'success' => false,
+                'message' => 'Unauthorized student.',
+            ], 403));
         }
 
-        return ['id' => $student->id, 'type' => 'student', 'full_name' => $student->full_name];
+        return [
+            'id' => $student->id,
+            'type' => 'student',
+            'full_name' => $student->full_name,
+        ];
     }
 
     /**
      * تحميل أسماء المرسلين بكفاءة لمجموعة رسائل
+     *
+     * @return array{
+     *   teacher: \Illuminate\Support\Collection,
+     *   student: \Illuminate\Support\Collection
+     * }
      */
-    protected function loadSenderNames($messages)
+    protected function loadSenderNames(Collection $messages): array
     {
         $teacherIds = $messages->where('sender_type', 'teacher')->pluck('sender_id')->unique();
         $studentIds = $messages->where('sender_type', 'student')->pluck('sender_id')->unique();
@@ -454,44 +583,107 @@ class ChatController extends Controller
     }
 
     /**
+     * تحديد الرسائل الواردة بأنها وصلت للطرف الحالي.
+     */
+    protected function markIncomingMessagesDelivered(Conversation $conversation, string $as): Collection
+    {
+        $incomingSenderType = $as === 'teacher' ? 'student' : 'teacher';
+        $now = now();
+
+        $messages = Message::where('conversation_id', $conversation->id)
+            ->where('sender_type', $incomingSenderType)
+            ->whereNull('delivered_at')
+            ->orderBy('id')
+            ->get();
+
+        if ($messages->isEmpty()) {
+            return collect();
+        }
+
+        $ids = $messages->pluck('id')->values();
+        Message::whereIn('id', $ids)->update(['delivered_at' => $now]);
+
+        $updatedMessages = Message::whereIn('id', $ids)->orderBy('id')->get();
+
+        $freshConversation = $conversation->fresh();
+        [$teacherMap, $studentMap] = $this->loadActorsForConversations(collect([$freshConversation]));
+        $latestMessage = $this->findLatestMessageForConversation($freshConversation);
+
+        $teacherConversationPayload = $this->formatConversation(
+            $freshConversation,
+            true,
+            $teacherMap,
+            $studentMap,
+            $latestMessage
+        );
+
+        $studentConversationPayload = $this->formatConversation(
+            $freshConversation,
+            false,
+            $teacherMap,
+            $studentMap,
+            $latestMessage
+        );
+
+        $conversationPayload = $as === 'teacher'
+            ? $teacherConversationPayload
+            : $studentConversationPayload;
+
+        broadcast(new MessageStatusUpdated(
+            $freshConversation,
+            $updatedMessages,
+            'delivered',
+            $conversationPayload
+        ))->toOthers();
+
+        return $updatedMessages;
+    }
+
+    /**
      * تنسيق بيانات المحادثة
      */
     protected function formatConversation(
-        Conversation $c,
+        Conversation $conversation,
         bool $forTeacher = true,
         array $teacherMap = [],
         array $studentMap = [],
-        array $classMap = []
-        ): array
-    {
-        $teacher = $c->teacher_id ? ($teacherMap[$c->teacher_id] ?? null) : null;
-        $student = $c->student_id ? ($studentMap[$c->student_id] ?? null) : null;
-        $class = $c->class_section_id ? ($classMap[$c->class_section_id] ?? null) : null;
+        ?Message $lastMessage = null
+    ): array {
+        $teacher = $conversation->teacher_id
+            ? ($teacherMap[$conversation->teacher_id] ?? null)
+            : null;
 
-        $isGroup = ($c->student_id === null);
+        $student = $conversation->student_id
+            ? ($studentMap[$conversation->student_id] ?? null)
+            : null;
+
+        $lastMessageModel = $lastMessage ?? $this->findLatestMessageForConversation($conversation);
+        $lastMessageSenderType = $lastMessageModel?->sender_type;
+        $lastMessageStatus = $lastMessageModel
+            ? $this->resolveMessageStatus($lastMessageModel)
+            : null;
 
         return [
-            'id' => $c->id,
-            'is_group' => $isGroup,
-            'group_name' => $isGroup && $class ? "فصل {$class->name}" : null,
-            'teacher_id' => $c->teacher_id,
-            'student_id' => $c->student_id,
-            'class_section_id' => $c->class_section_id,
-            'subject_id' => $c->subject_id,
-            'last_message' => $c->last_message,
-            'last_message_at' => optional($c->last_message_at)->toIso8601String(),
-
+            'id' => $conversation->id,
+            'teacher_id' => $conversation->teacher_id,
+            'student_id' => $conversation->student_id,
+            'class_section_id' => $conversation->class_section_id,
+            'subject_id' => $conversation->subject_id,
+            'last_message' => $conversation->last_message,
+            'last_message_at' => optional($conversation->last_message_at)->toIso8601String(),
+            'last_message_sender_type' => $lastMessageSenderType,
+            'last_message_status' => $lastMessageStatus,
             'unread_count' => $forTeacher
-            ? (int)$c->unread_for_teacher
-            : (int)$c->unread_for_student,
-
+                ? (int) $conversation->unread_for_teacher
+                : (int) $conversation->unread_for_student,
+            'unread_for_teacher' => (int) $conversation->unread_for_teacher,
+            'unread_for_student' => (int) $conversation->unread_for_student,
             'teacher' => $teacher ? [
                 'id' => $teacher->id,
                 'full_name' => $teacher->full_name,
                 'teacher_code' => $teacher->teacher_code,
                 'image' => $teacher->image ?? null,
             ] : null,
-
             'student' => $student ? [
                 'id' => $student->id,
                 'full_name' => $student->full_name,
@@ -503,20 +695,49 @@ class ChatController extends Controller
         ];
     }
 
+
+    protected function findLatestMessageForConversation(Conversation $conversation): ?Message
+    {
+        return Message::where('conversation_id', $conversation->id)
+            ->latest('id')
+            ->first();
+    }
+
+    protected function resolveMessageStatus(Message $message): string
+    {
+        if ($message->read_at) {
+            return 'read';
+        }
+
+        if ($message->delivered_at) {
+            return 'delivered';
+        }
+
+        if ($message->sent_at) {
+            return 'sent';
+        }
+
+        return 'sending';
+    }
+
     /**
      * تنسيق بيانات الرسالة
      */
-    protected function formatMessage(Message $m, string $senderName = null): array
+    protected function formatMessage(Message $message, ?string $senderName = null): array
     {
+        $status = $this->resolveMessageStatus($message);
+
         return [
-            'id' => $m->id,
-            'conversation_id' => $m->conversation_id,
-            'sender_type' => $m->sender_type,
-            'sender_id' => $m->sender_id,
+            'id' => $message->id,
+            'conversation_id' => $message->conversation_id,
+            'sender_type' => $message->sender_type,
+            'sender_id' => $message->sender_id,
             'sender_name' => $senderName,
-            'body' => $m->body,
-            'sent_at' => optional($m->sent_at)->toIso8601String(),
-            'read_at' => optional($m->read_at)->toIso8601String(),
+            'body' => $message->body,
+            'sent_at' => optional($message->sent_at)->toIso8601String(),
+            'delivered_at' => optional($message->delivered_at)->toIso8601String(),
+            'read_at' => optional($message->read_at)->toIso8601String(),
+            'status' => $status,
         ];
     }
 }

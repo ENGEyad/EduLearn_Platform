@@ -4,13 +4,13 @@ namespace App\Events;
 
 use App\Models\Conversation;
 use App\Models\Message;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MessageSent implements ShouldBroadcast
+class MessageSent implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -23,10 +23,6 @@ class MessageSent implements ShouldBroadcast
         $this->conversation = $conversation;
     }
 
-    /**
-     * Client subscribes to:
-     * private-conversation.{id}
-     */
     public function broadcastOn(): PrivateChannel
     {
         return new PrivateChannel('conversation.' . $this->conversation->id);
@@ -48,32 +44,31 @@ class MessageSent implements ShouldBroadcast
             : optional($this->conversation->updated_at)->toIso8601String();
 
         return [
-            'conversation_id' => (int)$this->conversation->id,
+            'conversation_id' => (int) $this->conversation->id,
             'server_time' => now()->toIso8601String(),
-
             'message' => [
-                'id' => (int)$this->message->id,
-                'conversation_id' => (int)$this->message->conversation_id,
-                'body' => (string)$this->message->body,
-                'sender_type' => (string)$this->message->sender_type,
-                'sender_id' => (int)$this->message->sender_id,
+                'id' => (int) $this->message->id,
+                'conversation_id' => (int) $this->message->conversation_id,
+                'body' => (string) $this->message->body,
+                'sender_type' => (string) $this->message->sender_type,
+                'sender_id' => (int) $this->message->sender_id,
                 'sent_at' => $sentAt,
+                'delivered_at' => optional($this->message->delivered_at)->toIso8601String(),
                 'read_at' => optional($this->message->read_at)->toIso8601String(),
+                'status' => $this->message->read_at
+                    ? 'read'
+                    : ($this->message->delivered_at ? 'delivered' : 'sent'),
             ],
-
             'conversation' => [
-                'id' => (int)$this->conversation->id,
-                'last_message' => (string)($this->conversation->last_message ?? ''),
+                'id' => (int) $this->conversation->id,
+                'last_message' => (string) ($this->conversation->last_message ?? ''),
                 'last_message_at' => $lastAt,
-
-                'unread_for_teacher' => (int)$this->conversation->unread_for_teacher,
-                'unread_for_student' => (int)$this->conversation->unread_for_student,
-
-                // Compatibility: event is shared for both sides
-                'unread_count' => (int)max(
-                (int)$this->conversation->unread_for_teacher,
-                (int)$this->conversation->unread_for_student
-            ),
+                'last_message_sender_type' => (string) $this->message->sender_type,
+                'last_message_status' => $this->message->read_at
+                    ? 'read'
+                    : ($this->message->delivered_at ? 'delivered' : 'sent'),
+                'unread_for_teacher' => (int) $this->conversation->unread_for_teacher,
+                'unread_for_student' => (int) $this->conversation->unread_for_student,
             ],
         ];
     }

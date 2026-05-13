@@ -56,6 +56,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | API Base URL
+    |--------------------------------------------------------------------------
+    |
+    | Centralized base URL for frontend API requests. Keep this empty to use
+    | same-origin relative URLs, or set it (for example, to an API gateway)
+    | to route all endpoint paths through that host.
+    |
+    */
+
+    'api_base_url' => env('API_BASE_URL', env('APP_URL', 'http://localhost')),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

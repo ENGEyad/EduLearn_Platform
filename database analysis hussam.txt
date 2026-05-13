@@ -1,0 +1,301 @@
+EduLearn Platform: Database Architecture Reference
+Document Version: 1.0
+Prepared for: Technical Team & Stakeholders
+
+1. Executive Overview
+The EduLearn platform employs a Dual-Database Architecture designed for separation of concerns:
+
+Management Database (edulearn_db) : Handles master data, authentication for dashboard users, and academic structure skeleton.
+
+Application Database (edulearn_app) : Handles operational educational content, AI authoring, lesson delivery, assessments, and real-time communication.
+
+2. Management Database: edulearn_db
+Connection Alias: mysql
+
+2.1 Core Administration & Infrastructure
+Table: users
+Purpose: Stores credentials and profiles for dashboard/administrative users.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	-
+name	String	User's full name	-
+email	String	Unique login identifier	Indexed
+password	String	Hashed password	-
+email_verified_at	Timestamp	Verification timestamp	Nullable
+created_at	Timestamp	-	-
+updated_at	Timestamp	-	-
+Relationships:
+
+1:N with sessions.
+
+Table: sessions
+Purpose: Manages authenticated user sessions.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	String	Session ID	Primary Key
+user_id	BigInt	Reference to user	FK → users.id
+ip_address	String	Client IP	-
+user_agent	Text	Browser/Device info	-
+payload	LongText	Session data	-
+last_activity	Integer	Unix timestamp	-
+Table: password_reset_tokens
+Purpose: Stores temporary tokens for password recovery flow.
+
+Field Name	Type	Description	Foreign Key / Notes
+email	String	User's email	Primary Key (Composite)
+token	String	Hashed reset token	-
+created_at	Timestamp	Expiry reference	-
+Table: jobs & failed_jobs & job_batches
+Purpose: Queue system storage for asynchronous processing.
+
+Table Name	Key Fields	Relationship
+jobs	id, queue, payload, attempts	Standalone Queue
+failed_jobs	id, uuid, exception, failed_at	Tracks failed entries from jobs
+job_batches	id, name, total_jobs, failed_jobs	Groups related jobs
+Table: dashboard_notifications
+Purpose: Internal notification center for admin dashboard.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	-
+type	String	Notification category	-
+title	String	-	-
+message	Text	-	-
+is_read	Boolean	Status flag	-
+2.2 Academic Structure (Master Data)
+Table: subjects
+Purpose: Master catalog of all teachable subjects.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	Referenced from App DB
+name_en	String	English Name	-
+name_ar	String	Arabic Name	-
+code	String	Unique Subject Code	Indexed
+is_active	Boolean	Soft delete flag	-
+Table: class_sections
+Purpose: Defines grade levels and sections (e.g., Grade 10/A).
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	Referenced from App DB
+grade	Integer	Numeric grade level	-
+section	String	Section identifier	-
+name	String	Display name	-
+stage	Enum	(Elementary/Middle/High)	-
+is_active	Boolean	-	-
+Relationships:
+
+1:N with students.
+
+1:N with teacher_class_subjects.
+
+1:N with class_section_subjects.
+
+Table: class_section_subjects
+Purpose: Pivot Table: Defines which subjects are taught in which sections.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	-
+class_section_id	BigInt	Reference to Section	FK → class_sections.id
+subject_id	BigInt	Reference to Subject	FK → subjects.id
+is_active	Boolean	-	Unique(class_section_id, subject_id)
+2.3 People & Roles Management
+Table: students
+Purpose: Stores student profiles, guardians, and academic enrollment.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	Referenced from App DB
+full_name	String	-	-
+academic_id	String	Unique Student ID	Indexed
+email	String	Login identifier	Nullable
+password	String	Hashed password	Independent Auth
+class_section_id	BigInt	Current enrollment	FK → class_sections.id
+status	Enum	Active/Graduated/Suspended	-
+total_study_time_seconds	Integer	Aggregated metric	Updated via App DB triggers
+Table: teachers
+Purpose: Stores teacher profiles, qualifications, and workload.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	Referenced from App DB
+full_name	String	-	-
+teacher_code	String	Unique Employee ID	Indexed
+email	String	Login identifier	-
+password	String	Hashed password	Independent Auth
+current_role	String	Job title	-
+weekly_load	Integer	Target hours per week	-
+Table: teacher_class_subjects
+Purpose: Assignment Matrix: Links a teacher to a specific subject and section.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	-
+teacher_id	BigInt	Reference to Teacher	FK → teachers.id
+class_section_id	BigInt	Reference to Section	FK → class_sections.id
+subject_id	BigInt	Reference to Subject	FK → subjects.id
+weekly_load	Integer	Load specific to this assignment	-
+is_active	Boolean	-	-
+3. Application Database: edulearn_app
+Connection Alias: app_mysql
+
+3.1 Content Delivery & Authoring
+Table: class_modules
+Purpose: High-level grouping of lessons within a class/subject context.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	-
+teacher_id	BigInt	Owner/Creator	Logical FK → edulearn_db.teachers
+class_section_id	BigInt	Target Class	Logical FK → edulearn_db.class_sections
+subject_id	BigInt	Target Subject	Logical FK → edulearn_db.subjects
+title	String	Module name	-
+position	Integer	Sorting order	-
+Relationships:
+
+1:N with lessons.
+
+Table: lessons
+Purpose: Core unit of learning content.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	-
+class_module_id	BigInt	Parent Module	FK → class_modules.id
+teacher_id	BigInt	Author/Owner	Logical FK → edulearn_db.teachers
+class_section_id	BigInt	Context	Logical FK → edulearn_db.class_sections
+subject_id	BigInt	Context	Logical FK → edulearn_db.subjects
+title	String	-	-
+status	Enum	Draft / Published / Archived	-
+published_at	Timestamp	-	-
+meta	JSON	Additional settings	-
+Relationships:
+
+1:N with lesson_blocks.
+
+1:N with student_lesson_progress.
+
+1:1 with lesson_exercise_sets.
+
+Table: lesson_blocks
+Purpose: Flexible, block-based content within a lesson (Text, Video, AI Generation).
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	-
+lesson_id	BigInt	Parent Lesson	FK → lessons.id
+stable_key	UUID	Immutable identifier	Used for AI re-generation tracking
+type	Enum	(Text, Video, Quiz, etc.)	-
+body	LongText	Content payload	-
+media_path	String	URL to asset	-
+created_origin	Enum	(Human, AI)	-
+ai_source_id	BigInt	Source of AI text	FK → lesson_ai_sources.id
+ai_last_run_id	BigInt	Last generation action	FK → lesson_ai_runs.id
+3.2 Assessment Engine (Versioned)
+Table: lesson_exercise_sets
+Purpose: Container for a lesson's assessment (Quiz/Homework).
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	-
+lesson_id	BigInt	Linked Lesson	FK → lessons.id (Unique)
+current_published_version_id	BigInt	Pointer to active version	FK → lesson_exercise_versions.id
+needs_review	Boolean	Flag for teacher	-
+Table: lesson_exercise_versions
+Purpose: Immutable snapshot of an exercise set at publish time.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	-
+exercise_set_id	BigInt	Parent Set	FK → lesson_exercise_sets.id
+version_no	Integer	Incremental version	-
+previous_version_id	BigInt	Version Chain	FK → lesson_exercise_versions.id
+content_hash	String	Checksum for integrity	-
+Relationships:
+
+1:N with lesson_exercise_version_items.
+
+Table: lesson_exercise_version_items
+Purpose: Frozen snapshot of a single question within a version.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	-
+version_id	BigInt	Parent Version	FK → lesson_exercise_versions.id
+stable_question_key	String	Tracks question across drafts	-
+type	Enum	(MCQ, True/False, Short Answer)	-
+question_text	Text	-	-
+points	Integer	-	-
+change_status_from_previous	Enum	(New, Modified, Deleted)	Diff tracking
+Relationships:
+
+1:N with lesson_exercise_version_options.
+
+Table: lesson_exercise_version_options
+Purpose: Frozen snapshot of MCQ options for a versioned question.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	-
+version_item_id	BigInt	Parent Question	FK → lesson_exercise_version_items.id
+stable_option_key	String	Tracks option identity	-
+option_text	Text	-	-
+is_correct	Boolean	-	-
+Table: student_exercise_attempts
+Purpose: Records student submissions against a specific published version.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	-
+student_id	BigInt	-	Logical FK → edulearn_db.students
+exercise_version_id	BigInt	Version attempted	FK → lesson_exercise_versions.id
+score	Decimal	Percentage	-
+submitted_at	Timestamp	-	-
+3.3 Communication Hub
+Table: conversations
+Purpose: Threaded messaging context between teacher and student.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	-
+teacher_id	BigInt	-	Logical FK → edulearn_db.teachers
+student_id	BigInt	-	Logical FK → edulearn_db.students
+class_section_id	BigInt	Context	Logical FK → edulearn_db.class_sections
+subject_id	BigInt	Context	Logical FK → edulearn_db.subjects
+last_message_at	Timestamp	-	-
+unread_for_teacher	Boolean	-	-
+Relationships:
+
+1:N with messages.
+
+Table: messages
+Purpose: Individual message content within a conversation.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	-
+conversation_id	BigInt	Parent Thread	FK → conversations.id
+sender_type	String	Model Name ("Teacher"/"Student")	Polymorphic
+sender_id	BigInt	ID of sender model	Polymorphic
+body	Text	-	-
+read_at	Timestamp	-	-
+3.4 AI Authoring & Traceability
+Table: lesson_ai_sources
+Purpose: Stores uploaded source material (PDF, Text) used to generate content.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	-
+lesson_id	BigInt	Target Lesson	FK → lessons.id
+source_type	Enum	(Pdf, Text, URL)	-
+extracted_text	LongText	Raw text extracted	-
+is_active	Boolean	-	-
+Table: lesson_ai_runs
+Purpose: Audit log of every AI generation/edit action.
+
+Field Name	Type	Description	Foreign Key / Notes
+id	BigInt	Primary Key	-
+lesson_id	BigInt	Context	FK → lessons.id
+action_type	String	(Generate, Rewrite, Simplify)	-
+input_snapshot	JSON	Prompt/Context sent to AI	-
+output_snapshot	JSON	AI Response	-
+status	Enum	(Success, Failed)	-
+4. Summary of Relationship Types
+Relationship Type	Implementation Strategy	Example
+One-to-Many (1:N)	Standard Foreign Key constraint (within same DB)	lessons.id → lesson_blocks.lesson_id
+Cross-Database Logical FK	Application-layer enforced references (IDs only)	app_db.lessons.teacher_id → mgmt_db.teachers.id
+Many-to-Many (N:N)	Pivot Table with composite unique keys	teacher_class_subjects
+Polymorphic	sender_type + sender_id columns	messages (Sender can be Teacher OR Student)
+Versioned / Temporal	Self-referential link to previous version	lesson_exercise_versions.previous_version_id
+5. Architectural Considerations & Recommendations
+Cross-Database Integrity: Currently, there are no foreign key constraints between edulearn_db and edulearn_app. This provides flexibility but requires strict service-layer validation to prevent orphaned records (e.g., a lesson referencing a deleted class_section).
+
+Authentication Model: The system uses two separate authentication sources (edulearn_db.users for admins, edulearn_db.students / edulearn_db.teachers for app users). Consolidation into a single Identity Provider is recommended for future security and Single Sign-On (SSO) capabilities.
+
+Messaging Redundancy: The presence of both conversations/messages and human_chats tables indicates an evolving or duplicated communication layer. A refactor to unify this into a single, robust chat service is advised.
+
+Assessment Scalability: The Versioned Assessment Model (drafts -> versions -> version_items) is robust and suitable for high-stakes tracking and analytics. It ensures that student answers are always tied to a specific, immutable snapshot of the questions.

@@ -41,7 +41,8 @@ class ClassSectionSubjectController extends Controller
             return response()->json([]);
         }
 
-        $classSection = ClassSection::with('classSubjects')
+        $classSection = ClassSection::where('school_id', auth()->user()->school_id)
+            ->with('classSubjects')
             ->findOrFail($classSectionId);
 
         // نعمل خريطة للمواد المربوطة بهذا الصف/الشعبة
@@ -86,33 +87,56 @@ class ClassSectionSubjectController extends Controller
             'subject_ids.*'    => 'integer|exists:subjects,id',
         ]);
 
-        $classSectionId = $data['class_section_id'];
+        $classSection = ClassSection::where('school_id', auth()->user()->school_id)
+            ->findOrFail($data['class_section_id']);
+
+        $classSectionId = $classSection->id;
         $subjectIds     = $data['subject_ids'] ?? [];
 
         // نشتغل في ترانزاكشن للتأمين
-        \DB::transaction(function () use ($classSectionId, $subjectIds) {
-            // نحذف كل الربط القديم لهذا الصف/الشعبة
-            ClassSectionSubject::where('class_section_id', $classSectionId)->delete();
+        try {
+            \DB::transaction(function () use ($classSection, $classSectionId, $subjectIds) {
+                // 1. نحذف كل الربط القديم لهذا الصف/الشعبة في جدول class_section_subjects
+                ClassSectionSubject::where('class_section_id', $classSectionId)->delete();
 
-            // ننشئ الربط الجديد للمواد المختارة
-            $insertData = [];
-            foreach ($subjectIds as $sid) {
-                $insertData[] = [
-                    'class_section_id' => $classSectionId,
-                    'subject_id'       => $sid,
-                    'is_active'        => true,
-                    'created_at'       => now(),
-                    'updated_at'       => now(),
-                ];
-            }
+                if (!empty($subjectIds)) {
+                    $insertData = [];
+                    foreach ($subjectIds as $sid) {
+                        $insertData[] = [
+                            'class_section_id' => $classSectionId,
+                            'subject_id'       => $sid,
+                            'is_active'        => true,
+                            'created_at'       => now(),
+                            'updated_at'       => now(),
+                        ];
+                    }
+                    ClassSectionSubject::insert($insertData);
 
-            if (!empty($insertData)) {
-                ClassSectionSubject::insert($insertData);
-            }
-        });
+                    // 2. تحديث جدول school_subjects: نضمن أن أي مادة تم إضافتها لصف موجودة أيضاً في قائمة مواد المدرسة
+                    $school = $classSection->school;
+                    if ($school) {
+                        // نجلب المواد الموجودة حالياً لتجنب التكرار
+                        $currentSchoolSubjects = $school->subjects()->pluck('subjects.id')->toArray();
+                        $newToSchool = array_diff($subjectIds, $currentSchoolSubjects);
 
-        return response()->json([
-            'message' => 'Class subjects updated successfully',
-        ]);
+                        if (!empty($newToSchool)) {
+                            $syncData = [];
+                            foreach ($newToSchool as $sid) {
+                                $syncData[$sid] = ['is_active' => true];
+                            }
+                            $school->subjects()->attach($syncData);
+                        }
+                    }
+                }
+            });
+
+            return response()->json([
+                'message' => __('Class subjects updated successfully'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error saving class subjects: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

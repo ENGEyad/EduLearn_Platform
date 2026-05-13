@@ -1,166 +1,328 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم الدعم الفني - Super Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: #f8fafc;
-            color: #1e293b;
-        }
-        .sidebar {
-            width: 280px;
-            background: #0f172a;
-            color: #fff;
-            min-height: 100vh;
-            position: fixed;
-            right: 0;
-            padding: 20px;
-        }
-        .main-content {
-            margin-right: 280px;
-            padding: 40px;
-        }
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        .status-badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-        .status-pending { background: #fef3c7; color: #92400e; }
-        .status-active { background: #dcfce7; color: #166534; }
-        .status-suspended { background: #fee2e2; color: #991b1b; }
-        
-        .school-row:hover { background-color: #f1f5f9; }
-        .btn-action { margin-left: 5px; }
-    </style>
-</head>
-<body>
-    <div class="sidebar">
-        <h3 class="mb-4 fw-bold text-info">EduLearn Support</h3>
-        <ul class="nav flex-column">
-            <li class="nav-item mb-2">
-                <a href="#" class="nav-link text-white active bg-primary rounded">
-                    <i class="bi bi-grid-fill me-2"></i> إدارة المدارس
-                </a>
-            </li>
-            <li class="nav-item mb-2">
-                <a href="#" class="nav-link text-white">
-                    <i class="bi bi-bell me-2"></i> الإشعارات العامة
-                </a>
-            </li>
-            <li class="nav-item mb-2">
-                <a href="#" class="nav-link text-white">
-                    <i class="bi bi-gear me-2"></i> الإعدادات
-                </a>
-            </li>
-            <hr>
-            <li class="nav-item">
-                <a href="{{ url('/') }}" class="nav-link text-secondary">
-                    <i class="bi bi-box-arrow-right me-2"></i> خروج
-                </a>
-            </li>
-        </ul>
+@extends('super_admin.layout')
+
+@section('title', __('School Management'))
+
+@section('content')
+<!-- Header -->
+<div class="sa-header">
+    <div>
+        <h1>{{ __('Welcome, Super Admin') }} 👋</h1>
+        <p>{{ __('Platform overview — school subscriptions and management') }}</p>
     </div>
+    <div class="sa-time">
+        📅 <strong>{{ now()->format('Y-m-d') }}</strong> &nbsp; 🕐 {{ now()->format('H:i') }}
+    </div>
+</div>
 
-    <div class="main-content">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold">إدارة المدارس والمنصات</h2>
-            <div class="text-secondary text-sm">إجمالي المسجلين: {{ $schools->count() }}</div>
+<!-- Stats -->
+<div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
+    <div class="col">
+        <div class="sa-card sa-stat h-100">
+            <div class="label">{{ __('Total Schools') }}</div>
+            <div class="value">{{ $stats['total'] }}</div>
+            <i class="bi bi-buildings sa-stat-icon"></i>
         </div>
+    </div>
+    <div class="col">
+        <div class="sa-card sa-stat h-100" style="background: linear-gradient(135deg, var(--navy-light), #001A33); border-color: rgba(0,100,200,0.3);">
+            <div class="d-flex flex-column flex-sm-row gap-2 gap-sm-4">
+                <div>
+                    <div class="label">{{ __('Main') }}</div>
+                    <div class="value" style="font-size: 1.25rem;">{{ $stats['main_schools'] }}</div>
+                </div>
+                <div class="border-sm-start ps-sm-3 pt-2 pt-sm-0" style="border-top: 1px solid var(--border); margin-top: 5px; padding-top: 5px;" class="d-sm-none">
+                    <div class="label">{{ __('Branch') }}</div>
+                    <div class="value" style="font-size: 1.25rem;">{{ $stats['branches'] }}</div>
+                </div>
+            </div>
+            <i class="bi bi-diagram-3-fill sa-stat-icon"></i>
+        </div>
+    </div>
+    <div class="col">
+        <div class="sa-card sa-stat h-100">
+            <div class="label">{{ __('Pending') }}</div>
+            <div class="value" style="color: var(--orange);">{{ $stats['pending'] }}</div>
+            <i class="bi bi-hourglass-split sa-stat-icon"></i>
+        </div>
+    </div>
+    <div class="col">
+        <div class="sa-card sa-stat h-100">
+            <div class="label">{{ __('Active') }}</div>
+            <div class="value" style="color: #10b981;">{{ $stats['active'] }}</div>
+            <i class="bi bi-check-circle-fill sa-stat-icon"></i>
+        </div>
+    </div>
+</div>
 
-        @if(session('success'))
-            <div class="alert alert-success border-0 shadow-sm">{{ session('success') }}</div>
-        @endif
-
-        <div class="card p-3">
-            <table class="table align-middle mt-3">
-                <thead class="table-light">
-                    <tr>
-                        <th>المدرسة</th>
-                        <th>مدير النظام</th>
-                        <th>التواصل</th>
-                        <th>تاريخ التسجيل</th>
-                        <th>الحالة</th>
-                        <th class="text-center">الإجراءات</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($schools as $school)
-                    <tr class="school-row">
-                        <td>
-                            <div class="fw-bold">{{ $school->name }}</div>
-                            <small class="text-secondary">Slug: {{ $school->slug }}</small>
-                        </td>
-                        <td>{{ $school->email }}</td>
-                        <td>{{ $school->phone }}</td>
-                        <td>{{ $school->created_at->format('Y-m-d') }}</td>
-                        <td>
-                            <span class="status-badge status-{{ $school->status }}">
-                                {{ strtoupper($school->status) }}
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            @if($school->status === 'pending')
-                                <form action="{{ route('super-admin.schools.activate', $school) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    <button class="btn btn-sm btn-success btn-action" title="تفعيل">
-                                        <i class="bi bi-check-circle"></i> تفعيل
-                                    </button>
-                                </form>
-                            @endif
-
-                            <form action="{{ route('super-admin.schools.suspend', $school) }}" method="POST" class="d-inline">
-                                @csrf
-                                <button class="btn btn-sm {{ $school->status === 'suspended' ? 'btn-info' : 'btn-danger' }} btn-action" title="{{ $school->status === 'suspended' ? 'فك التعليق' : 'إيقاف' }}">
-                                    <i class="bi {{ $school->status === 'suspended' ? 'bi-play-fill' : 'bi-pause-fill' }}"></i>
-                                </button>
-                            </form>
-
-                            <button class="btn btn-sm btn-outline-primary btn-action" data-bs-toggle="modal" data-bs-target="#notifyModal{{ $school->id }}">
-                                <i class="bi bi-send"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                    <!-- Notification Modal -->
-                    <div class="modal fade" id="notifyModal{{ $school->id }}" tabindex="-1">
-                        <div class="modal-dialog">
-                            <form action="{{ route('super-admin.schools.notify', $school) }}" method="POST">
-                                @csrf
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">إرسال تنبيه إلى {{ $school->name }}</h5>
-                                        <button type="button" class="btn-close m-0" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <textarea name="message" class="form-control" rows="4" placeholder="اكتب رسالة التنبيه هنا..."></textarea>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-                                        <button type="submit" class="btn btn-primary">إرسال الآن</button>
-                                    </div>
-                                </div>
-                            </form>
+<!-- Schools Table -->
+<div class="sa-card p-0 overflow-hidden">
+    <div class="p-3 p-md-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom border-light border-opacity-10 gap-3">
+        <h5 class="mb-0"><i class="bi bi-list-ul me-2" style="color: var(--orange);"></i>{{ __('School Logs') }}</h5>
+        <div class="position-relative w-100" style="max-width: 320px;">
+            <i class="bi bi-search position-absolute top-50 translate-middle-y text-muted" style="{{ app()->getLocale() == 'ar' ? 'right: 1rem;' : 'left: 1rem;' }}"></i>
+            <input type="text" id="schoolSearch" class="form-control ps-5" placeholder="{{ __('Search...') }}" style="{{ app()->getLocale() == 'ar' ? 'padding-right: 2.5rem; padding-left: 1rem;' : 'padding-left: 2.5rem;' }}">
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="sa-table" id="schoolsTable">
+            <thead>
+                <tr>
+                    <th>{{ __('School') }}</th>
+                    <th class="d-none d-lg-table-cell">{{ __('Type') }}</th>
+                    <th class="d-none d-md-table-cell">{{ __('Contact') }}</th>
+                    <th class="d-none d-xl-table-cell">{{ __('Details') }}</th>
+                    <th>{{ __('Status') }}</th>
+                    <th class="text-center">{{ __('Actions') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($schools as $school)
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); display: grid; place-items: center; overflow: hidden;">
+                                @if($school->logo_path)
+                                    <img src="{{ asset('storage/'.$school->logo_path) }}" alt="Logo" style="width: 100%; height: 100%; object-fit: cover;">
+                                @else
+                                    <i class="bi bi-building fs-5" style="color: var(--muted);"></i>
+                                @endif
+                            </div>
+                            <div>
+                                <div class="fw-bold">{{ $school->name }}</div>
+                                <div class="small" style="color: var(--muted);">{{ $school->city }}, {{ $school->country }}</div>
+                            </div>
                         </div>
-                    </div>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+                    </td>
+                    <td class="d-none d-lg-table-cell">
+                        @if($school->isBranch())
+                            <span class="sa-badge" style="background: rgba(255,102,0,0.12); color: var(--orange); border: 1px solid rgba(255,102,0,0.3);"><i class="bi bi-diagram-2"></i> {{ __('Branch') }}</span>
+                        @else
+                            <span class="sa-badge" style="background: rgba(0,51,102,0.2); color: #4da6ff; border: 1px solid rgba(0,100,200,0.3);"><i class="bi bi-star-fill"></i> {{ __('Main') }}</span>
+                        @endif
+                    </td>
+                    <td class="d-none d-md-table-cell">
+                        <div class="small fw-bold">{{ $school->admin_name }}</div>
+                        <div class="small text-muted">{{ $school->email }}</div>
+                    </td>
+                    <td class="d-none d-xl-table-cell">
+                        <div class="small"><span style="color: var(--muted);">{{ __('Type') }}:</span> {{ $school->school_type }}</div>
+                    </td>
+                    <td>
+                        <span class="sa-badge sa-badge-{{ $school->status }}">
+                            @switch($school->status)
+                                @case('pending') <i class="bi bi-clock"></i> {{ __('Pending') }} @break
+                                @case('active') <i class="bi bi-check-circle"></i> {{ __('Active') }} @break
+                                @case('suspended') <i class="bi bi-pause-circle"></i> {{ __('Suspended') }} @break
+                                @case('rejected') <i class="bi bi-x-circle"></i> {{ __('Rejected') }} @break
+                                @default {{ $school->status }}
+                            @endswitch
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <div class="dropdown">
+                            <button class="sa-btn sa-btn-outline px-2 py-1" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="background: var(--navy); border: 1px solid var(--border) !important;">
+                                @if($school->status === 'pending')
+                                    <li>
+                                        <form action="{{ route('super-admin.schools.approve', $school) }}" method="POST">
+                                            @csrf
+                                            <button class="dropdown-item py-2" style="color: #10b981;" onclick="confirmAction(event, '{{ __('Are you sure?') }}', '{{ __('This school will be approved and activated immediately.') }}', 'question', '{{ __('Yes, Approve') }}')">
+                                                <i class="bi bi-check-circle me-2"></i> {{ __('Approve & Activate') }}
+                                            </button>
+                                        </form>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item py-2" style="color: #ef4444;" data-bs-toggle="modal" data-bs-target="#rejectModal{{ $school->id }}">
+                                            <i class="bi bi-x-circle me-2"></i> {{ __('Reject') }}
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item py-2" style="color: var(--orange);" data-bs-toggle="modal" data-bs-target="#modifyModal{{ $school->id }}">
+                                            <i class="bi bi-pencil-square me-2"></i> {{ __('Request Modification') }}
+                                        </button>
+                                    </li>
+                                @endif
+                                @if($school->status === 'active')
+                                    <li>
+                                        <form action="{{ route('super-admin.schools.suspend', $school) }}" method="POST">
+                                            @csrf
+                                            <button class="dropdown-item py-2" style="color: var(--muted);">
+                                                <i class="bi bi-pause-circle me-2"></i> {{ __('Suspend') }}
+                                            </button>
+                                        </form>
+                                    </li>
+                                @endif
+                                @if($school->status === 'suspended' || $school->status === 'rejected')
+                                    <li>
+                                        <form action="{{ route('super-admin.schools.activate', $school) }}" method="POST">
+                                            @csrf
+                                            <button class="dropdown-item py-2" style="color: #10b981;">
+                                                <i class="bi bi-play-circle me-2"></i> {{ __('Reactivate') }}
+                                            </button>
+                                        </form>
+                                    </li>
+                                @endif
+                                <li><hr class="dropdown-divider" style="border-color: var(--border);"></li>
+                                <li>
+                                    <button class="dropdown-item py-2" style="color: #25D366;" onclick="sendWhatsApp('{{ $school->phone }}', '{{ __("Hello :name, we are contacting you regarding your registration on EduLearn.", ["name" => $school->admin_name]) }}')">
+                                        <i class="bi bi-whatsapp me-2"></i> {{ __('WhatsApp Contact') }}
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item py-2" style="color: #4da6ff;" data-bs-toggle="modal" data-bs-target="#notifyModal{{ $school->id }}">
+                                        <i class="bi bi-chat-dots me-2"></i> {{ __('Internal Notification') }}
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+                <!-- Modals per school -->
+                <div class="modal fade" id="rejectModal{{ $school->id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <form action="{{ route('super-admin.schools.reject', $school) }}" method="POST">
+                            @csrf
+                            <div class="modal-content">
+                                <div class="modal-header" style="background: rgba(239,68,68,0.1);">
+                                    <h5 class="modal-title fw-bold" style="color: #ef4444;">{{ __('Reject') }} {{ $school->name }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <label class="form-label">{{ __('Rejection Reason') }}</label>
+                                    <textarea name="reason" class="form-control" rows="4" required></textarea>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="sa-btn sa-btn-outline" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                                    <button type="button" class="sa-btn" style="background: #25D366; color: #fff;" onclick="sendWhatsApp('{{ $school->phone }}', '{{ __('Hello :name, unfortunately your school registration has been rejected for the following reason: ', ['name' => $school->admin_name]) }}' + this.closest('.modal-content').querySelector('textarea').value)">
+                                        <i class="bi bi-whatsapp me-1"></i> {{ __('Reject & WhatsApp') }}
+                                    </button>
+                                    <button type="submit" class="sa-btn" style="background: #ef4444; color: #fff;">{{ __('Confirm Rejection') }}</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="modifyModal{{ $school->id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <form action="{{ route('super-admin.schools.request-modification', $school) }}" method="POST">
+                            @csrf
+                            <div class="modal-content">
+                                <div class="modal-header" style="background: rgba(255,102,0,0.1);">
+                                    <h5 class="modal-title fw-bold" style="color: var(--orange);">{{ __('Request Modification') }} - {{ $school->name }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <label class="form-label">{{ __('Modification Instructions') }}</label>
+                                    <textarea name="instructions" class="form-control" rows="4" required></textarea>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="sa-btn sa-btn-outline" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                                    <button type="button" class="sa-btn" style="background: #25D366; color: #fff;" onclick="sendWhatsApp('{{ $school->phone }}', '{{ __('Hello :name, we need some modifications for your school registration: ', ['name' => $school->admin_name]) }}' + this.closest('.modal-content').querySelector('textarea').value)">
+                                        <i class="bi bi-whatsapp me-1"></i> {{ __('Send via WhatsApp') }}
+                                    </button>
+                                    <button type="submit" class="sa-btn sa-btn-primary">{{ __('Submit') }}</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="notifyModal{{ $school->id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <form action="{{ route('super-admin.schools.notify', $school) }}" method="POST">
+                            @csrf
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title fw-bold">{{ __('Send Message') }} - {{ $school->name }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <textarea name="message" class="form-control" rows="4" required></textarea>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="sa-btn sa-btn-outline" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                                    <button type="button" class="sa-btn" style="background: #25D366; color: #fff;" onclick="sendWhatsApp('{{ $school->phone }}', this.closest('.modal-content').querySelector('textarea').value)">
+                                        <i class="bi bi-whatsapp me-1"></i> {{ __('Send via WhatsApp') }}
+                                    </button>
+                                    <button type="submit" class="sa-btn sa-btn-primary">{{ __('Send Internally') }}</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                @empty
+                <tr>
+                    <td colspan="6">
+                        <div class="sa-empty">
+                            <i class="bi bi-inbox"></i>
+                            <p>{{ __('No schools registered yet') }}</p>
+                        </div>
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // WhatsApp logic
+    function sendWhatsApp(phone, message) {
+        if(!phone) {
+            Swal.fire('Error', 'No phone number available for this school', 'error');
+            return;
+        }
+        // Remove non-numeric characters except leading plus if any
+        let cleanPhone = phone.replace(/[^\d+]/g, '');
+        // If it starts with 00, replace with +
+        if(cleanPhone.startsWith('00')) cleanPhone = '+' + cleanPhone.substring(2);
+        // If it doesn't have a +, and you have a default country code, you could add it here
+        // For now, wa.me handles numbers with or without + if they include country code
+        const url = `https://wa.me/${cleanPhone.replace('+', '')}?text=${encodeURIComponent(message)}`;
+        window.open(url, '_blank');
+    }
+
+    // Search logic
+    document.getElementById('schoolSearch').addEventListener('keyup', function() {
+        let v = this.value.toLowerCase();
+        document.querySelectorAll('#schoolsTable tbody tr').forEach(r => {
+            r.style.display = r.innerText.toLowerCase().includes(v) ? '' : 'none';
+        });
+    });
+
+    // Confirm action
+    function confirmAction(event, title, text, icon, confirmBtnText) {
+        event.preventDefault();
+        const form = event.target.closest('form');
+        Swal.fire({
+            title, text, icon,
+            showCancelButton: true,
+            confirmButtonColor: '#FF6600',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: confirmBtnText,
+            cancelButtonText: '{{ __("Cancel") }}',
+            background: '#001A33',
+            color: '#e2e8f0',
+            customClass: { title: 'fw-bold', confirmButton: 'px-4 py-2', cancelButton: 'px-4 py-2' }
+        }).then(result => { if (result.isConfirmed) form.submit(); });
+    }
+
+    // 3D Tilt on stat cards
+    document.querySelectorAll('.sa-stat').forEach(card => {
+        card.addEventListener('mousemove', e => {
+            const r = card.getBoundingClientRect();
+            const rx = ((e.clientY - r.top) - r.height/2) / r.height * -4;
+            const ry = ((e.clientX - r.left) - r.width/2) / r.width * 4;
+            card.style.transform = `translateY(-4px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+        });
+        card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+    });
+</script>
+@endpush

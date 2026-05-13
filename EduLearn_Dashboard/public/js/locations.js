@@ -36,38 +36,72 @@ const ARAB_LOCATIONS = {
     }
 };
 
-function populateDropdown(selectElement, optionsKeyArray, currentValue = null, allowOther = true) {
-    selectElement.innerHTML = '<option value="">' + selectElement.getAttribute("data-placeholder") + '</option>';
-    let foundCurrent = false;
-
-    if (optionsKeyArray && optionsKeyArray.length > 0) {
-        optionsKeyArray.forEach(option => {
-            let isSelected = (currentValue === option) ? "selected" : "";
-            if (currentValue === option) foundCurrent = true;
-            selectElement.innerHTML += `<option value="${option}" ${isSelected}>${option}</option>`;
-        });
-    }
+function populateDropdown(selectElement, optionsKeyArray, currentValue = null, allowOther = true, choicesInstance = null) {
+    const placeholder = selectElement.getAttribute("data-placeholder") || "Choose...";
     
-    // Add "Other" if requested
-    if (allowOther) {
-        let otherSelected = (!foundCurrent && currentValue && currentValue !== 'other') ? "selected" : "";
-        selectElement.innerHTML += `<option value="other" ${otherSelected}>أخرى / Other</option>`;
+    if (choicesInstance) {
+        choicesInstance.clearChoices();
+        let choices = [{
+            value: '',
+            label: placeholder,
+            selected: !currentValue,
+            disabled: true,
+            placeholder: true
+        }];
+
+        let foundCurrent = false;
+        if (optionsKeyArray && optionsKeyArray.length > 0) {
+            optionsKeyArray.forEach(option => {
+                let isSelected = (currentValue === option);
+                if (isSelected) foundCurrent = true;
+                choices.push({ value: option, label: option, selected: isSelected });
+            });
+        }
+
+        if (allowOther) {
+            let otherSelected = (!foundCurrent && currentValue && currentValue !== 'other');
+            choices.push({ value: 'other', label: 'أخرى / Other', selected: otherSelected });
+        }
+        
+        choicesInstance.setChoices(choices, 'value', 'label', true);
+    } else {
+        selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+        let foundCurrent = false;
+
+        if (optionsKeyArray && optionsKeyArray.length > 0) {
+            optionsKeyArray.forEach(option => {
+                let isSelected = (currentValue === option) ? "selected" : "";
+                if (currentValue === option) foundCurrent = true;
+                selectElement.innerHTML += `<option value="${option}" ${isSelected}>${option}</option>`;
+            });
+        }
+        
+        if (allowOther) {
+            let otherSelected = (!foundCurrent && currentValue && currentValue !== 'other') ? "selected" : "";
+            selectElement.innerHTML += `<option value="other" ${otherSelected}>أخرى / Other</option>`;
+        }
     }
 }
 
 function initDynamicLocations(countrySelector, citySelector, dirSelector, initialCountry = '', initialCity = '', initialDir = '') {
+    if (typeof Choices === 'undefined') {
+        console.error('Choices.js is not loaded. Please check the script inclusion.');
+        return;
+    }
     const defaultCountries = Object.keys(ARAB_LOCATIONS);
     
-    // 1. Setup countries
-    populateDropdown(countrySelector, defaultCountries, initialCountry);
+    // Initialize Choices instances
+    const cChoices = new Choices(countrySelector, { searchEnabled: true, itemSelectText: '', position: 'bottom', shouldSort: false });
+    const ciChoices = new Choices(citySelector, { searchEnabled: true, itemSelectText: '', position: 'bottom', shouldSort: false });
+    const dChoices = new Choices(dirSelector, { searchEnabled: true, itemSelectText: '', position: 'bottom', shouldSort: false });
 
     const updateCities = () => {
         let selectedCountry = countrySelector.value;
         if (selectedCountry === 'other' || !selectedCountry || !ARAB_LOCATIONS[selectedCountry]) {
-            populateDropdown(citySelector, [], initialCity);
+            populateDropdown(citySelector, [], initialCity, true, ciChoices);
         } else {
             let cities = Object.keys(ARAB_LOCATIONS[selectedCountry]);
-            populateDropdown(citySelector, cities, initialCity);
+            populateDropdown(citySelector, cities, initialCity, true, ciChoices);
         }
         updateDirectorates();
     };
@@ -77,16 +111,10 @@ function initDynamicLocations(countrySelector, citySelector, dirSelector, initia
         let selectedCity = citySelector.value;
         
         if (selectedCity === 'other' || !selectedCountry || !selectedCity || !ARAB_LOCATIONS[selectedCountry] || !ARAB_LOCATIONS[selectedCountry][selectedCity]) {
-            populateDropdown(dirSelector, [], initialDir);
+            populateDropdown(dirSelector, [], initialDir, true, dChoices);
         } else {
             let dirs = ARAB_LOCATIONS[selectedCountry][selectedCity];
-            populateDropdown(dirSelector, dirs, initialDir);
-        }
-        
-        // After populating, trigger 'change' manually so the "Other" dynamic input logic (if any) re-assesses visibility.
-        if (typeof Event !== 'undefined') {
-            citySelector.dispatchEvent(new Event('change'));
-            dirSelector.dispatchEvent(new Event('change'));
+            populateDropdown(dirSelector, dirs, initialDir, true, dChoices);
         }
     };
 
@@ -97,14 +125,12 @@ function initDynamicLocations(countrySelector, citySelector, dirSelector, initia
                 input: 'text',
                 background: '#1e293b',
                 color: '#fff',
-                confirmButtonColor: '#6366f1',
+                confirmButtonColor: '#FF6600',
                 inputPlaceholder: 'اكتب هنا...',
                 showCancelButton: true,
                 confirmButtonText: 'تأكيد',
                 cancelButtonText: 'إلغاء',
-                customClass: {
-                    popup: 'border border-primary'
-                }
+                customClass: { popup: 'border border-primary rounded-4' }
             });
             return newVal;
         } else {
@@ -118,29 +144,14 @@ function initDynamicLocations(countrySelector, citySelector, dirSelector, initia
             let newVal = await askForValue("الرجاء إدخال اسم الدولة الجديد");
             if (newVal && newVal.trim() !== "") {
                 newVal = newVal.trim();
-                if (!ARAB_LOCATIONS[newVal]) {
-                    ARAB_LOCATIONS[newVal] = {}; // Register new country
-                }
-                // Append and select
-                let opt = document.createElement('option');
-                opt.value = newVal;
-                opt.text = newVal;
-                countrySelector.add(opt, countrySelector.options[countrySelector.selectedIndex]);
-                countrySelector.value = newVal;
-                countrySelector.style.backgroundColor = '#e0f2fe'; // change color
-                countrySelector.style.color = '#0369a1';
+                if (!ARAB_LOCATIONS[newVal]) ARAB_LOCATIONS[newVal] = {};
+                cChoices.setChoices([{ value: newVal, label: newVal, selected: true }], 'value', 'label', false);
             } else {
-                countrySelector.value = ''; // cancel
-                countrySelector.style.backgroundColor = '';
-                countrySelector.style.color = '';
+                cChoices.setChoiceByValue('');
             }
-        } else {
-            countrySelector.style.backgroundColor = '';
-            countrySelector.style.color = '';
         }
-
-        initialCity = ''; // Reset on change
-        initialDir = '';  // Reset on change
+        initialCity = '';
+        initialDir = '';
         updateCities();
     });
 
@@ -151,27 +162,13 @@ function initDynamicLocations(countrySelector, citySelector, dirSelector, initia
             let newVal = await askForValue("الرجاء إدخال اسم المدينة الجديد");
             if (newVal && newVal.trim() !== "" && cVal && cVal !== 'other') {
                 newVal = newVal.trim();
-                if (!ARAB_LOCATIONS[cVal][newVal]) {
-                    ARAB_LOCATIONS[cVal][newVal] = []; // Register new city
-                }
-                let opt = document.createElement('option');
-                opt.value = newVal;
-                opt.text = newVal;
-                citySelector.add(opt, citySelector.options[citySelector.selectedIndex]);
-                citySelector.value = newVal;
-                citySelector.style.backgroundColor = '#e0f2fe';
-                citySelector.style.color = '#0369a1';
+                if (!ARAB_LOCATIONS[cVal][newVal]) ARAB_LOCATIONS[cVal][newVal] = [];
+                ciChoices.setChoices([{ value: newVal, label: newVal, selected: true }], 'value', 'label', false);
             } else {
-                citySelector.value = '';
-                citySelector.style.backgroundColor = '';
-                citySelector.style.color = '';
+                ciChoices.setChoiceByValue('');
             }
-        } else {
-            citySelector.style.backgroundColor = '';
-            citySelector.style.color = '';
         }
-
-        initialDir = ''; // Reset on change
+        initialDir = '';
         updateDirectorates();
     });
 
@@ -184,27 +181,14 @@ function initDynamicLocations(countrySelector, citySelector, dirSelector, initia
             if (newVal && newVal.trim() !== "" && cVal && ciVal && cVal !== 'other' && ciVal !== 'other') {
                 newVal = newVal.trim();
                 let dirs = ARAB_LOCATIONS[cVal][ciVal];
-                if (!dirs.includes(newVal)) {
-                    dirs.push(newVal); // Register new directorate
-                }
-                let opt = document.createElement('option');
-                opt.value = newVal;
-                opt.text = newVal;
-                dirSelector.add(opt, dirSelector.options[dirSelector.selectedIndex]);
-                dirSelector.value = newVal;
-                dirSelector.style.backgroundColor = '#e0f2fe';
-                dirSelector.style.color = '#0369a1';
+                if (!dirs.includes(newVal)) dirs.push(newVal);
+                dChoices.setChoices([{ value: newVal, label: newVal, selected: true }], 'value', 'label', false);
             } else {
-                dirSelector.value = '';
-                dirSelector.style.backgroundColor = '';
-                dirSelector.style.color = '';
+                dChoices.setChoiceByValue('');
             }
-        } else {
-            dirSelector.style.backgroundColor = '';
-            dirSelector.style.color = '';
         }
     });
 
-    // Run initial population
+    populateDropdown(countrySelector, defaultCountries, initialCountry, true, cChoices);
     updateCities();
 }

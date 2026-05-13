@@ -13,12 +13,21 @@ class Subject extends Model
         'name_en',
         'name_ar',
         'code',
+        'icon',
+        'color',
         'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    protected $appends = ['display_name'];
+
+    public function getDisplayNameAttribute()
+    {
+        return (app()->getLocale() == 'en') ? ($this->name_en ?? $this->name_ar) : ($this->name_ar ?? $this->name_en);
+    }
 
     public function teacherAssignments()
     {

@@ -18,8 +18,10 @@ class StudentController extends Controller
      */
     public function index()
     {
-        $grades = \App\Models\ClassSection::select('grade')->distinct()->pluck('grade');
-        $allSections = \App\Models\ClassSection::orderBy('grade')->orderBy('section')->get();
+        $schoolId = auth()->user()->school_id;
+        $grades = \App\Models\ClassSection::where('school_id', $schoolId)->select('grade')->distinct()->pluck('grade');
+        $allSections = \App\Models\ClassSection::where('school_id', $schoolId)->orderBy('grade')->orderBy('section')->get();
+        
         return view('students', [
             'title'        => 'Students – EduLearn',
             'pageTitle'    => __('Student Management'),
@@ -30,23 +32,44 @@ class StudentController extends Controller
     }
 
     /**
-     * إرجاع قائمة الطلاب JSON للـ JS
+     * إرجاع قائمة الطلاب JSON للـ JS (مفلترة حسب المدرسة)
      */
     public function list()
     {
-        return Student::orderBy('id', 'desc')->get();
+        // نختار كل الأعمدة ما عدا photo_data لأن حجمها كبير جداً وتعطل المتصفح في القائمة
+        return Student::where('school_id', auth()->user()->school_id)
+            ->select('id', 'school_id', 'full_name', 'academic_id', 'gender', 'birthdate', 'email', 'status', 'grade', 'class_section', 'class_section_id', 'address_governorate', 'address_city', 'address_street', 'guardian_name', 'guardian_relation', 'guardian_relation_other', 'guardian_phone', 'performance_avg', 'attendance_rate', 'photo_path', 'photo_mime', 'notes', 'created_at', 'updated_at')
+            ->orderBy('id', 'desc')
+            ->get();
     }
 
     /**
-     * توليد رقم أكاديمي فريد
+     * توليد رقم أكاديمي فريد بنمط مؤسسي: [Prefix][SchoolID]-S-[Year]-[Grade]-[Section]-[Seq]
      */
-    protected function generateAcademicId(): string
+    protected function generateAcademicId(?string $gradeRaw = null, ?string $classSection = null): string
     {
-        do {
-            $id = 'S-' . now()->year . '-' . strtoupper(Str::random(4));
-        } while (Student::where('academic_id', $id)->exists());
+        $school = auth()->user()->school;
+        $prefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $school->name), 0, 3));
+        $prefix = (empty($prefix) ? "EDU" : $prefix) . $school->id;
+        $year   = now()->year;
+        
+        $gradeCode = $gradeRaw ? 'G' . preg_replace('/[^0-9]/', '', $gradeRaw) : 'GX';
+        $sectionCode = $classSection ? strtoupper($classSection) : 'X';
 
-        return $id;
+        // للبحث عن آخر رقم تسلسلي لهذا النمط (المدرسة + السنة + الصف + الشعبة)
+        $pattern = "$prefix-S-$year-$gradeCode-$sectionCode-%";
+        $lastId = Student::where('academic_id', 'like', $pattern)
+            ->orderBy('id', 'desc')
+            ->value('academic_id');
+            
+        if ($lastId) {
+            $parts = explode('-', $lastId);
+            $currentCount = (int)end($parts) + 1;
+        } else {
+            $currentCount = 1;
+        }
+        
+        return sprintf("%s-S-%d-%s-%s-%04d", $prefix, $year, $gradeCode, $sectionCode, $currentCount);
     }
 
     /**
@@ -112,19 +135,19 @@ class StudentController extends Controller
     {
         $validated = $request->validate([
             'full_name'               => 'required|string|max:255',
-            'gender'                  => 'nullable|string|max:20',
-            'birthdate'               => 'nullable|date',
+            'gender'                  => 'required|string|max:20',
+            'birthdate'               => 'required|date|before_or_equal:' . now()->subYears(3)->format('Y-m-d') . '|after_or_equal:' . now()->subYears(22)->format('Y-m-d'),
             'status'                  => 'nullable|string|max:50',
             'email'                   => 'nullable|email|max:255',
-            'grade'                   => 'nullable|string|max:100',
-            'class_section'           => 'nullable|string|max:50',
+            'grade'                   => 'required|string|max:100',
+            'class_section'           => 'required|string|max:50',
             'address_governorate'     => 'nullable|string|max:100',
             'address_city'            => 'nullable|string|max:100',
             'address_street'          => 'nullable|string|max:150',
-            'guardian_name'           => 'nullable|string|max:255',
+            'guardian_name'           => 'required|string|max:255',
             'guardian_relation'       => 'nullable|string|max:100',
             'guardian_relation_other' => 'nullable|string|max:100',
-            'guardian_phone'          => 'nullable|string|max:50',
+            'guardian_phone'          => 'required|string|max:50',
             'notes'                   => 'nullable|string|max:500',
             'photo'                   => 'nullable|image|max:2048', // صورة الطالب
         ]);
@@ -157,11 +180,15 @@ class StudentController extends Controller
         $student->notes                   = $validated['notes'] ?? null;
 
         // توليد رقم أكاديمي
-        $student->academic_id = $this->generateAcademicId();
+        $student->academic_id = $this->generateAcademicId($grade, $classSection);
+        $student->school_id   = auth()->user()->school_id;
 
-        // حفظ الصورة إن وُجدت
+        // حفظ الصورة في قاعدة البيانات بشكل محسّن (WebP)
         if ($request->hasFile('photo')) {
-            $student->photo_path = $this->uploadAndOptimize($request->file('photo'), 'students');
+            $optimized = $this->optimizeToBinary($request->file('photo'), 400, 75);
+            $student->photo_data = $optimized['data'];
+            $student->photo_mime = $optimized['mime'];
+            $student->photo_path = null; // نلغي المسار القديم لأنه أصبح مخزناً في الداتا
         }
 
         $student->save();
@@ -174,21 +201,25 @@ class StudentController extends Controller
      */
     public function update(Request $request, Student $student)
     {
+        if ($student->school_id !== auth()->user()->school_id) {
+            abort(403, __('Unauthorized access to student record'));
+        }
+
         $validated = $request->validate([
             'full_name'               => 'required|string|max:255',
-            'gender'                  => 'nullable|string|max:20',
-            'birthdate'               => 'nullable|date',
+            'gender'                  => 'required|string|max:20',
+            'birthdate'               => 'required|date|before_or_equal:' . now()->subYears(3)->format('Y-m-d') . '|after_or_equal:' . now()->subYears(22)->format('Y-m-d'),
             'status'                  => 'nullable|string|max:50',
             'email'                   => 'nullable|email|max:255',
-            'grade'                   => 'nullable|string|max:100',
-            'class_section'           => 'nullable|string|max:50',
+            'grade'                   => 'required|string|max:100',
+            'class_section'           => 'required|string|max:50',
             'address_governorate'     => 'nullable|string|max:100',
             'address_city'            => 'nullable|string|max:100',
             'address_street'          => 'nullable|string|max:150',
-            'guardian_name'           => 'nullable|string|max:255',
+            'guardian_name'           => 'required|string|max:255',
             'guardian_relation'       => 'nullable|string|max:100',
             'guardian_relation_other' => 'nullable|string|max:100',
-            'guardian_phone'          => 'nullable|string|max:50',
+            'guardian_phone'          => 'required|string|max:50',
             'notes'                   => 'nullable|string|max:500',
             'photo'                   => 'nullable|image|max:2048',
         ]);
@@ -217,10 +248,17 @@ class StudentController extends Controller
         $student->guardian_phone          = $validated['guardian_phone'] ?? null;
         $student->notes                   = $validated['notes'] ?? null;
 
-        // لو فيه صورة جديدة → نحذف القديمة ونحفظ الجديدة
+        // لو فيه صورة جديدة → نحسنها ونحفظها في قاعدة البيانات وننظف المسار القديم
         if ($request->hasFile('photo')) {
-            $this->deletePreviousImage($student->photo_path);
-            $student->photo_path = $this->uploadAndOptimize($request->file('photo'), 'students');
+            // حذف الصورة القديمة من الاستورج لو كانت موجودة لتقليل المساحة
+            if ($student->photo_path) {
+                $this->deletePreviousImage($student->photo_path);
+            }
+
+            $optimized = $this->optimizeToBinary($request->file('photo'), 400, 75);
+            $student->photo_data = $optimized['data'];
+            $student->photo_mime = $optimized['mime'];
+            $student->photo_path = null;
         }
 
         $student->save();
@@ -233,10 +271,14 @@ class StudentController extends Controller
      */
     public function destroy(Student $student)
     {
+        if ($student->school_id !== auth()->user()->school_id) {
+            abort(403, __('Unauthorized access to student record'));
+        }
+
         $student->delete();
 
         return response()->json([
-            'message' => 'Student deleted successfully',
+            'message' => __('Student deleted successfully'),
         ]);
     }
 
@@ -261,10 +303,10 @@ class StudentController extends Controller
                 return $this->importFromExcel($file);
             }
 
-            return response()->json(['message' => 'Unsupported file type'], 422);
+            return response()->json(['message' => __('Unsupported file type')], 422);
         } catch (\Throwable $e) {
             return response()->json([
-                'message' => 'Import failed',
+                'message' => __('Import failed'),
                 'error'   => $e->getMessage(),
             ], 500);
         }
@@ -276,18 +318,18 @@ class StudentController extends Controller
     protected function importFromCsv(string $path)
     {
         if (!is_readable($path)) {
-            return response()->json(['message' => 'Cannot read uploaded file'], 422);
+            return response()->json(['message' => __('Cannot read uploaded file')], 422);
         }
 
         $handle = fopen($path, 'r');
         if (!$handle) {
-            return response()->json(['message' => 'Cannot open file'], 422);
+            return response()->json(['message' => __('Cannot open file')], 422);
         }
 
         $headers = fgetcsv($handle, 0, ',');
         if (!$headers) {
             fclose($handle);
-            return response()->json(['message' => 'Empty file'], 422);
+            return response()->json(['message' => __('Empty file')], 422);
         }
 
         // إزالة BOM من أول عمود لو فيه
@@ -299,6 +341,9 @@ class StudentController extends Controller
             return strtolower(trim($h));
         }, $headers);
 
+        $successCount = 0;
+        $failedCount = 0;
+        
         DB::beginTransaction();
         try {
             while (($row = fgetcsv($handle, 0, ',')) !== false) {
@@ -318,14 +363,21 @@ class StudentController extends Controller
                 try {
                     $data = array_combine($headers, $row);
                 } catch (\Throwable $e) {
+                    $failedCount++;
                     continue;
                 }
 
-                if (!$data || empty($data['full_name'])) {
+                if (!$data || empty(trim($data['full_name'] ?? ''))) {
+                    $failedCount++;
                     continue;
                 }
 
-                $this->createStudentFromImportedRow($data);
+                try {
+                    $this->createStudentFromImportedRow($data);
+                    $successCount++;
+                } catch (\Exception $e) {
+                    $failedCount++;
+                }
             }
 
             DB::commit();
@@ -338,7 +390,9 @@ class StudentController extends Controller
         fclose($handle);
 
         return response()->json([
-            'message' => 'Students imported successfully',
+            'message' => __("Successfully imported :success records, failed :failed.", ['success' => $successCount, 'failed' => $failedCount]),
+            'success' => $successCount,
+            'failed'  => $failedCount,
         ]);
     }
 
@@ -349,7 +403,7 @@ class StudentController extends Controller
     {
         $sheets = Excel::toArray([], $file);
         if (empty($sheets) || empty($sheets[0])) {
-            return response()->json(['message' => 'Empty Excel file'], 422);
+            return response()->json(['message' => __('Empty Excel file')], 422);
         }
 
         $rows = $sheets[0]; // أول شيت
@@ -364,6 +418,9 @@ class StudentController extends Controller
             return strtolower(trim($h));
         }, $headers);
 
+        $successCount = 0;
+        $failedCount = 0;
+        
         DB::beginTransaction();
         try {
             for ($i = 1; $i < count($rows); $i++) {
@@ -385,14 +442,21 @@ class StudentController extends Controller
                 try {
                     $data = array_combine($headers, $row);
                 } catch (\Throwable $e) {
+                    $failedCount++;
                     continue;
                 }
 
-                if (!$data || empty($data['full_name'])) {
+                if (!$data || empty(trim($data['full_name'] ?? ''))) {
+                    $failedCount++;
                     continue;
                 }
 
-                $this->createStudentFromImportedRow($data);
+                try {
+                    $this->createStudentFromImportedRow($data);
+                    $successCount++;
+                } catch (\Exception $e) {
+                    $failedCount++;
+                }
             }
 
             DB::commit();
@@ -402,7 +466,9 @@ class StudentController extends Controller
         }
 
         return response()->json([
-            'message' => 'Students imported successfully',
+            'message' => __("Successfully imported :success records, failed :failed.", ['success' => $successCount, 'failed' => $failedCount]),
+            'success' => $successCount,
+            'failed'  => $failedCount,
         ]);
     }
 
@@ -412,6 +478,7 @@ class StudentController extends Controller
     protected function createStudentFromImportedRow(array $data): void
     {
         $student = new Student();
+        $student->school_id = auth()->user()->school_id;
 
         $student->full_name = $data['full_name'] ?? '';
         $student->gender    = $data['gender'] ?? null;
@@ -453,14 +520,32 @@ class StudentController extends Controller
 
         $student->notes = $data['notes'] ?? null;
 
-        // academic_id: لو موجود نستخدمه، غير كذا نولّد
-        if (!empty($data['academic_id'])) {
-            $student->academic_id = $data['academic_id'];
-        } else {
-            $student->academic_id = $this->generateAcademicId();
-        }
+        // academic_id: نتجاهل أي قيمة في الملف ونولّد رقم جديد دائماً لضمان توحيد القاعدة
+        $student->academic_id = $this->generateAcademicId($grade, $classSection);
 
         // الاستيراد الآن لا يتعامل مع الصور (photo_path)
         $student->save();
+    }
+
+    /**
+     * عرض صورة الطالب مباشرة من قاعدة البيانات
+     */
+    public function showPhoto(Student $student)
+    {
+        if ($student->school_id !== auth()->user()->school_id) {
+            abort(403);
+        }
+
+        if (!$student->photo_data) {
+            // لو مفيش داتا في الـ blob، نشوف لو لسه فيه مسار قديم (للتوافق مع البيانات القديمة)
+            if ($student->photo_path) {
+                return redirect(asset('storage/' . $student->photo_path));
+            }
+            abort(404);
+        }
+
+        return response($student->photo_data)
+            ->header('Content-Type', $student->photo_mime ?: 'image/jpeg')
+            ->header('Cache-Control', 'public, max-age=86400');
     }
 }

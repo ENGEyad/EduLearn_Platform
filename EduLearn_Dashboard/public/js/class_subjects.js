@@ -84,7 +84,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const tr = document.createElement('tr');
 
       const isAssigned = !!s.is_assigned;
-      const isSubjectActive = !!s.is_active;
+      
+      // Determine label based on assignment status (user requirement)
+      const labelClass = isAssigned ? 'status-active' : 'status-inactive';
+      const labelText  = isAssigned ? (window.I18N.active || 'Active') : (window.I18N.inactive || 'Inactive');
 
       tr.innerHTML = `
         <td>${index + 1}</td>
@@ -92,20 +95,31 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${s.name_en ?? ''}</td>
         <td>${s.name_ar ?? ''}</td>
         <td>
-          ${isSubjectActive
-            ? `<span class="status-pill status-active">${window.I18N.active}</span>`
-            : `<span class="status-pill status-inactive">${window.I18N.inactive}</span>`
-          }
+          <span class="status-pill ${labelClass}" id="status-pill-${s.id}">${labelText}</span>
         </td>
         <td class="text-center">
           <input type="checkbox" class="form-check-input subject-assign-checkbox"
-            data-id="${s.id}" ${isAssigned ? 'checked' : ''}>
+            data-id="${s.id}" ${isAssigned ? 'checked' : ''} onchange="toggleSubjectStatus(${s.id}, this.checked)">
         </td>
       `;
 
       tableBody.appendChild(tr);
     });
   }
+
+  // Helper to dynamically change label visually before saving
+  window.toggleSubjectStatus = function(id, isChecked) {
+      const pill = document.getElementById('status-pill-' + id);
+      if (pill) {
+          if (isChecked) {
+              pill.className = 'status-pill status-active';
+              pill.textContent = window.I18N.active || 'Active';
+          } else {
+              pill.className = 'status-pill status-inactive';
+              pill.textContent = window.I18N.inactive || 'Inactive';
+          }
+      }
+  };
 
   function hideMessages() {
     errorBox.style.display   = 'none';

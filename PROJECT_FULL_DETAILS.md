@@ -72,6 +72,7 @@
 2.  **سيرفر البث المباشر (Reverb):**
     `php artisan reverb:start`
 3.  **سيرفر الذكاء الاصطناعي:**
+    `venv\Scripts\activate`
     `uvicorn main:app --reload --port 8001`
 4.  **معالج المهام (Queue):**
     `php artisan queue:work`

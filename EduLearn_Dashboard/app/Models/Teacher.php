@@ -4,23 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Sanctum\HasApiTokens; // <-- تمت الإضافة
 
 class Teacher extends Model
 {
-    use HasFactory;
+    use HasFactory, HasApiTokens; // <-- تمت الإضافة
 
     protected $fillable = [
+        'school_id',
         'full_name',
         'teacher_code',
         'email',
         'phone',
-
-        'password', // كلمة السر (لتطبيق الأستاذ لاحقاً)
-
+        'password',
         'birth_governorate',
         'birthdate',
         'age',
-
         'qualification',
         'qualification_date',
         'current_school',
@@ -28,29 +27,22 @@ class Teacher extends Model
         'current_role',
         'weekly_load',
         'salary',
-
         'shift',
         'national_id',
-
         'marital_status',
         'children',
         'district',
         'neighborhood',
         'street',
-
         'stage',
         'subjects',
         'grades',
-
         'experience_years',
         'experience_place',
-
         'status',
         'students_count',
         'avg_student_score',
         'attendance_rate',
-
-        // مسار صورة الأستاذ
         'photo_path',
     ];
 
@@ -71,10 +63,13 @@ class Teacher extends Model
     protected $appends = [
         'photo_url',
         'thumb_url',
-        'assigned_subjects',
-        'assigned_class_sections',
-        'total_assigned_students',
     ];
+
+    // الربط بالمدرسة
+    public function school()
+    {
+        return $this->belongsTo(\App\Models\School::class);
+    }
 
     // assignments: الربط بين الأستاذ والصف/الشعبة والمادة
     public function assignments()
@@ -82,7 +77,6 @@ class Teacher extends Model
         return $this->hasMany(\App\Models\TeacherClassSubject::class);
     }
 
-    // المواد التي يدرّسها عبر جدول الربط
     public function teachingSubjects()
     {
         return $this->belongsToMany(
@@ -110,11 +104,9 @@ class Teacher extends Model
         return asset('storage/' . $thumbPath);
     }
 
-    /** أسماء المواد من جدول الربط */
     public function getAssignedSubjectsAttribute()
     {
         $this->loadMissing('assignments.subject');
-
         return $this->assignments
             ->map(fn($as) => optional($as->subject)->name)
             ->filter()
@@ -123,19 +115,15 @@ class Teacher extends Model
             ->all();
     }
 
-    /** الصفوف/الشُعب التي يدرّسها */
     public function getAssignedClassSectionsAttribute()
     {
         $this->loadMissing('assignments.classSection');
-
         return $this->assignments
             ->map(function ($as) {
                 $cs = $as->classSection;
                 if (!$cs) return null;
-
                 $grade   = $cs->grade_name ?? $cs->grade ?? null;
                 $section = $cs->section_name ?? $cs->section ?? null;
-
                 if ($grade && $section) return "{$grade} - {$section}";
                 return $cs->name ?? null;
             })
@@ -145,23 +133,18 @@ class Teacher extends Model
             ->all();
     }
 
-    /** إجمالي الطلاب في الصفوف المسندة للأستاذ */
     public function getTotalAssignedStudentsAttribute()
     {
         $this->loadMissing('assignments.classSection');
-
         return $this->assignments->reduce(function ($carry, $as) {
             $cs = $as->classSection;
             if (!$cs) return $carry;
-
             if (isset($cs->students_count)) {
                 return $carry + (int) $cs->students_count;
             }
-
             if (method_exists($cs, 'students')) {
                 return $carry + $cs->students->count();
             }
-
             return $carry;
         }, 0);
     }

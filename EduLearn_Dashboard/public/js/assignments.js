@@ -3,9 +3,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const TEACHERS_API= window.TEACHERS_API;
   const CLASSES_API = window.CLASSES_API;
   const SUBJECTS_API= window.SUBJECTS_API;
+  const CS_API      = window.CLASS_SUBJECTS_API;
+  const appLocale   = document.documentElement.lang || 'en';
 
   const tableBody = document.querySelector('#assignments-table tbody');
-  const btnAdd    = document.getElementById('btnAddAssignment');
   const modalEl   = document.getElementById('assignmentModal');
   const formEl    = document.getElementById('assignmentForm');
   const errorBox  = document.getElementById('assignError');
@@ -20,106 +21,125 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const filterTeacher   = document.getElementById('filterTeacher');
   const filterGrade     = document.getElementById('filterGrade');
+  const filterSection   = document.getElementById('filterSection');
   const filterSubject   = document.getElementById('filterSubject');
-  const btnResetFilters = document.getElementById('btnResetFilters');
 
   const csrfToken       = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  let currentAssignmentId = null;
 
   let teachersCache = [];
   let classesCache  = [];
   let subjectsCache = [];
   let assignments   = [];
+  let classSubjects = [];
 
   async function loadBaseData() {
-    const [teachersRes, classesRes, subjectsRes] = await Promise.all([
-      fetch(TEACHERS_API),
-      fetch(CLASSES_API),
-      fetch(SUBJECTS_API),
-    ]);
+    const urls = [
+        TEACHERS_API,
+        CLASSES_API,
+        SUBJECTS_API,
+        CS_API || '/class-subjects/list'
+    ];
 
-    teachersCache = await teachersRes.json();
-    classesCache  = await classesRes.json();
-    subjectsCache = await subjectsRes.json();
-
-    fillBaseSelects();
+    try {
+        const results = await Promise.all(urls.map(u => fetch(u).then(r => r.ok ? r.json() : [])));
+        teachersCache = results[0];
+        classesCache  = results[1];
+        subjectsCache = results[2];
+        classSubjects = results[3];
+        fillBaseSelects();
+    } catch (e) {
+        console.error("Base data load failed", e);
+    }
   }
 
   function fillBaseSelects() {
     // teacher selects
     [teacherSelect, filterTeacher].forEach(sel => {
-      sel.innerHTML = '';
-      if (sel === filterTeacher) {
+        if (!sel) return;
+        sel.innerHTML = '';
+        const emptyLabel = sel === filterTeacher ? (window.I18N.allTeachers || 'All teachers') : (window.I18N.selectTeacher || 'Select teacher');
         const opt = document.createElement('option');
         opt.value = '';
-        opt.textContent = window.I18N.allTeachers || 'All teachers';
+        opt.textContent = emptyLabel;
         sel.appendChild(opt);
-      } else {
+
+        teachersCache.forEach(t => {
+            const o = document.createElement('option');
+            o.value = t.id;
+            o.textContent = `${t.full_name} (${t.teacher_code || 'no-code'})`;
+            sel.appendChild(o);
+        });
+    });
+
+    // class select + grade/section filter
+    if (classSelect) {
+        classSelect.innerHTML = '';
         const opt = document.createElement('option');
         opt.value = '';
-        opt.textContent = window.I18N.selectTeacher || 'Select teacher';
-        sel.appendChild(opt);
-      }
+        opt.textContent = window.I18N.selectClass || 'Select class';
+        classSelect.appendChild(opt);
 
-      teachersCache.forEach(t => {
-        const o = document.createElement('option');
-        o.value = t.id;
-        o.textContent = `${t.full_name} (${t.teacher_code || 'no-code'})`;
-        sel.appendChild(o);
-      });
-    });
+        const gradesSet = new Set();
+        const sectionsSet = new Set();
+        
+        classesCache.forEach(c => {
+            const o = document.createElement('option');
+            o.value = c.id;
+            o.textContent = `${c.name_ar || c.name} (${c.grade}${c.section ? '-' + c.section : ''})`;
+            classSelect.appendChild(o);
+            
+            if (c.grade) gradesSet.add(c.grade);
+            if (c.section) sectionsSet.add(c.section);
+        });
 
-    // class select + grade filter
-    classSelect.innerHTML = '';
-    const emptyClass = document.createElement('option');
-    emptyClass.value = '';
-    emptyClass.textContent = window.I18N.selectClass || 'Select class';
-    classSelect.appendChild(emptyClass);
+        if (filterGrade) {
+            filterGrade.innerHTML = '';
+            const optAll = document.createElement('option');
+            optAll.value = '';
+            optAll.textContent = window.I18N.allGrades || 'All grades';
+            filterGrade.appendChild(optAll);
 
-    const gradesSet = new Set();
+            Array.from(gradesSet).sort((a,b) => String(a).localeCompare(String(b), undefined, {numeric: true})).forEach(g => {
+                const o = document.createElement('option');
+                o.value = g;
+                o.textContent = g;
+                filterGrade.appendChild(o);
+            });
+        }
 
-    classesCache.forEach(c => {
-      const o = document.createElement('option');
-      o.value = c.id;
-      o.textContent = `${c.name} (${c.grade}${c.section ? '-' + c.section : ''})`;
-      classSelect.appendChild(o);
+        if (filterSection) {
+            filterSection.innerHTML = '';
+            const optAll = document.createElement('option');
+            optAll.value = '';
+            optAll.textContent = window.I18N.allSections || 'All sections';
+            filterSection.appendChild(optAll);
 
-      gradesSet.add(c.grade);
-    });
-
-    filterGrade.innerHTML = '';
-    const optAllGrades = document.createElement('option');
-    optAllGrades.value = '';
-    optAllGrades.textContent = window.I18N.allGrades || 'All grades';
-    filterGrade.appendChild(optAllGrades);
-
-    Array.from(gradesSet).sort().forEach(g => {
-      const o = document.createElement('option');
-      o.value = g;
-      o.textContent = g;
-      filterGrade.appendChild(o);
-    });
+            Array.from(sectionsSet).sort().forEach(s => {
+                const o = document.createElement('option');
+                o.value = s;
+                o.textContent = s;
+                filterSection.appendChild(o);
+            });
+        }
+    }
 
     // subjects selects
     [subjectSelect, filterSubject].forEach(sel => {
-      sel.innerHTML = '';
-      if (sel === filterSubject) {
+        if (!sel) return;
+        sel.innerHTML = '';
+        const emptyLabel = sel === filterSubject ? (window.I18N.allSubjects || 'All subjects') : (window.I18N.selectSubject || 'Select subject');
         const opt = document.createElement('option');
         opt.value = '';
-        opt.textContent = window.I18N.allSubjects || 'All subjects';
+        opt.textContent = emptyLabel;
         sel.appendChild(opt);
-      } else {
-        const opt = document.createElement('option');
-        opt.value = '';
-        opt.textContent = window.I18N.selectSubject || 'Select subject';
-        sel.appendChild(opt);
-      }
 
-      subjectsCache.forEach(s => {
-        const o = document.createElement('option');
-        o.value = s.id;
-        o.textContent = `${s.name_en} (${s.code})`;
-        sel.appendChild(o);
-      });
+        subjectsCache.forEach(s => {
+            const o = document.createElement('option');
+            o.value = s.id;
+            o.textContent = `${appLocale === 'ar' ? (s.name_ar || s.name_en) : s.name_en} (${s.code})`;
+            sel.appendChild(o);
+        });
     });
   }
 
@@ -127,15 +147,58 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch(ROUTES.list)
       .then(res => res.json())
       .then(data => {
-        assignments = data;
+        assignments = Array.isArray(data) ? data : [];
+        updateStats();
         renderAssignments();
       })
-      .catch(err => console.error('Error loading assignments:', err));
+      .catch(err => {
+          console.error('Error loading assignments:', err);
+          renderAssignments();
+      });
+  }
+
+  function updateStats() {
+      const total = assignments.length;
+      const avgLoad = assignments.length > 0 
+        ? (assignments.reduce((acc, a) => acc + (a.weekly_load || 0), 0) / assignments.length).toFixed(1)
+        : 0;
+      
+      const teacherIds = new Set(assignments.map(a => a.teacher_id));
+      
+      // Coverage: assigned slots / total active slots (ClassSectionSubject)
+      const activeSlots = Array.isArray(classSubjects) ? classSubjects.filter(cs => cs.is_active !== false).length : 0;
+      const coverage = activeSlots > 0 ? Math.round((total / activeSlots) * 100) : 0;
+
+      const totalEl = document.querySelector('.js-stat-total');
+      const avgEl   = document.querySelector('.js-stat-avg-load');
+      const covEl   = document.querySelector('.js-stat-coverage');
+      const teachEl = document.querySelector('.js-stat-teachers');
+
+      if (totalEl) totalEl.textContent = total;
+      if (avgEl)   avgEl.textContent   = avgLoad + ' h/w';
+      if (covEl)   covEl.textContent   = coverage + '%';
+      if (teachEl) teachEl.textContent = teacherIds.size;
+
+      // Unassigned Teachers Logic
+      const unassignedTeachers = teachersCache.filter(t => !teacherIds.has(t.id));
+      const alertEl = document.getElementById('unassigned-alert');
+      const listEl = document.getElementById('unassigned-list');
+
+      if (alertEl && listEl) {
+        if (unassignedTeachers.length > 0) {
+          alertEl.style.display = 'block';
+          listEl.innerHTML = `<strong>${window.I18N.unassignedLabel || 'Unassigned:'}</strong> ` +
+            unassignedTeachers.map(t => `<span class="badge bg-white text-dark border me-1">${t.full_name}</span>`).join(' ');
+        } else {
+          alertEl.style.display = 'none';
+        }
+      }
   }
 
   function renderAssignments() {
     const tFilter = filterTeacher.value;
     const gFilter = filterGrade.value;
+    const secFilter = filterSection ? filterSection.value : '';
     const sFilter = filterSubject.value;
 
     tableBody.innerHTML = '';
@@ -150,6 +213,10 @@ document.addEventListener('DOMContentLoaded', () => {
       filtered = filtered.filter(a => String(a.class_section?.grade ?? '') === String(gFilter));
     }
 
+    if (secFilter) {
+      filtered = filtered.filter(a => String(a.class_section?.section ?? '') === String(secFilter));
+    }
+
     if (sFilter) {
       filtered = filtered.filter(a => String(a.subject_id) === String(sFilter));
     }
@@ -158,32 +225,72 @@ document.addEventListener('DOMContentLoaded', () => {
       const tr = document.createElement('tr');
 
       const teacherName = a.teacher?.full_name ?? '—';
-      const className   = a.class_section?.name ?? '—';
-      const grade       = a.class_section?.grade ?? '—';
-      const section     = a.class_section?.section ?? '—';
-      const subjectName = a.subject?.name_en ?? '—';
+      const className   = a.class_section?.display_name ?? '—';
+      const subjectName = a.subject?.[appLocale === 'en' ? 'name_en' : 'name_ar'] ?? a.subject?.name_en ?? '—';
+      
+      const load = a.weekly_load || 0;
+      let loadClass = 'bg-success';
+      if (load > 20) loadClass = 'bg-warning text-dark';
+      if (load > 30) loadClass = 'bg-danger';
 
       tr.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${teacherName}</td>
-        <td>${className}</td>
-        <td>${grade}</td>
-        <td>${section}</td>
-        <td>${subjectName}</td>
-        <td>${a.weekly_load ?? ''}</td>
-        <td>
-          ${a.is_active
-            ? `<span class="status-pill status-active">${window.I18N.active}</span>`
-            : `<span class="status-pill status-inactive">${window.I18N.inactive}</span>`
-          }
+        <td style="padding: 15px;">
+            <div class="fw-bold">${teacherName}</div>
+            <div class="text-muted small">${a.teacher?.teacher_code || ''}</div>
         </td>
         <td>
-          <button class="btn btn-sm btn-outline-danger btn-delete" data-id="${a.id}">
-            <i class="bi bi-trash"></i>
-          </button>
+            <div class="badge bg-light text-dark border">${className}</div>
+        </td>
+        <td>${subjectName}</td>
+        <td>
+            <div class="d-flex align-items-center gap-2">
+                <div class="progress flex-grow-1" style="height: 6px; width: 60px;">
+                    <div class="progress-bar ${loadClass}" style="width: ${Math.min((load/40)*100, 100)}%"></div>
+                </div>
+                <span class="small fw-bold">${load} h/w</span>
+            </div>
+        </td>
+        <td class="text-center">
+          ${a.is_active
+            ? `<span class="badge rounded-pill bg-primary-soft text-primary" style="font-size: 0.7rem; border:1px solid currentColor">${window.I18N.active || 'Active'}</span>`
+            : `<span class="badge rounded-pill bg-secondary text-white" style="font-size: 0.7rem;">${window.I18N.inactive || 'Inactive'}</span>`
+          }
+        </td>
+        <td class="text-end" style="padding-right: 20px;">
+          <div class="btn-group shadow-sm" style="border-radius: 8px; overflow: hidden;">
+              <a href="/subjects/${a.subject_id}/content" class="btn btn-sm btn-light border-end" title="${window.I18N.viewContent || 'Content'}">
+                <i class="bi bi-journal-text text-muted"></i>
+              </a>
+              <a href="/reports?teacher_id=${a.teacher_id}" class="btn btn-sm btn-light border-end" title="${window.I18N.viewReport || 'Performance'}">
+                <i class="bi bi-graph-up text-info"></i>
+              </a>
+              <button class="btn btn-sm btn-light border-end btn-edit" data-id="${a.id}" data-teacher="${a.teacher_id}" data-class="${a.class_section_id}" data-subject="${a.subject_id}" data-weekly="${a.weekly_load || ''}" data-active="${a.is_active}">
+                <i class="bi bi-pencil text-primary"></i>
+              </button>
+              <button class="btn btn-sm btn-light text-danger btn-delete" data-id="${a.id}">
+                <i class="bi bi-trash"></i>
+              </button>
+          </div>
         </td>
       `;
       tableBody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentAssignmentId = btn.dataset.id;
+        teacherSelect.value = btn.dataset.teacher;
+        classSelect.value   = btn.dataset.class;
+        subjectSelect.value = btn.dataset.subject;
+        weeklyInput.value   = btn.dataset.weekly;
+        activeInput.checked = btn.dataset.active === "1" || btn.dataset.active === "true";
+        errorBox.style.display = 'none';
+        errorBox.textContent   = '';
+        
+        document.getElementById('assignmentModalTitle').textContent = window.I18N.editAssignment || 'Modify Assignment';
+        teacherSelect.disabled = true; // Prevents changing the teacher of an assignment
+        assignmentModal.show();
+      });
     });
 
     document.querySelectorAll('.btn-delete').forEach(btn => {
@@ -205,25 +312,12 @@ document.addEventListener('DOMContentLoaded', () => {
           .catch(err => console.error('Error deleting assignment:', err));
       });
     });
+
   }
 
-  btnResetFilters.addEventListener('click', () => {
-    filterTeacher.value = '';
-    filterGrade.value   = '';
-    filterSubject.value = '';
-    renderAssignments();
-  });
-
-  btnAdd.addEventListener('click', () => {
-    teacherSelect.value = '';
-    classSelect.value   = '';
-    subjectSelect.value = '';
-    weeklyInput.value   = '';
-    activeInput.checked = true;
-    errorBox.style.display = 'none';
-    errorBox.textContent   = '';
-
-    assignmentModal.show();
+  // Automatically filter when a dropdown value changes
+  [filterTeacher, filterGrade, filterSection, filterSubject].forEach(el => {
+    if (el) el.addEventListener('change', renderAssignments);
   });
 
   formEl.addEventListener('submit', (e) => {
@@ -237,8 +331,17 @@ document.addEventListener('DOMContentLoaded', () => {
       is_active:        activeInput.checked ? 1 : 0,
     };
 
-    fetch(ROUTES.store, {
-      method: 'POST',
+    let url = ROUTES.store;
+    let method = 'POST';
+
+    if (currentAssignmentId) {
+        url = ROUTES.update.replace('__ID__', currentAssignmentId);
+        method = 'PUT';
+        teacherSelect.disabled = false; // re-enable before submit to get its value if needed, though we already have it
+    }
+
+    fetch(url, {
+      method: method,
       headers: {
         'Content-Type': 'application/json',
         'X-CSRF-TOKEN': csrfToken,
@@ -269,7 +372,10 @@ document.addEventListener('DOMContentLoaded', () => {
         assignmentModal.hide();
         loadAssignments();
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+         console.error(err);
+         teacherSelect.disabled = false;
+      });
   });
 
   (async () => {

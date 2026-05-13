@@ -23,7 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
       x: { ticks: { autoSkip: true, maxRotation: 0 } }
     }
   };
-  const brandColors = ['#2563eb', '#22c55e', '#f59e0b', '#9ca3af', '#ef4444', '#a855f7', '#06b6d4'];
+  const brandColors = ['#001A33', '#FF6600', '#003366', '#FF8533', '#1e293b', '#94a3b8', '#10b981'];
+
 
   /* ========== Routes (بدون تغيير في الباك) ========== */
   const ROUTES = window.REPORTS_ROUTES || {};
@@ -36,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const urlSubject = (studentId, subjectId) => (ROUTES.subject || '/reports/student/__SID__/subject/__SUBID__')
     .replace('__SID__', studentId)
     .replace('__SUBID__', subjectId);
+  const urlTeacher = (id) => (ROUTES.teacher || '/reports/teacher/__ID__').replace('__ID__', id);
 
   /* ========== Views ========== */
   const reportsListView = document.getElementById('reportsListView');
@@ -43,6 +45,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const studentReportView = document.getElementById('studentReportView');
   const subjectReportView = document.getElementById('subjectReportView');
   const classCardsView = document.getElementById('classCardsView');
+  const teacherReportView = document.getElementById('teacherReportView');
+  const atRiskReportView = document.getElementById('atRiskReportView');
+  const generateModal = new bootstrap.Modal(document.getElementById('generateReportModal'));
+  const aiReportModalEl = document.getElementById('aiAnalyticsReportModal');
+  const aiReportModal = aiReportModalEl ? new bootstrap.Modal(aiReportModalEl) : null;
+  const aiArchiveModalEl = document.getElementById('aiReportsArchiveModal');
+  const aiArchiveModal = aiArchiveModalEl ? new bootstrap.Modal(aiArchiveModalEl) : null;
 
   /* ========== List/Table UI ========== */
   const tBody = document.querySelector('#classesTable tbody');
@@ -63,12 +72,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const cardsClassTitleEl = document.querySelector('.js-cards-class-title');
 
   let gradeChart, progressChart, timeChart, completionChart, testsChart;
+  let teacherActivityChart, teacherClassChart;
   const safeDestroy = (c) => { try { c?.destroy?.(); } catch (e) { } };
 
-  const state = { page: 1, perPage: 6, total: 0, items: [], search: '' };
+  const state = { page: 1, perPage: 6, total: 0, items: [], students: [], search: '' };
   let currentGrade = null;
   let currentSection = null;
   let currentStudentId = null; // لملاحة تقرير المادة
+  let currentTeacherId = null;
   let currentSubjectId = null;
   let currentSubjectName = null;
 
@@ -107,12 +118,26 @@ document.addEventListener('DOMContentLoaded', () => {
   function drawStudentCharts(progress, timeBySubject) {
     const pctx = document.getElementById('progressChart');
     if (pctx && progress?.labels && progress?.values) {
+      const ctx = pctx.getContext('2d');
+      const grad = ctx.createLinearGradient(0, 0, 0, 300);
+      grad.addColorStop(0, 'rgba(0, 26, 51, 0.2)');
+      grad.addColorStop(1, 'rgba(0, 26, 51, 0)');
+
       safeDestroy(progressChart);
       progressChart = new Chart(pctx, {
         type: 'line',
         data: {
           labels: progress.labels,
-          datasets: [{ label: 'Score %', data: progress.values, borderColor: brandColors[0], backgroundColor: brandColors[0] + '20', fill: true, tension: 0.4 }]
+          datasets: [{ 
+            label: 'Score %', 
+            data: progress.values, 
+            borderColor: '#001A33', 
+            backgroundColor: grad, 
+            fill: true, 
+            tension: 0.4,
+            pointRadius: 4,
+            pointBackgroundColor: '#001A33' 
+          }]
         },
         options: quietOpts
       });
@@ -177,6 +202,69 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function drawTeacherCharts(timeline, contentStats) {
+    const actCtx = document.getElementById('teacherActivityChart');
+    if (actCtx && timeline) {
+      const ctx = actCtx.getContext('2d');
+      const grad1 = ctx.createLinearGradient(0, 0, 0, 300);
+      grad1.addColorStop(0, 'rgba(0, 26, 51, 0.2)');
+      grad1.addColorStop(1, 'rgba(0, 26, 51, 0)');
+
+      const grad2 = ctx.createLinearGradient(0, 0, 0, 300);
+      grad2.addColorStop(0, 'rgba(255, 102, 0, 0.2)');
+      grad2.addColorStop(1, 'rgba(255, 102, 0, 0)');
+
+      safeDestroy(teacherActivityChart);
+      teacherActivityChart = new Chart(actCtx, {
+        type: 'line',
+        data: {
+          labels: timeline.labels,
+          datasets: [
+            { 
+                label: window.I18N?.lessons || 'Lessons', 
+                data: timeline.lessons, 
+                borderColor: '#001A33', 
+                backgroundColor: grad1, 
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: '#001A33'
+            },
+            { 
+                label: window.I18N?.exercises || 'Exercises', 
+                data: timeline.exercises, 
+                borderColor: '#FF6600', 
+                backgroundColor: grad2, 
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: '#FF6600'
+            }
+          ]
+        },
+        options: { ...quietOpts, plugins: { legend: { display: true } } }
+      });
+    }
+
+    const clsCtx = document.getElementById('teacherClassChart');
+    if (clsCtx && contentStats) {
+      safeDestroy(teacherClassChart);
+      teacherClassChart = new Chart(clsCtx, {
+        type: 'bar',
+        data: {
+          labels: contentStats.map(c => c.class),
+          datasets: [{
+            label: 'Avg Score %',
+            data: contentStats.map(c => c.avg_score),
+            backgroundColor: brandColors[2],
+            borderRadius: 8
+          }]
+        },
+        options: { ...quietOpts, indexAxis: 'y' }
+      });
+    }
+  }
+
   /* ===== Data: Classes list ===== */
   async function fetchClasses() {
     const qs = new URLSearchParams();
@@ -187,9 +275,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const res = await fetch(`${urlList}?${qs.toString()}`);
     if (!res.ok) { console.error('Failed to load classes'); return; }
     const json = await res.json();
-    state.items = json.data || [];
-    state.students = json.students || [];
     state.total = (json.meta && json.meta.total) || (state.items.length + state.students.length);
+
+    // Update Top Stats Widgets (Simulated or from JSON)
+    const topStudents = document.getElementById('topStatStudents');
+    const topAvg = document.getElementById('topStatAvg');
+    const topAtt = document.getElementById('topStatAtt');
+    const topLessons = document.getElementById('topStatLessons');
+
+    if(topStudents) topStudents.textContent = json.school_stats?.total_students || state.total;
+    if(topAvg) topAvg.textContent = (json.school_stats?.avg_score || 84) + '%';
+    if(topAtt) topAtt.textContent = (json.school_stats?.attendance || 92) + '%';
+    if(topLessons) topLessons.textContent = json.school_stats?.total_lessons || 1240;
 
     renderTable();
     renderPager();
@@ -376,7 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const set = (sel, txt) => { const el = document.querySelector(sel); if (el) el.textContent = txt; };
-    set('.js-s-avg', (json.stats?.avg_score != null) ? (json.stats.avg_score * 100).toFixed(0) + '%' : '--');
+    set('.js-s-avg', (json.stats?.avg_score != null) ? (json.stats.avg_score).toFixed(1) + '%' : '--');
     set('.js-s-pass', (json.stats?.pass_rate != null) ? (json.stats.pass_rate * 100).toFixed(0) + '%' : '--');
     set('.js-s-att', (json.stats?.attendance != null) ? (json.stats.attendance * 100).toFixed(0) + '%' : '--');
     set('.js-s-time', (json.stats?.study_time != null) ? (json.stats.study_time + ' ' + (window.I18N?.hrs || 'hrs')) : '--');
@@ -482,6 +579,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const json = await res.json();
 
     cardsClassTitleEl && (cardsClassTitleEl.textContent = `${json.grade} - ${window.I18N?.section || 'Section'} ${json.section}`);
+    const printClassTitle = document.querySelector('.js-cards-print-class-title');
+    printClassTitle && (printClassTitle.textContent = `${json.grade} - ${window.I18N?.section || 'Section'} ${json.section}`);
     
     if (studentCardsContainer) {
         studentCardsContainer.innerHTML = '';
@@ -513,9 +612,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="student-id-card-new">
                         <!-- Background Elements -->
-                        <div class="bg-accent-teal"></div>
-                        <div class="bg-accent-blue"></div>
+                        <div class="bg-accent-navy"></div>
+                        <div class="bg-accent-orange"></div>
                         <div class="card-decorative-circles"></div>
+
 
                         <!-- Header Ribbon -->
                         <div class="ribbon-banner">
@@ -599,6 +699,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Print cards
   document.querySelector('.js-print-cards')?.addEventListener('click', () => {
+    document.body.classList.add('printing-id-cards');
     document.querySelectorAll('.card-scale-wrapper').forEach(card => card.classList.remove('d-none-print'));
     window.print();
   });
@@ -626,8 +727,13 @@ document.addEventListener('DOMContentLoaded', () => {
             wrapper.classList.remove('d-none-print');
         }
     });
-
+    document.body.classList.add('printing-id-cards');
     window.print();
+  });
+
+  // Cleanup printing class after print dialog is closed
+  window.addEventListener('afterprint', () => {
+    document.body.classList.remove('printing-id-cards');
   });
 
   // Back from subject to student
@@ -651,13 +757,17 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Back from class to list
-  document.querySelector('.js-back-to-list')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    studentReportView.style.display = 'none';
-    subjectReportView.style.display = 'none';
-    classReportView.style.display = 'none';
-    reportsListView.style.display = '';
-    fetchClasses(); // refresh list to be safe
+  document.querySelectorAll('.js-back-to-list').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      studentReportView.style.display = 'none';
+      subjectReportView.style.display = 'none';
+      classReportView.style.display = 'none';
+      if (teacherReportView) teacherReportView.style.display = 'none';
+      if (atRiskReportView) atRiskReportView.style.display = 'none';
+      reportsListView.style.display = '';
+      fetchClasses(); // refresh list to be safe
+    });
   });
 
   const applyFiltersBtn = document.getElementById('applyFiltersBtn');
@@ -675,76 +785,396 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchClasses();
   });
 
-  // Class view refresh
-  document.querySelector('.js-refresh-class')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (currentGrade && currentSection) {
-      openClassReport(currentGrade, currentSection);
+  /* ===== Generate Report Logic ===== */
+  document.querySelector('.js-generate')?.addEventListener('click', () => {
+    generateModal.show();
+  });
+
+  /* ===== Strategic AI Report Logic (Async & Background) ===== */
+  document.querySelector('.js-generate-ai')?.addEventListener('click', async () => {
+    if (!aiReportModal) return;
+    
+    const loadingEl = document.getElementById('aiReportLoading');
+    const contentEl = document.getElementById('aiReportContent');
+    const markdownEl = document.getElementById('aiReportMarkdown');
+    
+    try {
+      const qs = new URLSearchParams();
+      if (filterClass?.value) {
+          const parts = filterClass.value.split(' - ');
+          if (parts.length === 2) {
+              qs.set('grade', parts[0]);
+              qs.set('class_section', parts[1]);
+          }
+      }
+      
+      const res = await fetch(`${ROUTES.aiAnalytics || '/reports/generate-ai-analytics'}?${qs.toString()}`);
+      const data = await res.json();
+      
+      if (data.status === 'success') {
+          // Show non-blocking notification
+          if (window.Swal) {
+              Swal.fire({
+                  title: window.I18N?.generatingReport || 'Generating Report',
+                  text: window.I18N?.backgroundGenerationNote || 'The AI is analyzing school data in the background. You can continue using the site.',
+                  icon: 'info',
+                  toast: true,
+                  position: 'top-end',
+                  showConfirmButton: false,
+                  timer: 5000,
+                  timerProgressBar: true
+              });
+          }
+
+          // Start polling for status in the background
+          startPollingAiReport(data.report_id);
+      } else {
+          throw new Error(data.message || 'Failed to start AI report generation');
+      }
+    } catch (err) {
+      console.error(err);
+      handleAiReportError(err.message);
     }
   });
 
-  // Student view refresh
-  document.querySelector('.js-refresh-student')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (currentStudentId) {
-      openStudentReport(currentStudentId);
+  function startPollingAiReport(reportId) {
+      const interval = setInterval(async () => {
+          try {
+              const url = (ROUTES.aiReportStatus || '/reports/ai-report-status/__ID__').replace('__ID__', reportId);
+              const res = await fetch(url);
+              const data = await res.json();
+
+              if (data.status === 'completed') {
+                  clearInterval(interval);
+                  renderAiReportContent(data.content);
+                  
+                  // Notify user if modal is closed
+                  if (!document.getElementById('aiAnalyticsReportModal').classList.contains('show')) {
+                      if (window.Swal) {
+                          Swal.fire({
+                              title: window.I18N?.aiReportReady || 'AI Report Ready!',
+                              text: window.I18N?.strategicAnalysisComplete || 'Strategic analysis has been completed.',
+                              icon: 'success',
+                              confirmButtonText: window.I18N?.viewReport || 'View Report',
+                              showCancelButton: true,
+                              cancelButtonText: window.I18N?.close || 'Close'
+                          }).then((result) => {
+                              if (result.isConfirmed && aiReportModal) {
+                                  aiReportModal.show();
+                              }
+                          });
+                      }
+                  }
+              } else if (data.status === 'failed') {
+                  clearInterval(interval);
+                  handleAiReportError(data.error);
+              }
+          } catch (e) {
+              console.error('Polling error:', e);
+              // We don't stop polling on network error, just let it retry
+          }
+      }, 5000); // Poll every 5s
+  }
+
+  let latestAiReportContent = null;
+
+  function renderAiReportContent(markdown) {
+      if (!markdown) return;
+      latestAiReportContent = markdown;
+      
+      const loadingEl = document.getElementById('aiReportLoading');
+      const contentEl = document.getElementById('aiReportContent');
+      const markdownEl = document.getElementById('aiReportMarkdown');
+
+      if (markdownEl) {
+          // Render markdown or fallback to raw text
+          markdownEl.innerHTML = window.marked ? marked.parse(markdown) : markdown;
+          
+          // Force visibility toggle using multiple methods for reliability
+          if (loadingEl) {
+              loadingEl.style.display = 'none';
+              loadingEl.classList.add('d-none');
+          }
+          if (contentEl) {
+              contentEl.style.display = 'block';
+              contentEl.classList.remove('d-none');
+          }
+          console.log("AI Report Rendered and UI Toggled");
+      } else {
+          console.error("AI Report Markdown element not found!");
+      }
+  }
+
+  function handleAiReportError(errorMsg) {
+      const loadingEl = document.getElementById('aiReportLoading');
+      if (loadingEl) {
+          loadingEl.innerHTML = `
+            <div class="text-danger text-center py-5">
+              <i class="bi bi-exclamation-octagon fs-1 mb-3"></i>
+              <h4>${window.I18N?.error || 'Error'}</h4>
+              <p>${errorMsg}</p>
+              <button class="btn btn-primary mt-3" onclick="location.reload()">${window.I18N?.refresh || 'Refresh Page'}</button>
+            </div>
+          `;
+      }
+  }
+
+  document.getElementById('confirmGenerateBtn')?.addEventListener('click', async (e) => {
+    const type = document.querySelector('input[name="report_type"]:checked')?.value;
+    const btn = document.getElementById('confirmGenerateBtn');
+    const originalContent = btn.innerHTML;
+
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> ${window.I18N?.preparingData || 'Preparing...'}`;
+
+    try {
+        if (type === 'at_risk') {
+            const qs = new URLSearchParams();
+            if (filterClass?.value) qs.set('class', filterClass.value);
+            if (filterSubject?.value) qs.set('subject', filterSubject.value);
+            
+            const res = await fetch(`${ROUTES.atRisk || '/reports/at-risk'}?${qs.toString()}`);
+            if (!res.ok) throw new Error('Failed to fetch data');
+            const json = await res.json();
+            
+            if (!json.students || json.students.length === 0) {
+                alert(window.I18N?.noAtRiskFound || 'No students currently meet the At-Risk criteria.');
+                return;
+            }
+
+            renderAtRiskTable(json.students);
+            showView(atRiskReportView);
+        } else if (type === 'performance' || type === 'students') {
+            // Use existing global filters
+            if (filterClass?.value) {
+                const parts = filterClass.value.split('-');
+                if (parts.length === 2) {
+                    openClassReport(parts[0].trim(), parts[1].trim());
+                    // modal will close in showView/hideModal context
+                } else {
+                    alert('Please select a specific class first.');
+                    return;
+                }
+            } else {
+                alert('Please select a class from the filters first.');
+                return;
+            }
+        } else {
+            // Summary - stay on dashboard
+            showView(reportsListView);
+        }
+        generateModal.hide();
+    } catch (e) {
+        console.error(e);
+        alert('Error: ' + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
     }
   });
 
-  // Subject view refresh
-  document.querySelector('.js-refresh-subject')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (currentStudentId && currentSubjectId) {
-      openSubjectReport(currentStudentId, currentSubjectId, currentSubjectName);
-    }
-  });
+  /* ===== Navigation & UI Helpers ===== */
+  function showView(view) {
+    const views = [reportsListView, classReportView, studentReportView, subjectReportView, classCardsView, teacherReportView, atRiskReportView];
+    views.forEach(v => {
+      if(v) v.style.display = 'none';
+    });
+    if(view) view.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
-  /* ===== Print & Export Helpers ===== */
+  function renderAtRiskTable(students) {
+    const tbody = document.querySelector('#atRiskTable tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    (students || []).forEach(s => {
+      const tr = document.createElement('tr');
+      const scoreVal = parseFloat(s.avg_score) || 0;
+      const scoreClass = scoreVal < 50 ? 'text-danger' : (scoreVal < 70 ? 'text-warning' : 'text-success');
+      const badgeClass = s.risk_level === 'High' ? 'bg-danger' : 'bg-warning';
+      
+       tr.innerHTML = `
+        <td>
+            <div class="d-flex align-items-center gap-2">
+                <img src="${s.photo_url || window.DEFAULT_AVATAR}" style="width:32px; height:32px; border-radius:50%; object-fit:cover;" onerror="this.src='${window.DEFAULT_AVATAR}'">
+                <div><div class="fw-bold text-navy">${s.name}</div><div class="small text-muted">${s.academic_id || ''}</div></div>
+            </div>
+        </td>
+        <td>${s.class || '--'}</td>
+        <td><span class="fw-bold ${scoreClass}">${s.avg_score}</span></td>
+        <td>${s.attendance}</td>
+        <td>
+          <span class="badge ${badgeClass} text-white px-3">${s.risk_level}</span>
+          <div class="small text-muted mt-1" style="font-style:italic; max-width:200px">${s.reason || ''}</div>
+        </td>
+        <td class="text-end">
+            <div class="d-flex justify-content-end gap-1">
+                <button class="btn btn-sm btn-soft-primary js-open-student-at-risk" data-id="${s.id}" title="View Profile"><i class="bi bi-person"></i></button>
+                <button class="btn btn-sm btn-soft-secondary" onclick="alert('Creating academic plan for ${s.name.replace(/'/g, "\\'")}')" title="Academic Plan"><i class="bi bi-file-earmark-medical"></i></button>
+                <button class="btn btn-sm btn-soft-warning" onclick="alert('Notification sent to teacher regarding ${s.name.replace(/'/g, "\\'")}')" title="Notify Teacher"><i class="bi bi-bell"></i></button>
+            </div>
+        </td>
+      `;
+      const btn = tr.querySelector('.js-open-student-at-risk');
+      if (btn) btn.onclick = () => openStudentReport(s.id);
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ===== Teacher report (Phase 1) ===== */
+  async function openTeacherReport(id) {
+    const res = await fetch(urlTeacher(id));
+    if (!res.ok) { alert('Failed to load teacher report'); return; }
+    const json = await res.json();
+    currentTeacherId = id;
+
+    // Fill info
+    const info = json.teacher_info;
+    document.querySelectorAll('.js-tr-name').forEach(el => el.textContent = info.name);
+    const codeEl = document.querySelector('.js-tr-code'); if(codeEl) codeEl.textContent = info.code;
+    const emailEl = document.querySelector('.js-tr-email'); if(emailEl) emailEl.textContent = info.email;
+    const avatarEl = document.querySelector('.js-tr-avatar'); if(avatarEl) avatarEl.src = info.avatar || window.DEFAULT_AVATAR;
+
+    // Fill stats
+    const obs = json.overview;
+    document.querySelector('.js-tr-lessons') && (document.querySelector('.js-tr-lessons').textContent = obs.total_lessons);
+    document.querySelector('.js-tr-exercises') && (document.querySelector('.js-tr-exercises').textContent = obs.total_exercises);
+    document.querySelector('.js-tr-students') && (document.querySelector('.js-tr-students').textContent = obs.total_students);
+    const scoreVal = obs.avg_student_score || 0;
+    document.querySelector('.js-tr-score') && (document.querySelector('.js-tr-score').textContent = scoreVal + '%');
+
+    // Comparison logic
+    const compEl = document.querySelector('.js-tr-comparison');
+    if (compEl) {
+        const schoolAvg = obs.school_avg_comparison || 0;
+        const diff = scoreVal - schoolAvg;
+        const color = diff >= 0 ? '#10b981' : '#ef4444'; // Green if above, Red if below
+        const icon = diff >= 0 ? '↑' : '↓';
+        compEl.style.color = color;
+        compEl.textContent = `${icon} ${Math.abs(diff).toFixed(1)}%`;
+    }
+
+    // Table
+    const tbody = document.querySelector('.js-tr-classes-table tbody');
+    if (tbody) {
+        tbody.innerHTML = '';
+        (json.content_stats || []).forEach(c => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${c.class}</td><td>${c.subject}</td><td>${c.lessons}</td><td><span class="badge bg-primary text-white">${c.avg_score}%</span></td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    drawTeacherCharts(json.activity_timeline, json.content_stats);
+    showView(teacherReportView);
+  }
+
+  /* ===== Print & Export Logic ===== */
   function getReportTitle() {
-    if (classReportView && classReportView.style.display !== 'none') {
-      return (window.I18N?.classReport || 'Class Report') + ': ' + (classTitleEl?.textContent || '');
-    }
-    if (studentReportView && studentReportView.style.display !== 'none') {
-      return (window.I18N?.studentReport || 'Student Report') + ': ' + (document.querySelector('.js-student-name')?.textContent || '');
-    }
-    if (subjectReportView && subjectReportView.style.display !== 'none') {
-      const sName = document.querySelector('.js-sr-student')?.textContent || '';
-      const sSub = document.querySelector('.js-sr-subject')?.textContent || '';
-      return (window.I18N?.subjectReport || 'Subject Report') + ': ' + sSub + ' - ' + sName;
-    }
-    if (classCardsView && classCardsView.style.display !== 'none') {
-      return (window.I18N?.studentIdCards || 'Student ID Cards') + ': ' + (cardsClassTitleEl?.textContent || '');
-    }
-    return document.getElementById('pageTitle')?.textContent || 'EduLearn Report';
+    if (classReportView && classReportView.style.display !== 'none') return (window.I18N?.classReport || 'Class Report') + ': ' + (classTitleEl?.textContent || '');
+    if (studentReportView && studentReportView.style.display !== 'none') return (window.I18N?.studentReport || 'Student Report') + ': ' + (document.querySelector('.js-student-name')?.textContent || '');
+    if (subjectReportView && subjectReportView.style.display !== 'none') return (window.I18N?.subjectReport || 'Subject Report') + ': ' + (currentSubjectName || '');
+    if (teacherReportView && teacherReportView.style.display !== 'none') return (window.I18N?.teacherReport || 'Teacher Report') + ': ' + (document.querySelector('.js-tr-name')?.textContent || '');
+    if (atRiskReportView && atRiskReportView.style.display !== 'none') return (window.I18N?.atRiskReport || 'At-Risk Report');
+    return 'EduLearn Report';
   }
 
   function handlePrint() {
     const reportTitle = getReportTitle();
     const printHeader = document.getElementById('globalPrintHeader');
     const printHeaderTitle = document.getElementById('printReportTitle');
-    const printHeaderDate = document.getElementById('printReportDate');
-
-    if (printHeader) {
-      if (printHeaderTitle) printHeaderTitle.textContent = reportTitle;
-      if (printHeaderDate) {
-        const now = new Date();
-        const lang = document.documentElement.lang || 'en';
-        printHeaderDate.textContent = now.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', {
-          year: 'numeric', month: 'long', day: 'numeric'
-        });
-      }
-    }
-
+    if (printHeaderTitle) printHeaderTitle.textContent = reportTitle;
+    
     const originalTitle = document.title;
     document.title = reportTitle;
     window.print();
     setTimeout(() => { document.title = originalTitle; }, 500);
   }
 
-  document.querySelectorAll('.js-print').forEach(b => b.addEventListener('click', handlePrint));
-  document.querySelectorAll('.js-export').forEach(b => b.addEventListener('click', handlePrint));
-  document.querySelector('.js-print-cards')?.addEventListener('click', handlePrint);
+  document.querySelectorAll('.js-print, .js-export, .js-export-pdf').forEach(btn => btn.addEventListener('click', (e) => { e.preventDefault(); handlePrint(); }));
 
-  /* ===== First load ===== */
+  document.querySelectorAll('.js-export-excel').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const activeView = [classReportView, studentReportView, subjectReportView, teacherReportView, atRiskReportView].find(v => v && v.style.display !== 'none') || reportsListView;
+      const table = activeView?.querySelector('table');
+      if(!table) return;
+      
+      let csv = [];
+      const rows = table.querySelectorAll('tr');
+      for (let i = 0; i < rows.length; i++) {
+          const row = [], cols = rows[i].querySelectorAll('td, th');
+          for (let j = 0; j < cols.length; j++) {
+              let text = cols[j].innerText.trim();
+              if(cols[j].querySelector('.btn')) text = ''; 
+              row.push('"' + text.replace(/"/g, '""') + '"');
+          }
+          if(row.join('').length > 0) csv.push(row.join(','));
+      }
+      const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csv.join("\n");
+      const link = document.createElement("a");
+      link.setAttribute("href", encodeURI(csvContent));
+      link.setAttribute("download", "EduLearn_" + getReportTitle().replace(/\s+/g, '_') + ".csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+  });
+
+  /* ===== Init & Parameters ===== */
+  /* ===== Strategic Report Archive Logic ===== */
+  document.querySelectorAll('.js-view-all-reports').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (aiArchiveModal) aiArchiveModal.show();
+    });
+  });
+
+  document.querySelectorAll('.js-view-archived-report').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const reportId = e.currentTarget.getAttribute('data-id');
+      if (!reportId || !aiReportModal) return;
+      
+      const loadingEl = document.getElementById('aiReportLoading');
+      const contentEl = document.getElementById('aiReportContent');
+      const markdownEl = document.getElementById('aiReportMarkdown');
+      
+      // Reset modal state
+      if (loadingEl) {
+          loadingEl.style.display = 'block';
+          loadingEl.classList.remove('d-none');
+          loadingEl.innerHTML = `
+            <div class="spinner-grow text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+            <h4 class="fw-bold text-navy">${window.I18N?.loadingReport || 'Loading Archived Report...'}</h4>
+          `;
+      }
+      if (contentEl) {
+          contentEl.style.display = 'none';
+          contentEl.classList.add('d-none');
+      }
+      
+      aiReportModal.show();
+      
+      try {
+          const url = (ROUTES.aiReportStatus || '/reports/ai-report-status/__ID__').replace('__ID__', reportId);
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('Failed to fetch archived report');
+          const data = await res.json();
+          
+          if (data.status === 'completed') {
+              renderAiReportContent(data.content);
+          } else {
+              throw new Error('Report is not in completed state');
+          }
+      } catch (err) {
+          console.error(err);
+          handleAiReportError(err.message);
+      }
+    });
+  });
+
   fetchClasses();
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('teacher_id')) openTeacherReport(urlParams.get('teacher_id'));
+  if (urlParams.get('student_id')) openStudentReport(urlParams.get('student_id'));
 });

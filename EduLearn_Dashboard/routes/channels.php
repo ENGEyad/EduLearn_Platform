@@ -31,3 +31,14 @@ Broadcast::channel('conversation.{conversationId}', function ($user, $conversati
 
     return false;
 });
+
+Broadcast::channel('school.{schoolId}', function ($user, $schoolId) {
+    if (!$user) return false;
+    
+    // Only super admins or the admin of this school can listen
+    if (isset($user->role) && $user->role === 'super_admin') {
+        return true;
+    }
+    
+    return (int) $user->school_id === (int) $schoolId;
+});

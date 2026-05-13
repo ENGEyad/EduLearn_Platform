@@ -1,441 +1,559 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const ROUTES = window.TEACHERS_ROUTES || {};
-  const getListUrl   = ROUTES.list || '/teachers/list';
-  const getStoreUrl  = ROUTES.store || '/teachers';
-  const getUpdateUrl = ROUTES.update || ((id) => `/teachers/${id}`);
-  const getDeleteUrl = ROUTES.destroy || ((id) => `/teachers/${id}`);
-  const getImportUrl = ROUTES.import || '/teachers/import';
+    console.log('Teachers JS: Initializing...');
+    const ROUTES = window.TEACHERS_ROUTES || {};
+    const STORAGE_BASE_URL = window.STORAGE_BASE_URL || '/storage';
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-  const STORAGE_BASE_URL = window.STORAGE_BASE_URL || '/storage';
+    // UI Elements
+    const teachersTableBody = document.querySelector('#teachersTable tbody');
+    const teacherSearch = document.getElementById('teacherSearch');
+    const teacherSubjectFilter = document.getElementById('teacherSubjectFilter');
+    const teacherStatusFilter = document.getElementById('teacherStatusFilter');
+    const teachersListView = document.getElementById('teachersListView');
+    const teacherFormView = document.getElementById('teacherFormView');
+    const teacherProfile = document.getElementById('teacherProfile');
+    const sidebarEmptyState = document.getElementById('sidebarEmptyState');
+    const importTeachersBtn = document.getElementById('importTeachersBtn');
+    const teacherExcelInput = document.getElementById('teacherExcelInput');
+    const teacherListActions = document.getElementById('teacherListActions');
+    const teacherFormActions = document.getElementById('teacherFormActions');
+    
+    // Sidebar Elements (prof- prefixed)
+    const spAvatar = document.getElementById('prof-avatar');
+    const spName = document.getElementById('prof-name');
+    const spId = document.getElementById('prof-id');
+    const spEmail = document.getElementById('prof-email');
+    const spPhone = document.getElementById('prof-phone');
+    const spDob = document.getElementById('prof-dob');
+    const spSubjects = document.getElementById('prof-subjects');
+    const spClasses = document.getElementById('prof-classes');
+    const spAddress = document.getElementById('prof-address');
+    const spPerformance = document.getElementById('prof-performance');
+    const spAttendance = document.getElementById('prof-attendance');
 
-  const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-  const csrf = csrfMeta ? csrfMeta.content : '';
+    const sidebarEditBtn = document.querySelector('.js-sidebar-edit');
+    const sidebarReportBtn = document.querySelector('.js-sidebar-report');
+    const sidebarDeleteBtn = document.querySelector('.js-sidebar-delete');
+    
+    // Delete Modal
+    const deleteModalEl = document.getElementById('deleteTeacherModal');
+    const confirmDeleteTeacherBtn = document.getElementById('confirmDeleteTeacherBtn');
+    const deleteModal = (deleteModalEl && window.bootstrap && bootstrap.Modal) ? new bootstrap.Modal(deleteModalEl) : null;
+    let teacherIdToDelete = null;
 
-  const teachersTableBody = document.querySelector('#teachersTable tbody');
-  const teacherSearch = document.getElementById('teacherSearch');
-  const teacherSubjectFilter = document.getElementById('teacherSubjectFilter');
-  const teacherStatusFilter = document.getElementById('teacherStatusFilter');
+    // Form Elements
+    const tcDbId = document.getElementById('tcDbId');
+    const tcFullName = document.getElementById('tcFullName');
+    const tcGender = document.getElementById('tcGender');
+    const tcBirthdate = document.getElementById('tcBirthdate');
+    const tcEmail = document.getElementById('tcEmail');
+    const tcPhone = document.getElementById('tcPhone');
+    const tcShift = document.getElementById('tcShift');
+    const tcStatus = document.getElementById('tcStatus');
+    const tcDistrict = document.getElementById('tcDistrict');
+    const tcNeighborhood = document.getElementById('tcNeighborhood');
+    const tcStreet = document.getElementById('tcStreet');
+    const tcPhoto = document.getElementById('tcPhoto');
+    const assignmentsContainer = document.getElementById('assignmentsContainer');
+    const addAssignmentRowBtn = document.getElementById('addAssignmentRowBtn');
 
-  const teachersListView = document.getElementById('teachersListView');
-  const teacherFormView = document.getElementById('teacherFormView');
-  const openTeacherFormBtn = document.getElementById('openTeacherFormBtn');
-  const backToTeachersBtn = document.getElementById('backToTeachersBtn');
-  const cancelTeacherBtn = document.getElementById('cancelTeacherBtn');
-  const teacherSavedAlert = document.getElementById('teacherSavedAlert');
-  const teacherFormTitle = document.getElementById('teacherFormTitle');
+    let teachersData = [];
+    let currentTeacher = null;
+    let isDirty = false;
+    let currentMode = 'create';
 
-  const importTeachersBtn = document.getElementById('importTeachersBtn');
-  const importTeachersInput = document.getElementById('importTeachersInput');
+    // --- Core Functions ---
 
-  // form fields
-  const tcDbId = document.getElementById('tcDbId');
-  const tcFullName = document.getElementById('tcFullName');
-  const tcBirthdate = document.getElementById('tcBirthdate');
-  const tcAge = document.getElementById('tcAge');
-  const calcAgeBtn = document.getElementById('calcAgeBtn');
-  const tcShift = document.getElementById('tcShift');
-  const tcPhone = document.getElementById('tcPhone');
-  const tcEmail = document.getElementById('tcEmail');
-  const tcDistrict = document.getElementById('tcDistrict');
-  const tcNeighborhood = document.getElementById('tcNeighborhood');
-  const tcStreet = document.getElementById('tcStreet');
-  const tcPhoto = document.getElementById('tcPhoto');
-  const tcAssignedClasses = document.getElementById('tcAssignedClasses');
-  const saveTeacherBtn = document.getElementById('saveTeacherBtn');
+    function showList() {
+        teacherFormView.style.display = 'none';
+        teachersListView.style.display = 'block';
 
-  // side panel
-  const teacherName = document.getElementById('teacherName');
-  const teacherId = document.getElementById('teacherId');
-  const teacherAvatar = document.getElementById('teacherAvatar');
-
-  const spTcBirthdate = document.getElementById('spTcBirthdate');
-  const spTcEmail = document.getElementById('spTcEmail');
-  const spTcAddress = document.getElementById('spTcAddress');
-  const spTcPhone = document.getElementById('spTcPhone');
-  const spTcClassSection = document.getElementById('spTcClassSection');
-  const spTcSubjects = document.getElementById('spTcSubjects');
-  const spTcPerformance = document.getElementById('spTcPerformance');
-  const spTcAttendance = document.getElementById('spTcAttendance');
-
-  let teachersData = [];
-  let currentMode = 'create';
-
-  function getInitials(name) {
-    if (!name) return 'TC';
-    return name
-      .split(' ')
-      .filter(Boolean)
-      .map(p => p[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase();
-  }
-
-  function clearForm() {
-    if (tcDbId) tcDbId.value = '';
-    if (tcFullName) tcFullName.value = '';
-    if (tcBirthdate) tcBirthdate.value = '';
-    if (tcAge) tcAge.value = '';
-    if (tcPhone) tcPhone.value = '';
-    if (tcEmail) tcEmail.value = '';
-    if (tcShift) tcShift.value = '';
-    if (tcDistrict) tcDistrict.value = '';
-    if (tcNeighborhood) tcNeighborhood.value = '';
-    if (tcStreet) tcStreet.value = '';
-    if (tcPhoto) tcPhoto.value = '';
-    if (tcAssignedClasses) tcAssignedClasses.value = '';
-  }
-
-  function showForm(mode = 'create') {
-    currentMode = mode;
-    if (mode === 'create') {
-      teacherFormTitle.textContent = window.I18N?.addNewTeacher || 'Add New Teacher';
-      clearForm();
-    } else {
-      teacherFormTitle.textContent = window.I18N?.editTeacher || 'Edit Teacher';
-    }
-    teachersListView.style.display = 'none';
-    teacherFormView.style.display = 'block';
-  }
-
-  function showList() {
-    teacherFormView.style.display = 'none';
-    teachersListView.style.display = 'block';
-    if (teacherSavedAlert) teacherSavedAlert.classList.add('d-none');
-  }
-
-  function buildAddress(tc) {
-    const parts = [tc.district, tc.neighborhood, tc.street].filter(Boolean);
-    return parts.length ? parts.join(' - ') : '--';
-  }
-
-  function fillSidePanel(tc) {
-    if (!tc) return;
-
-    if (teacherName) teacherName.textContent = tc.full_name || '--';
-    if (teacherId) teacherId.textContent = (window.I18N?.teacherCodePrefix || 'Teacher Code: ') + (tc.teacher_code || ('T-' + tc.id));
-
-    if (teacherAvatar) {
-      if (tc.photo_path) {
-        const url = `${STORAGE_BASE_URL}/${tc.photo_path}`;
-        teacherAvatar.style.backgroundImage = `url('${url}')`;
-        teacherAvatar.style.backgroundSize = 'cover';
-        teacherAvatar.style.backgroundPosition = 'center';
-        teacherAvatar.textContent = '';
-      } else {
-        teacherAvatar.style.backgroundImage = 'none';
-        teacherAvatar.textContent = getInitials(tc.full_name);
-      }
+        if (teacherListActions) teacherListActions.classList.remove('d-none');
+        if (teacherFormActions) teacherFormActions.classList.add('d-none');
     }
 
-    if (spTcBirthdate) spTcBirthdate.textContent = tc.birthdate || '--';
-    if (spTcEmail) spTcEmail.textContent = tc.email || '--';
-    if (spTcAddress) spTcAddress.textContent = buildAddress(tc);
-    if (spTcPhone) spTcPhone.textContent = tc.phone || '--';
+    function showForm(mode = 'create') {
+        currentMode = mode;
+        isDirty = false;
+        document.getElementById('teacherFormTitle').textContent = 
+            mode === 'create' ? (window.I18N?.addNewTeacher || 'Register New Teacher') : (window.I18N?.editTeacher || 'Edit Teacher Profile');
+        
+        teachersListView.style.display = 'none';
+        teacherFormView.style.display = 'block';
 
-    const subjectsArr = Array.isArray(tc.assigned_subjects)
-      ? tc.assigned_subjects
-      : (Array.isArray(tc.subjects) ? tc.subjects : []);
-
-    if (spTcSubjects) {
-      spTcSubjects.textContent = subjectsArr && subjectsArr.length
-        ? subjectsArr.join(', ')
-        : '--';
+        if (teacherListActions) teacherListActions.classList.add('d-none');
+        if (teacherFormActions) teacherFormActions.classList.remove('d-none');
+        
+        // Reset tabs to first
+        const firstTab = document.querySelector('#teacherTabs a[href="#tab-basic"]');
+        if (firstTab && window.bootstrap?.Tab) {
+            new bootstrap.Tab(firstTab).show();
+        }
     }
 
-    const classSections = Array.isArray(tc.assigned_class_sections)
-      ? tc.assigned_class_sections
-      : [];
-
-    if (spTcClassSection) {
-      spTcClassSection.textContent = classSections.length
-        ? classSections.join(', ')
-        : '--';
+    function buildAddress(tc) {
+        const parts = [tc.district, tc.neighborhood, tc.street].filter(Boolean);
+        return parts.length ? parts.join(' - ') : '--';
     }
 
-    if (spTcPerformance) {
-      spTcPerformance.textContent =
-        tc.avg_student_score !== null && tc.avg_student_score !== undefined
-          ? tc.avg_student_score + '%'
-          : '--';
+    function getInitials(name) {
+        if (!name) return 'TC';
+        return name.split(' ').filter(Boolean).map(p => p[0]).join('').slice(0, 2).toUpperCase();
     }
 
-    if (spTcAttendance) {
-      spTcAttendance.textContent =
-        tc.attendance_rate !== null && tc.attendance_rate !== undefined
-          ? tc.attendance_rate + '%'
-          : '--';
+    function fillSidePanel(tc) {
+        currentTeacher = tc;
+        if (!spName) return;
+
+        // Reveal Profile
+        if (sidebarEmptyState) sidebarEmptyState.classList.add('d-none');
+        if (teacherProfile) {
+            teacherProfile.classList.remove('d-none');
+            teacherProfile.classList.remove('animate-update');
+            void teacherProfile.offsetWidth; // Trigger reflow
+            teacherProfile.classList.add('animate-update');
+        }
+
+        spName.textContent = tc.full_name || '--';
+        spId.textContent = (window.I18N?.academicIdPrefix || 'Teacher Code: ') + (tc.teacher_code || ('T-' + tc.id));
+        spEmail.textContent = tc.email || '--';
+        spPhone.textContent = tc.phone || '--';
+        spDob.textContent = tc.birthdate || '--';
+        spAddress.textContent = buildAddress(tc);
+
+        // Assignments Display
+        const subjects = Array.isArray(tc.assigned_subjects) ? tc.assigned_subjects.join(', ') : (tc.subjects || '--');
+        const classes = Array.isArray(tc.assigned_class_sections) ? tc.assigned_class_sections.join(', ') : '--';
+        
+        if (spSubjects) spSubjects.textContent = subjects || '--';
+        if (spClasses) spClasses.textContent = classes || '--';
+
+        // Stats
+        const perfVal = tc.avg_student_score || 0;
+        const attVal = tc.attendance_rate || 0;
+
+        if (spPerformance) spPerformance.textContent = perfVal + '%';
+        if (spAttendance) spAttendance.textContent = attVal + '%';
+
+        const perfBar = document.getElementById('prof-perf-bar');
+        if (perfBar) perfBar.style.width = perfVal + '%';
+
+        const attBar = document.getElementById('prof-att-bar');
+        if (attBar) attBar.style.width = attVal + '%';
+
+        if (spAvatar) {
+            if (tc.photo_path) {
+                spAvatar.style.backgroundImage = `url('${STORAGE_BASE_URL}/${tc.photo_path}')`;
+                spAvatar.style.backgroundSize = 'cover';
+                spAvatar.textContent = '';
+            } else {
+                spAvatar.style.backgroundImage = 'none';
+                spAvatar.textContent = getInitials(tc.full_name);
+            }
+        }
     }
-  }
 
-  function renderTeachers() {
-    if (!teachersTableBody) return;
-    teachersTableBody.innerHTML = '';
+    async function addAssignmentRow(classSectionId = '', subjectId = '') {
+        if (!assignmentsContainer) return;
+        
+        const row = document.createElement('div');
+        row.className = 'assignment-row row g-2 p-2 bg-white rounded-3 shadow-sm border mb-2 align-items-center';
+        
+        let classOptions = `<option value="">${window.I18N?.selectClass || 'Select Class'}</option>`;
+        const classes = window.ALL_CLASSES || [];
+        classes.forEach(c => {
+            const selected = (c.id == classSectionId) ? 'selected' : '';
+            classOptions += `<option value="${c.id}" ${selected}>${c.grade} - ${c.section}</option>`;
+        });
 
-    const search = teacherSearch ? teacherSearch.value.toLowerCase() : '';
-    const subjectFilter = teacherSubjectFilter ? teacherSubjectFilter.value.toLowerCase() : '';
-    const statusFilter = teacherStatusFilter ? teacherStatusFilter.value : '';
-
-    teachersData
-      .filter(tc => {
-        const nameMatch = (tc.full_name || '').toLowerCase().includes(search);
-        const idMatch = (tc.teacher_code || '').toLowerCase().includes(search);
-        return nameMatch || idMatch;
-      })
-      .filter(tc => {
-        if (!subjectFilter) return true;
-
-        const subjectsArr = Array.isArray(tc.assigned_subjects)
-          ? tc.assigned_subjects
-          : (Array.isArray(tc.subjects) ? tc.subjects : []);
-
-        if (!subjectsArr || !subjectsArr.length) return false;
-
-        return subjectsArr.some(s => (s || '').toLowerCase().includes(subjectFilter));
-      })
-      .filter(tc => {
-        if (!statusFilter) return true;
-        return (tc.status || '') === statusFilter;
-      })
-      .forEach(tc => {
-        const subjectsText = Array.isArray(tc.assigned_subjects)
-          ? tc.assigned_subjects.join(', ')
-          : (Array.isArray(tc.subjects)
-              ? tc.subjects.join(', ')
-              : (tc.subjects ?? '')
-            );
-
-        const totalStudents = tc.total_assigned_students ?? tc.students_count ?? 0;
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>
-            <div class="d-flex align-items-center gap-2">
-              <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width:32px;height:32px;">
-                ${getInitials(tc.full_name)}
-              </div>
-              <div>
-                <div>${tc.full_name ?? ''}</div>
-                <small class="text-muted">${tc.email ?? ''}</small>
-              </div>
+        row.innerHTML = `
+            <div class="col-md-5">
+                <select class="form-select class-select bg-light border-0" required>${classOptions}</select>
             </div>
-          </td>
-          <td>${tc.teacher_code ?? ''}</td>
-          <td>${subjectsText}</td>
-          <td>${totalStudents}</td>
-          <td>
-            <span class="status-pill ${tc.status === 'Active' ? 'status-active' : 'status-inactive'}">
-              ${tc.status === 'Active' ? (window.I18N?.active || 'Active') : (window.I18N?.inactive || 'Inactive')}
-            </span>
-          </td>
-          <td class="text-end">
-            <button class="btn btn-sm btn-outline-primary me-1" data-action="edit" data-id="${tc.id}">
-              <i class="bi bi-pencil"></i>
-            </button>
-            <button class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${tc.id}">
-              <i class="bi bi-trash"></i>
-            </button>
-          </td>
+            <div class="col-md-6">
+                <select class="form-select subject-select bg-light border-0" required>
+                    <option value="">${window.I18N?.selectSubject || 'Select Subject'}</option>
+                </select>
+            </div>
+            <div class="col-md-1 text-center">
+                <button type="button" class="btn btn-outline-danger btn-sm border-0 remove-row"><i class="bi bi-trash"></i></button>
+            </div>
         `;
 
-        tr.addEventListener('click', (e) => {
-          if (e.target.closest('button')) return;
-          fillSidePanel(tc);
-          // تعبئة حقل الصف/الشعبة للقراءة فقط في الفورم لو فتحه بعدين
-          if (tcAssignedClasses) {
-            const classSections = Array.isArray(tc.assigned_class_sections)
-              ? tc.assigned_class_sections
-              : [];
-            tcAssignedClasses.value = classSections.length ? classSections.join(', ') : '';
-          }
-        });
+        const classSelect = row.querySelector('.class-select');
+        const subjectSelect = row.querySelector('.subject-select');
 
-        const editBtn = tr.querySelector('button[data-action="edit"]');
-        const delBtn = tr.querySelector('button[data-action="delete"]');
-
-        editBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          showForm('edit');
-
-          if (tcDbId) tcDbId.value = tc.id;
-          if (tcFullName) tcFullName.value = tc.full_name ?? '';
-          if (tcBirthdate) tcBirthdate.value = tc.birthdate ?? '';
-          if (tcAge) tcAge.value = tc.age ?? '';
-          if (tcPhone) tcPhone.value = tc.phone ?? '';
-          if (tcEmail) tcEmail.value = tc.email ?? '';
-          if (tcShift) tcShift.value = tc.shift ?? '';
-          if (tcDistrict) tcDistrict.value = tc.district ?? '';
-          if (tcNeighborhood) tcNeighborhood.value = tc.neighborhood ?? '';
-          if (tcStreet) tcStreet.value = tc.street ?? '';
-          if (tcAssignedClasses) {
-            const classSections = Array.isArray(tc.assigned_class_sections)
-              ? tc.assigned_class_sections
-              : [];
-            tcAssignedClasses.value = classSections.length ? classSections.join(', ') : '';
-          }
-          if (tcPhoto) tcPhoto.value = '';
-        });
-
-        delBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (!confirm(window.I18N?.deleteTeacherQuestion || 'Delete this teacher?')) return;
-          const url = typeof getDeleteUrl === 'function' ? getDeleteUrl(tc.id) : `/teachers/${tc.id}`;
-          fetch(url, {
-            method: 'DELETE',
-            headers: {
-              'X-CSRF-TOKEN': csrf
+        const populateSubjects = async (cId, sId = '') => {
+            if (!window.CLASS_SUBJECTS_API) return;
+            subjectSelect.innerHTML = `<option value="">${window.I18N?.selectSubject || 'Loading...'}</option>`;
+            try {
+                const res = await fetch(`${window.CLASS_SUBJECTS_API}?class_section_id=${cId}`);
+                const data = await res.json();
+                subjectSelect.innerHTML = `<option value="">${window.I18N?.selectSubject || 'Select Subject'}</option>`;
+                data.forEach(s => {
+                    const sel = (s.id == sId) ? 'selected' : '';
+                    subjectSelect.innerHTML += `<option value="${s.id}" ${sel}>${s.name_en} (${s.name_ar})</option>`;
+                });
+            } catch (e) {
+                subjectSelect.innerHTML = `<option value="">${window.I18N?.selectSubject || 'Select Subject'}</option>`;
             }
-          })
-          .then(res => res.json())
-          .then(() => fetchTeachers())
-          .catch(console.error);
+        };
+
+        classSelect.addEventListener('change', () => populateSubjects(classSelect.value));
+        row.querySelector('.remove-row').addEventListener('click', () => row.remove());
+
+        if (classSectionId) await populateSubjects(classSectionId, subjectId);
+        assignmentsContainer.appendChild(row);
+    }
+
+    function renderTeachers() {
+        if (!teachersTableBody) return;
+        teachersTableBody.innerHTML = '';
+
+        const search = teacherSearch?.value.toLowerCase() || '';
+        const subjFilter = teacherSubjectFilter?.value.toLowerCase() || '';
+        const statFilter = teacherStatusFilter?.value || '';
+
+        console.log('Teachers JS: Rendering teachers...', { search, subjFilter, statFilter });
+
+        const filtered = teachersData.filter(tc => {
+            const matchSearch = (tc.full_name || '').toLowerCase().includes(search) || (tc.teacher_code || '').toLowerCase().includes(search);
+            const subjects = Array.isArray(tc.assigned_subjects) ? tc.assigned_subjects : [];
+            const matchSubj = !subjFilter || subjects.some(s => s.toLowerCase().includes(subjFilter));
+            const matchStat = !statFilter || tc.status === statFilter;
+            return matchSearch && matchSubj && matchStat;
+        });
+        
+        if (filtered.length === 0) {
+            teachersTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-5">
+                <div class="empty-state anim-fade-up">
+                   <i class="bi bi-person-badge text-muted" style="font-size: 3.5rem; opacity: 0.3;"></i>
+                   <h5 class="mt-3 text-navy fw-bold">${window.I18N?.noTeachersRegistered || 'No teachers found'}</h5>
+                   <p class="text-muted small">${window.I18N?.startByAddingTeacher || 'Try adjusting your search or add a new teacher.'}</p>
+                </div>
+            </td></tr>`;
+            return;
+        }
+
+        filtered.forEach(tc => {
+            const tr = document.createElement('tr');
+            tr.className = 'cursor-pointer';
+            const gender = (tc.gender || '').toLowerCase();
+            const genderIcon = gender === 'female' 
+                ? '<i class="bi bi-gender-female text-danger"></i>' 
+                : '<i class="bi bi-gender-male text-primary"></i>';
+            tr.innerHTML = `
+                <td class="ps-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="font-size: 1.1rem;">${genderIcon}</div>
+                        <div class="fw-bold text-navy">${tc.full_name}</div>
+                    </div>
+                </td>
+                <td class="text-muted small">${tc.teacher_code || ('T-' + tc.id)}</td>
+                <td><span class="badge bg-soft-primary text-primary rounded-pill px-3">${(tc.assigned_subjects || []).slice(0,2).join(', ')}${tc.assigned_subjects?.length > 2 ? '...' : ''}</span></td>
+                <td>
+                    <span class="status-pill ${tc.status === 'Active' ? 'status-active' : 'status-suspended'}">
+                        ${tc.status === 'Active' ? (window.I18N?.active || 'Active') : (window.I18N?.suspended || 'Inactive')}
+                    </span>
+                </td>
+                <td class="text-end pe-4">
+                    <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                        <button class="btn btn-sm btn-white border-end edit-btn" title="Edit"><i class="bi bi-pencil text-primary"></i></button>
+                        <button class="btn btn-sm btn-white border-end report-btn" title="Report"><i class="bi bi-bar-chart text-info"></i></button>
+                        <button class="btn btn-sm btn-white delete-btn" title="Delete"><i class="bi bi-trash text-danger"></i></button>
+                    </div>
+                </td>
+            `;
+
+            tr.addEventListener('click', (e) => {
+                if (e.target.closest('button')) return;
+                document.querySelectorAll('#teachersTable tr.selected-row').forEach(r => r.classList.remove('selected-row'));
+                tr.classList.add('selected-row');
+                fillSidePanel(tc);
+            });
+
+            tr.querySelector('.edit-btn').addEventListener('click', (e) => { e.stopPropagation(); editTeacher(tc); });
+            tr.querySelector('.report-btn').addEventListener('click', (e) => { e.stopPropagation(); window.location.href = `/reports?teacher_id=${tc.id}`; });
+            tr.querySelector('.delete-btn').addEventListener('click', (e) => { e.stopPropagation(); confirmDelete(tc.id); });
+
+            teachersTableBody.appendChild(tr);
+        });
+    }
+
+    function editTeacher(tc) {
+        showForm('edit');
+        tcDbId.value = tc.id;
+        tcFullName.value = tc.full_name || '';
+        tcGender.value = tc.gender || '';
+        tcBirthdate.value = tc.birthdate ? tc.birthdate.split('T')[0] : '';
+        tcEmail.value = tc.email || '';
+        tcPhone.value = tc.phone || '';
+        tcShift.value = tc.shift || 'Morning';
+        tcStatus.value = tc.status || 'Active';
+        tcDistrict.value = tc.district || '';
+        tcNeighborhood.value = tc.neighborhood || '';
+        tcStreet.value = tc.street || '';
+
+        assignmentsContainer.innerHTML = '';
+        if (Array.isArray(tc.assignments) && tc.assignments.length) {
+            tc.assignments.forEach(a => addAssignmentRow(a.class_section_id, a.subject_id));
+        } else {
+            addAssignmentRow();
+        }
+    }
+
+    function confirmDelete(id) {
+        if (!confirm(window.I18N?.unexpectedError || 'Are you sure you want to delete this teacher?')) return;
+        fetch(ROUTES.destroy(id), {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': csrf }
+        }).then(() => fetchTeachers());
+    }
+
+    function fetchTeachers() {
+        console.log('Teachers JS: Fetching teachers from ' + ROUTES.list);
+        fetch(ROUTES.list).then(r => r.json()).then(data => {
+            console.log('Teachers JS: Received', data.length, 'teachers');
+            teachersData = data;
+            renderTeachers();
+
+            if (data.length > 0 && teacherFormView.style.display === 'none') {
+                fillSidePanel(data[0]);
+                const firstRow = document.querySelector('#teachersTable tbody tr');
+                if (firstRow) {
+                    firstRow.classList.add('selected-row');
+                    if (sidebarEmptyState) sidebarEmptyState.classList.add('d-none');
+                    if (teacherProfile) teacherProfile.classList.remove('d-none');
+                }
+            } else {
+                console.log('Teachers JS: No teachers to show in side panel');
+            }
+
+            // Populating filter subjects dynamically
+            const allSubjs = [...new Set(data.flatMap(t => t.assigned_subjects || []))];
+            if (teacherSubjectFilter) {
+                teacherSubjectFilter.innerHTML = `<option value="">${window.I18N?.allSubjects || 'All Subjects'}</option>`;
+                allSubjs.forEach(s => teacherSubjectFilter.innerHTML += `<option value="${s}">${s}</option>`);
+            }
+        });
+    }
+
+    // Event Listeners
+    if (teacherSearch) teacherSearch.addEventListener('input', renderTeachers);
+    if (teacherSubjectFilter) teacherSubjectFilter.addEventListener('change', renderTeachers);
+    if (teacherStatusFilter) teacherStatusFilter.addEventListener('change', renderTeachers);
+    if (document.getElementById('openTeacherFormBtn')) document.getElementById('openTeacherFormBtn').addEventListener('click', () => { showForm('create'); assignmentsContainer.innerHTML = ''; addAssignmentRow(); });
+    if (document.getElementById('backToTeachersBtn')) document.getElementById('backToTeachersBtn').addEventListener('click', showList);
+    if (document.getElementById('cancelTeacherBtn')) document.getElementById('cancelTeacherBtn').addEventListener('click', showList);
+    if (addAssignmentRowBtn) addAssignmentRowBtn.addEventListener('click', () => addAssignmentRow());
+
+    function clearForm() {
+        tcDbId.value = '';
+        tcFullName.value = '';
+        tcGender.value = '';
+        tcBirthdate.value = '';
+        tcEmail.value = '';
+        tcPhone.value = '';
+        tcShift.value = 'Morning';
+        tcStatus.value = 'Active';
+        tcDistrict.value = '';
+        tcNeighborhood.value = '';
+        tcStreet.value = '';
+        tcPhoto.value = '';
+        assignmentsContainer.innerHTML = '';
+    }
+
+    // Save Logic
+    document.getElementById('saveTeacherBtn')?.addEventListener('click', () => {
+        // Validation logic
+        const requiredFields = [
+            { el: tcFullName, label: window.I18N?.fullName || 'Full Name' },
+            { el: tcGender, label: window.I18N?.gender || 'Gender' },
+            { el: tcBirthdate, label: window.I18N?.birthdate || 'Birthdate' },
+            { el: tcShift, label: window.I18N?.shift || 'Shift' }
+        ];
+
+        let missing = [];
+        requiredFields.forEach(field => {
+            if (!field.el.value || field.el.value.trim() === '') {
+                missing.push(field.label);
+                field.el.classList.add('is-invalid');
+            } else {
+                field.el.classList.remove('is-invalid');
+            }
         });
 
-        teachersTableBody.appendChild(tr);
-      });
-  }
+        if (missing.length > 0) {
+            Swal.fire({
+                title: window.I18N?.requiredFieldsMissing || 'Required Fields Missing',
+                html: (window.I18N?.pleaseFill || 'Please fill in the following fields:') + '<br><b>' + missing.join(', ') + '</b>',
+                icon: 'warning',
+                confirmButtonText: window.I18N?.ok || 'OK'
+            });
+            return;
+        }
 
-  function fetchTeachers() {
-    const url = typeof getListUrl === 'function' ? getListUrl() : getListUrl;
-    fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        teachersData = data;
-        renderTeachers();
-        if (teachersData.length) fillSidePanel(teachersData[0]);
-      })
-      .catch(console.error);
-  }
-  fetchTeachers();
+        // 2. Age Validation (18 - 70 years)
+        const bday = new Date(tcBirthdate.value);
+        const today = new Date();
+        let age = today.getFullYear() - bday.getFullYear();
+        const m = today.getMonth() - bday.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < bday.getDate())) age--;
 
-  if (teacherSearch) teacherSearch.addEventListener('input', renderTeachers);
-  if (teacherSubjectFilter) teacherSubjectFilter.addEventListener('change', renderTeachers);
-  if (teacherStatusFilter) teacherStatusFilter.addEventListener('change', renderTeachers);
+        if (age < 18 || age > 70) {
+            Swal.fire({
+                title: window.I18N?.error || 'Error',
+                text: window.I18N?.invalidTeacherAge || 'Teacher age must be between 18 and 70 years.',
+                icon: 'error',
+                confirmButtonText: window.I18N?.ok || 'OK'
+            });
+            tcBirthdate.classList.add('is-invalid');
+            return;
+        }
 
-  // calc age
-  if (calcAgeBtn) {
-    calcAgeBtn.addEventListener('click', () => {
-      if (!tcBirthdate || !tcBirthdate.value || !tcAge) return;
-      const dob = new Date(tcBirthdate.value);
-      const today = new Date();
-      let age = today.getFullYear() - dob.getFullYear();
-      const m = today.getMonth() - dob.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-        age--;
-      }
-      tcAge.value = age;
+        const formData = new FormData();
+        formData.append('full_name', tcFullName.value);
+        formData.append('gender', tcGender.value);
+        formData.append('birthdate', tcBirthdate.value);
+        formData.append('email', tcEmail.value);
+        formData.append('phone', tcPhone.value);
+        formData.append('shift', tcShift.value);
+        formData.append('status', tcStatus.value);
+        formData.append('district', tcDistrict.value);
+        formData.append('neighborhood', tcNeighborhood.value);
+        formData.append('street', tcStreet.value);
+        if (tcPhoto.files[0]) formData.append('photo', tcPhoto.files[0]);
+
+        const assignments = [];
+        document.querySelectorAll('.assignment-row').forEach(row => {
+            const cid = row.querySelector('.class-select').value;
+            const sid = row.querySelector('.subject-select').value;
+            if (cid && sid) assignments.push({ class_section_id: cid, subject_id: sid });
+        });
+        formData.append('assignments_json', JSON.stringify(assignments));
+
+        const isEdit = currentMode === 'edit' && tcDbId.value !== '';
+        const url = isEdit ? ROUTES.update(tcDbId.value) : ROUTES.store;
+        if (isEdit) formData.append('_method', 'PUT');
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+            body: formData
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Save failed');
+            return res.json();
+        })
+        .then(data => {
+            Swal.fire({
+                title: window.I18N?.success || 'Success',
+                text: window.I18N?.teacherSaved || 'Teacher saved successfully',
+                icon: 'success',
+                confirmButtonText: window.I18N?.ok || 'OK'
+            }).then(() => {
+                isDirty = false;
+                fetchTeachers();
+                showList();
+                clearForm();
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            Swal.fire('Error', 'Failed to save records', 'error');
+        });
     });
-  }
 
-  // حفظ أستاذ (نفس منطق الطلاب: FormData + صورة)
-  if (saveTeacherBtn) {
-    saveTeacherBtn.addEventListener('click', () => {
-      const formData = new FormData();
-      formData.append('full_name', tcFullName.value);
-      formData.append('birthdate', tcBirthdate ? tcBirthdate.value : '');
-      formData.append('age', tcAge ? tcAge.value : '');
-      formData.append('phone', tcPhone ? tcPhone.value : '');
-      formData.append('email', tcEmail ? tcEmail.value : '');
-      formData.append('shift', tcShift ? tcShift.value : '');
-      formData.append('district', tcDistrict ? tcDistrict.value : '');
-      formData.append('neighborhood', tcNeighborhood ? tcNeighborhood.value : '');
-      formData.append('street', tcStreet ? tcStreet.value : '');
-      formData.append('status', 'Active');
-
-      if (tcPhoto && tcPhoto.files[0]) {
-        formData.append('photo', tcPhoto.files[0]);
-      }
-
-      let url = getStoreUrl;
-      let method = 'POST';
-
-      if (currentMode === 'edit' && tcDbId && tcDbId.value) {
-        if (typeof getUpdateUrl === 'string' && getUpdateUrl.includes('__ID__')) {
-          url = getUpdateUrl.replace('__ID__', tcDbId.value);
-        } else if (typeof getUpdateUrl === 'function') {
-          url = getUpdateUrl(tcDbId.value);
-        } else {
-          url = `/teachers/${tcDbId.value}`;
-        }
-        method = 'POST';
-        formData.append('_method', 'PUT');
-      }
-
-      fetch(url, {
-        method: method,
-        headers: {
-          'X-CSRF-TOKEN': csrf
-        },
-        body: formData
-      })
-      .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text();
-          console.error('Server error:', text);
-          alert((window.I18N?.savingFailed || 'Saving failed') + '. Status: ' + res.status);
-          throw new Error('Request failed');
-        }
-        return res.json();
-      })
-      .then(saved => {
-        fetchTeachers();
-        showList();
-        clearForm();
-        if (teacherSavedAlert) {
-          teacherSavedAlert.textContent = window.I18N?.teacherSaved || 'Teacher saved successfully.';
-          teacherSavedAlert.classList.remove('d-none');
-        }
-      })
-      .catch(console.error);
+    // Sidebar Actions
+    sidebarEditBtn?.addEventListener('click', () => currentTeacher && editTeacher(currentTeacher));
+    sidebarReportBtn?.addEventListener('click', () => currentTeacher && (window.location.href = `/reports?teacher_id=${currentTeacher.id}`));
+    sidebarDeleteBtn?.addEventListener('click', () => {
+        if (!currentTeacher) return;
+        teacherIdToDelete = currentTeacher.id;
+        deleteModal?.show();
     });
-  }
 
-  // import CSV/Excel (نفس منطق الطلاب)
-  if (importTeachersBtn && importTeachersInput) {
-    importTeachersBtn.addEventListener('click', () => importTeachersInput.click());
-    importTeachersInput.addEventListener('change', () => {
-      const file = importTeachersInput.files[0];
-      if (!file) return;
+    confirmDeleteTeacherBtn?.addEventListener('click', () => {
+        if (!teacherIdToDelete) return;
+        const url = typeof ROUTES.destroy === 'function' ? ROUTES.destroy(teacherIdToDelete) : ROUTES.destroy.replace('__ID__', teacherIdToDelete);
 
-      const fd = new FormData();
-      fd.append('file', file);
-
-      const url = typeof getImportUrl === 'function' ? getImportUrl() : getImportUrl;
-
-      fetch(url, {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': csrf,
-          'Accept': 'application/json'
-        },
-        body: fd
-      })
-      .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text();
-          console.error('Import error:', text);
-          alert('Import failed. Status: ' + res.status);
-          throw new Error('Import failed');
-        }
-        try {
-          return await res.json();
-        } catch (e) {
-          return {};
-        }
-      })
-      .then(() => {
-        importTeachersInput.value = '';
-        fetchTeachers();
-      })
-      .catch(console.error);
+        fetch(url, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': csrf }
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Delete failed');
+            return res.json();
+        })
+        .then(() => {
+            deleteModal?.hide();
+            fetchTeachers();
+            if (teacherProfile) teacherProfile.style.display = 'none';
+            if (sidebarEmptyState) sidebarEmptyState.style.display = 'block';
+            Swal.fire('Success', 'Teacher record deleted', 'success');
+        })
+        .catch(err => {
+            console.error(err);
+            Swal.fire('Error', 'Failed to delete record', 'error');
+        });
     });
-  }
 
-  if (openTeacherFormBtn) openTeacherFormBtn.addEventListener('click', () => showForm('create'));
-  if (backToTeachersBtn) backToTeachersBtn.addEventListener('click', showList);
-  if (cancelTeacherBtn) cancelTeacherBtn.addEventListener('click', showList);
+    // --- Import Functionality ---
+    importTeachersBtn?.addEventListener('click', () => teacherExcelInput?.click());
 
-  window.__pageCleanup = function () {
-    // لو حاب تنظف لسيناريو SPA مستقبلاً
-  };
+    teacherExcelInput?.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const url = typeof ROUTES.import === 'function' ? ROUTES.import() : ROUTES.import;
+
+        if (window.loadingManager) window.loadingManager.start();
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrf,
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(async (res) => {
+            if (!res.ok) {
+                const text = await res.text();
+                console.error('Import error:', text);
+                if (window.loadingManager) window.loadingManager.stop();
+                Swal.fire('Error', window.I18N?.importFailed || 'Import failed', 'error');
+                throw new Error('Import failed');
+            }
+            try {
+                const data = await res.json();
+                if (window.loadingManager) {
+                    window.loadingManager.stop({
+                        success: data.success,
+                        failed: data.failed
+                    });
+                } else {
+                    Swal.fire('Success', data.message || window.I18N?.teachersImported || 'Imported!', 'success');
+                }
+                fetchTeachers();
+            } catch(e) { 
+                if (window.loadingManager) window.loadingManager.stop();
+                Swal.fire('Success', window.I18N?.teachersImported || 'Imported!', 'success');
+                fetchTeachers(); 
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            if (window.loadingManager) window.loadingManager.stop();
+            Swal.fire('Error', window.I18N?.unexpectedError || 'An unexpected error occurred', 'error');
+        })
+        .finally(() => {
+            teacherExcelInput.value = ''; // Reset input
+        });
+    });
+
+    fetchTeachers();
 });

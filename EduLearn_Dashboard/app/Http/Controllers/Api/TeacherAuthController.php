@@ -93,14 +93,18 @@ class TeacherAuthController extends Controller
                         'id'          => $st->id,
                         'full_name'   => $st->full_name,
                         'academic_id' => $st->academic_id,
-                        'image'       => $st->image ?? null,
+                        'image'       => $st->photo_url ?? null,
                     ];
                 })->values(),
             ];
         }
 
+        // ✅ توليد توكن Sanctum
+        $token = $teacher->createToken('teacher-token')->plainTextToken;
+
         return response()->json([
             'success' => true,
+            'token'   => $token, // 🔹 هذا ما كان ينقصه تطبيق Flutter
             'teacher' => [
                 'id'           => $teacher->id,
                 'full_name'    => $teacher->full_name,
@@ -108,7 +112,7 @@ class TeacherAuthController extends Controller
                 'email'        => $teacher->email,
 
                 // ✅ صورة الأستاذ نفسه
-                'image'        => $teacher->image ?? null,
+                'image'        => $teacher->photo_url ?? null,
 
                 'stage'        => $teacher->stage,
                 'status'       => $teacher->status,

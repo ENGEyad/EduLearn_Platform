@@ -1,0 +1,17 @@
+full_name,email,phone,specialization,is_active,photo_path
+"أروى فارس الأهجري",teacher1@example.com,778775147,arabic,1,teachers/teacher_1.jpg
+"هاني مازن البكاري",teacher2@example.com,777400515,English,1,teachers/teacher_2.jpg
+"فاطمة علي البكاري",teacher3@example.com,778037206,Arabic,1,teachers/teacher_3.jpg
+"باسم هاني الوزير",teacher4@example.com,771097132,"Islamic Education",1,teachers/teacher_4.jpg
+"محمد قاسم الهمداني",teacher5@example.com,771217675,Mathematics,1,teachers/teacher_5.jpg
+"علي يحيى المذحجي",teacher6@example.com,771024353,Science,1,teachers/teacher_6.jpg
+"محمد عمار الصايدي",teacher7@example.com,777888212,"Social Studies",1,teachers/teacher_7.jpg
+"مازن وليد القرشي",teacher8@example.com,776989114,Quran,1,teachers/teacher_8.jpg
+"رامي مازن الصايدي",teacher9@example.com,771235379,Physics,1,teachers/teacher_9.jpg
+"عبير هاني المتوكل",teacher10@example.com,771234934,Chemistry,1,teachers/teacher_10.jpg
+"ليلى وليد الجبري",teacher11@example.com,772348028,Biology,1,teachers/teacher_11.jpg
+"خلود سامي المذحجي",teacher12@example.com,772258534,History,1,teachers/teacher_12.jpg
+"عمار باسم الجبري",teacher13@example.com,771918998,Geography,1,teachers/teacher_13.jpg
+"وليد علي الحاشدي",teacher14@example.com,772011541,"National Education",1,teachers/teacher_14.jpg
+"هدى رامي الصايدي",teacher15@example.com,778570039,"Philosophy & Psychology",1,teachers/teacher_15.jpg
+"إبراهيم باسم القاسمي",teacher16@example.com,779024165,Sociology,1,teachers/teacher_16.jpg

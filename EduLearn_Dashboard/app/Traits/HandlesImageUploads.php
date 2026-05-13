@@ -33,33 +33,50 @@ trait HandlesImageUploads
         int $quality = 75,
         int $thumbWidth = 300,
     ): string {
-        $manager = ImageManager::gd();
+        $hasGd = extension_loaded('gd');
+        $hasImagick = extension_loaded('imagick');
 
-        // Read the uploaded file into Intervention
-        $image = $manager->read($file->getPathname());
+        if (!$hasGd && !$hasImagick) {
+            // Fallback: Just store the raw file if no library is available
+            return $file->store($folder, 'public');
+        }
 
-        // Scale down only if larger than maxWidth (never scale up)
-        $image = $image->scaleDown(width: $maxWidth);
+        try {
+            if ($hasGd) {
+                $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+            } else {
+                $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Imagick\Driver());
+            }
 
-        // Generate a unique filename with .webp extension
-        $filename = uniqid() . '_' . time() . '.webp';
-        $fullPath = $folder . '/' . $filename;
-        $thumbPath = $folder . '/thumbs/' . $filename;
+            // Read the uploaded file into Intervention
+            $image = $manager->read($file->getPathname());
 
-        // Encode to WebP
-        $encoded = $image->toWebp($quality);
+            // Scale down only if larger than maxWidth (never scale up)
+            $image = $image->scaleDown(width: $maxWidth);
 
-        // Store the full-size image
-        Storage::disk('public')->put($fullPath, (string) $encoded);
+            // Generate a unique filename with .webp extension
+            $filename = uniqid() . '_' . time() . '.webp';
+            $fullPath = $folder . '/' . $filename;
+            $thumbPath = $folder . '/thumbs/' . $filename;
 
-        // Generate and store thumbnail
-        $thumb = $manager->read($file->getPathname())
-            ->scaleDown(width: $thumbWidth)
-            ->toWebp($quality);
+            // Encode to WebP
+            $encoded = $image->toWebp($quality);
 
-        Storage::disk('public')->put($thumbPath, (string) $thumb);
+            // Store the full-size image
+            Storage::disk('public')->put($fullPath, (string) $encoded);
 
-        return $fullPath;
+            // Generate and store thumbnail
+            $thumb = $manager->read($file->getPathname())
+                ->scaleDown(width: $thumbWidth)
+                ->toWebp($quality);
+
+            Storage::disk('public')->put($thumbPath, (string) $thumb);
+
+            return $fullPath;
+        } catch (\Exception $e) {
+            // If anything fails during processing, fallback to raw storage
+            return $file->store($folder, 'public');
+        }
     }
 
     /**
@@ -96,5 +113,48 @@ trait HandlesImageUploads
         $file = basename($path);
 
         return $dir . '/thumbs/' . $file;
+    }
+
+    /**
+     * Optimise an image and return its binary content (useful for DB storage).
+     *
+     * @param  UploadedFile $file
+     * @param  int          $maxWidth
+     * @param  int          $quality
+     * @return array        ['data' => binary, 'mime' => 'image/webp']
+     */
+    protected function optimizeToBinary(\Illuminate\Http\UploadedFile $file, int $maxWidth = 400, int $quality = 70): array
+    {
+        $hasGd = extension_loaded('gd');
+        $hasImagick = extension_loaded('imagick');
+
+        if (!$hasGd && !$hasImagick) {
+            return [
+                'data' => file_get_contents($file->getRealPath()),
+                'mime' => $file->getMimeType()
+            ];
+        }
+
+        try {
+            if ($hasGd) {
+                $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+            } else {
+                $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Imagick\Driver());
+            }
+
+            $image = $manager->read($file->getPathname());
+            $image = $image->scaleDown(width: $maxWidth);
+            $encoded = $image->toWebp($quality);
+
+            return [
+                'data' => (string) $encoded,
+                'mime' => 'image/webp'
+            ];
+        } catch (\Exception $e) {
+            return [
+                'data' => file_get_contents($file->getRealPath()),
+                'mime' => $file->getMimeType()
+            ];
+        }
     }
 }

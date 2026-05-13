@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Sanctum\HasApiTokens;
 
 class Student extends Model
 {
+    use HasApiTokens;
     protected $fillable = [
+        'school_id',
         'full_name',
         'academic_id',
         'gender',
@@ -27,6 +30,8 @@ class Student extends Model
         'performance_avg',
         'attendance_rate',
         'photo_path',
+        'photo_data',
+        'photo_mime',
         'guardian_phones',
         'notes',
         'total_study_time_seconds',
@@ -52,18 +57,26 @@ class Student extends Model
 
     public function getPhotoUrlAttribute(): ?string
     {
-        return $this->photo_path ? asset('storage/' . $this->photo_path) : null;
+        if ($this->photo_data) {
+            return route('students.photo', ['student' => $this->id]);
+        }
+        if ($this->photo_path) {
+            return asset('storage/' . $this->photo_path);
+        }
+        return null;
     }
 
     public function getThumbUrlAttribute(): ?string
     {
-        if (!$this->photo_path) {
-            return null;
-        }
-        $dir = dirname($this->photo_path);
-        $file = basename($this->photo_path);
-        $thumbPath = $dir . '/thumbs/' . $file;
-        return asset('storage/' . $thumbPath);
+        return $this->photo_url;
+    }
+
+    /**
+     * ربط الطالب بالمدرسة (School)
+     */
+    public function school()
+    {
+        return $this->belongsTo(\App\Models\School::class);
     }
 
     /**

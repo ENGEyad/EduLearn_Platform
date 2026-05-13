@@ -12,9 +12,14 @@ use App\Models\LessonExerciseQuestion;
 use App\Models\LessonExerciseOption;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\LearningActivityService;
 
 class LessonController extends Controller
 {
+    public function __construct(
+        protected LearningActivityService $activityService,
+    ) {
+    }
     /**
      * ============================================================
      * 🔹 حفظ أو تعديل درس (Draft / Published) — المرحلة الأولى
@@ -43,12 +48,12 @@ class LessonController extends Controller
             'status' => 'required|in:draft,published',
 
             /**
-     * ------------------------------------------------------------
-     * ⚠️ Backward compatibility:
-     * نستقبل modules/topics لو جاءت من Flutter القديمة،
-     * لكننا لا نخزنها ولا نعتمد عليها في المرحلة الأولى.
-     * ------------------------------------------------------------
-     */
+             * ------------------------------------------------------------
+             * ⚠️ Backward compatibility:
+             * نستقبل modules/topics لو جاءت من Flutter القديمة،
+             * لكننا لا نخزنها ولا نعتمد عليها في المرحلة الأولى.
+             * ------------------------------------------------------------
+             */
             'modules' => 'nullable|array',
             'topics' => 'nullable|array',
 
@@ -58,7 +63,7 @@ class LessonController extends Controller
             // Blocks فقط
             'blocks' => 'nullable|array',
             'blocks.*.id' => 'nullable|integer',
-            'blocks.*.type' => 'required|in:text,image,video,audio',
+            'blocks.*.type' => 'required|in:text,image,video,audio,file',
             'blocks.*.body' => 'nullable|string',
             'blocks.*.caption' => 'nullable|string|max:255',
 
@@ -116,8 +121,7 @@ class LessonController extends Controller
                     ->where('id', $validated['lesson_id'])
                     ->where('teacher_id', $teacher->id)
                     ->firstOrFail();
-            }
-            else {
+            } else {
                 $lesson = new Lesson();
                 $lesson->setConnection('app_mysql');
             }
@@ -226,21 +230,8 @@ class LessonController extends Controller
                 }
             }
 
-            // ✅ التوليد التلقائي للتمارين عند النشر
-            if ($validated['status'] === 'published') {
-                try {
-                    // استدعاء داخلي لتوليد التمارين
-                    app(AiController::class)->generateExercises(new Request([
-                        'lesson_id' => $lessonId,
-                        'count' => 5,
-                        'difficulty' => 'medium'
-                    ]));
-                }
-                catch (\Exception $e) {
-                    // لا نريد إيقاف حفظ الدرس إذا فشل الـ AI
-                    \Log::error("AI Exercise Generation failed: " . $e->getMessage());
-                }
-            }
+            // ✅ في هذه المرحلة: لا يوجد توليد AI تلقائي.
+            // التمارين تُدار يدويًا عبر نظام التمارين المستقل.
         });
 
         // ============================================================
@@ -250,8 +241,8 @@ class LessonController extends Controller
             ->where('id', $lessonId)
             ->where('teacher_id', $teacher->id)
             ->with(['blocks' => function ($q) {
-                $q->orderBy('position');
-            }, 'exercise.questions.options'])
+            $q->orderBy('position');
+        }])
             ->first();
 
         if (!$lessonRow) {
@@ -275,40 +266,57 @@ class LessonController extends Controller
             }
 
             return [
-            'id' => $b->id,
-            'lesson_id' => $b->lesson_id,
-            'module_id' => null, // ✅ مرحلة 1
-            'topic_id' => null, // ✅ مرحلة 1
-            'type' => $b->type,
-            'body' => $b->body,
-            'caption' => $b->caption,
-            'media_path' => $b->media_path,
-            'media_url' => $url,
-            'media_mime' => $b->media_mime,
-            'media_size' => $b->media_size,
-            'media_duration' => $b->media_duration,
-            'position' => $b->position,
-            'meta' => $b->meta,
-            'created_at' => $b->created_at,
-            'updated_at' => $b->updated_at,
+                'id' => $b->id,
+                'lesson_id' => $b->lesson_id,
+                'module_id' => null, // ✅ مرحلة 1
+                'topic_id' => null, // ✅ مرحلة 1
+                'type' => $b->type,
+                'body' => $b->body,
+                'caption' => $b->caption,
+                'media_path' => $b->media_path,
+                'media_url' => $url,
+                'media_mime' => $b->media_mime,
+                'media_size' => $b->media_size,
+                'media_duration' => $b->media_duration,
+                'position' => $b->position,
+                'meta' => $b->meta,
+                'created_at' => $b->created_at,
+                'updated_at' => $b->updated_at,
             ];
         })->values();
 
         $lessonPayload = $lessonRow->toArray();
         $lessonPayload['blocks'] = $blocksPayload;
 
-        // Log notification to dashboard
-        $actionKey = !empty($validated['lesson_id']) ? 'notifications.lesson_updated' : 'notifications.lesson_added';
-        $statusAr = ($validated['status'] === 'published') ? 'published' : 'draft';
-        
         \App\Models\DashboardNotification::logEvent(
             'teacher_event',
             !empty($validated['lesson_id']) ? 'Lesson Updated' : 'Lesson Added',
             $actionKey,
             $teacher->full_name,
             'bi-journal-plus',
+            $teacher->school_id,
             ['teacher' => $teacher->full_name, 'lesson' => $validated['title'], 'status' => $statusAr]
         );
+
+        // Record activity for students if published
+        if ($validated['status'] === 'published') {
+            $students = \App\Models\Student::where('class_section_id', $validated['class_section_id'])->get();
+            foreach ($students as $student) {
+                $this->activityService->recordTeacherLessonActivityForStudent([
+                    'teacher_id' => $teacher->id,
+                    'teacher_code' => $teacher->teacher_code,
+                    'teacher_name' => $teacher->full_name,
+                    'student_id' => $student->id,
+                    'academic_id' => $student->academic_id,
+                    'class_section_id' => $validated['class_section_id'],
+                    'subject_id' => $validated['subject_id'],
+                    'lesson_id' => $lessonId,
+                    'event_type' => !empty($validated['lesson_id']) ? \App\Models\LearningActivity::EVENT_TEACHER_UPDATED_LESSON : \App\Models\LearningActivity::EVENT_TEACHER_PUBLISHED_LESSON,
+                    'title' => !empty($validated['lesson_id']) ? 'تم تحديث درس جديد' : 'درس جديد متاح',
+                    'body' => "قام الأستاذ {$teacher->full_name} بنشر الدرس: {$validated['title']}",
+                ]);
+            }
+        }
 
         return response()->json([
             'success' => true,
@@ -387,8 +395,8 @@ class LessonController extends Controller
             ->where('id', $lesson)
             ->where('teacher_id', $teacher->id)
             ->with(['blocks' => function ($q) {
-                $q->orderBy('position');
-            }, 'exercise.questions.options'])
+            $q->orderBy('position');
+        }])
             ->first();
 
         if (!$lessonRow) {
@@ -411,22 +419,22 @@ class LessonController extends Controller
             }
 
             return [
-            'id' => $b->id,
-            'lesson_id' => $b->lesson_id,
-            'module_id' => null,
-            'topic_id' => null,
-            'type' => $b->type,
-            'body' => $b->body,
-            'caption' => $b->caption,
-            'media_path' => $b->media_path,
-            'media_url' => $url,
-            'media_mime' => $b->media_mime,
-            'media_size' => $b->media_size,
-            'media_duration' => $b->media_duration,
-            'position' => $b->position,
-            'meta' => $b->meta,
-            'created_at' => $b->created_at,
-            'updated_at' => $b->updated_at,
+                'id' => $b->id,
+                'lesson_id' => $b->lesson_id,
+                'module_id' => null,
+                'topic_id' => null,
+                'type' => $b->type,
+                'body' => $b->body,
+                'caption' => $b->caption,
+                'media_path' => $b->media_path,
+                'media_url' => $url,
+                'media_mime' => $b->media_mime,
+                'media_size' => $b->media_size,
+                'media_duration' => $b->media_duration,
+                'position' => $b->position,
+                'meta' => $b->meta,
+                'created_at' => $b->created_at,
+                'updated_at' => $b->updated_at,
             ];
         })->values();
 

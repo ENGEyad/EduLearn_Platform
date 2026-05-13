@@ -9,6 +9,7 @@ class DashboardNotification extends Model
     protected $table = 'dashboard_notifications';
 
     protected $fillable = [
+        'school_id',
         'type',
         'title',
         'message',
@@ -23,9 +24,10 @@ class DashboardNotification extends Model
         'is_read' => 'boolean'
     ];
 
-    public static function logEvent($type, $title, $message, $actor = null, $icon = 'bi-bell', $data = null)
+    public static function logEvent($type, $title, $message, $actor = null, $icon = 'bi-bell', $schoolId = null, $data = null)
     {
         return self::create([
+            'school_id' => $schoolId,
             'type' => $type,
             'title' => $title,
             'message' => $message,

@@ -118,6 +118,7 @@ class AiController extends Controller
             'notifications.ai_exercise_completed',
             $student->full_name,
             $isCorrect ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger',
+            $student->school_id,
             ['student' => $student->full_name, 'status' => $isCorrect ? 'correctly' : 'incorrectly']
         );
 
@@ -213,6 +214,36 @@ class AiController extends Controller
             ]);
         }
         catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+    /**
+     * توليد محتوى تنبيه احترافي للسوبر أدمن
+     */
+    public function generateNotificationContent(Request $request)
+    {
+        $validated = $request->validate([
+            'topic' => 'required|string|max:500',
+            'target' => 'nullable|string',
+        ]);
+
+        try {
+            $response = Http::post("{$this->aiBaseUrl}/generate-notification/", [
+                'topic' => $validated['topic'],
+                'target_audience' => $validated['target'] ?? 'all'
+            ]);
+
+            if ($response->successful()) {
+                $content = json_decode($response->json('content'), true);
+                return response()->json([
+                    'success' => true,
+                    'title' => $content['title'] ?? '',
+                    'message' => $content['message'] ?? ''
+                ]);
+            }
+
+            return response()->json(['success' => false, 'message' => 'AI Failed to respond'], 500);
+        } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }

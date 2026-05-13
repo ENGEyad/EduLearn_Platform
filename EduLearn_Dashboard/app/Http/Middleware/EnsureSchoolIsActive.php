@@ -32,6 +32,11 @@ class EnsureSchoolIsActive
             if ($school->status === 'suspended') {
                 return response()->view('auth.suspended', [], 403);
             }
+
+            // Redirect to setup wizard if school is not initialized
+            if (!$school->is_initialized && !$request->routeIs('school-setup.*') && !$request->is('logout')) {
+                return redirect()->route('school-setup.wizard');
+            }
         }
 
         return $next($request);

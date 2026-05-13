@@ -62,7 +62,7 @@ class ClassModuleController extends Controller
             'class_section_id' => 'required|integer',
             'subject_id'       => 'required|integer',
             'title'            => 'required|string|max:255',
-            'position'         => 'nullable|integer',
+            'position'         => 'nullable|integer|min:0',
         ]);
 
         $teacher = Teacher::where('teacher_code', $validated['teacher_code'])->firstOrFail();
@@ -78,6 +78,12 @@ class ClassModuleController extends Controller
                 'message' => 'Assignment not found for this teacher',
             ], 404);
         }
+        $nextPosition = ClassModule::on('app_mysql')
+            ->where('teacher_id', $teacher->id)
+            ->where('assignment_id', $validated['assignment_id'])
+            ->where('class_section_id', $validated['class_section_id'])
+            ->where('subject_id', $validated['subject_id'])
+            ->max('position');
 
         $module = new ClassModule();
         $module->setConnection('app_mysql');
@@ -85,8 +91,8 @@ class ClassModuleController extends Controller
         $module->assignment_id  = $validated['assignment_id'];
         $module->class_section_id = $validated['class_section_id'];
         $module->subject_id     = $validated['subject_id'];
-        $module->title          = $validated['title'];
-        $module->position       = $validated['position'] ?? 0;
+        $module->title          = trim($validated['title']);
+        $module->position       = $validated['position'] ?? (($nextPosition ?? -1) + 1);
         $module->save();
 
         $module->loadCount('lessons');
@@ -104,17 +110,19 @@ class ClassModuleController extends Controller
      */
     public function update(Request $request, ClassModule $module)
     {
-        $module->setConnection('app_mysql');
+        $module = ClassModule::on('app_mysql')->findOrFail($module->id);
 
         $validated = $request->validate([
             'title'    => 'required|string|max:255',
-            'position' => 'nullable|integer',
+            'position' => 'nullable|integer|min:0',
         ]);
 
-        $module->title    = $validated['title'];
-        $module->position = $validated['position'] ?? $module->position;
-        $module->save();
+        $module->title    = trim($validated['title']);
+if (array_key_exists('position', $validated) && $validated['position'] !== null) {
+            $module->position = $validated['position'];
+        }      
 
+        $module->save();
         $module->loadCount('lessons');
 
         return response()->json([
@@ -130,7 +138,7 @@ class ClassModuleController extends Controller
      */
     public function destroy(ClassModule $module)
     {
-        $module->setConnection('app_mysql');
+        $module = ClassModule::on('app_mysql')->findOrFail($module->id);
 
         DB::connection('app_mysql')->transaction(function () use ($module) {
             // احذف الدروس التابعة لهذا الموديول مع البلوكات والموديولات الداخلية والتوبيكس
@@ -159,12 +167,12 @@ class ClassModuleController extends Controller
      */
     public function lessons(ClassModule $module)
     {
-        $module->setConnection('app_mysql');
+        $module = ClassModule::on('app_mysql')->findOrFail($module->id);
 
         $lessons = Lesson::on('app_mysql')
             ->where('class_module_id', $module->id)
             ->orderByDesc('created_at')
-            ->get(['id', 'title', 'status', 'created_at']);
+            ->get(['id', 'title', 'status', 'created_at','published_at']);
 
         return response()->json([
             'success' => true,

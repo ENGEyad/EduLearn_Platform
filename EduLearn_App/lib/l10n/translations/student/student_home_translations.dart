@@ -1,0 +1,83 @@
+const Map<String, String> studentHomeEn = {
+  'student_home_student_fallback': 'Student',
+  'student_home_overview': 'Overview',
+  'student_home_overview_subtitle': 'Your learning progress and current focus.',
+  'student_home_overall_progress': 'Overall Progress',
+  'student_home_latest_updates': 'Latest Updates',
+  'student_home_latest_updates_subtitle': 'New lessons, exercises, and learning activity.',
+  'student_home_recommended_for_you': 'Recommended for You',
+  'student_home_recommended_subtitle': 'Short picks to keep your momentum strong.',
+
+  'student_home_new_lesson_published': 'New lesson published',
+  'student_home_lesson_updated': 'Lesson updated',
+  'student_home_new_exercises_published': 'New exercises published',
+  'student_home_exercises_updated': 'Exercises updated',
+  'student_home_lesson_completed': 'Lesson completed',
+  'student_home_exercise_submitted': 'Exercise submitted',
+  'student_home_learning_update': 'Learning update',
+  'student_home_check_latest_updates': 'Check your latest learning updates.',
+
+  'student_home_just_now': 'Just now',
+  'student_home_minutes_ago': '{count}m ago',
+  'student_home_hours_ago': '{count}h ago',
+  'student_home_days_ago': '{count}d ago',
+
+  'student_home_loading_progress': 'Loading your latest learning progress...',
+  'student_home_progress_refresh_connection': 'Progress will refresh when your connection is available.',
+  'student_home_start_lessons_build_progress': 'Start your lessons to build your progress.',
+  'student_home_progress_across_subjects': 'Across {subjects} subjects • Lessons {lessons}% • Exercises {exercises}%',
+  'student_home_no_new_updates_yet': 'No new updates yet.',
+  'student_home_keep_it_up': "Keep it up, you're doing great!",
+
+  'student_home_ongoing_lesson': 'Ongoing Lesson',
+  'student_home_photosynthesis_lesson': 'Chapter 3: Photosynthesis',
+  'student_home_lesson_progress_75': 'You are 75% through this lesson.',
+  'student_home_continue_learning': 'Continue Learning',
+
+  'student_home_explore_roman_empire': 'Explore: The Roman Empire',
+  'student_home_expand_historical_knowledge': 'Expand your historical knowledge.',
+  'student_home_practice_advanced_algebra': 'Practice: Advanced Algebra',
+  'student_home_algebra_practice_subtitle': 'Struggling with Algebra? Try this.',
+};
+
+const Map<String, String> studentHomeAr = {
+  'student_home_student_fallback': 'طالب',
+  'student_home_overview': 'نظرة عامة',
+  'student_home_overview_subtitle': 'تقدمك التعليمي وتركيزك الحالي.',
+  'student_home_overall_progress': 'التقدم العام',
+  'student_home_latest_updates': 'آخر التحديثات',
+  'student_home_latest_updates_subtitle': 'دروس وتمارين وأنشطة تعليمية جديدة.',
+  'student_home_recommended_for_you': 'مقترح لك',
+  'student_home_recommended_subtitle': 'اختيارات قصيرة تساعدك على الاستمرار.',
+
+  'student_home_new_lesson_published': 'تم نشر درس جديد',
+  'student_home_lesson_updated': 'تم تحديث الدرس',
+  'student_home_new_exercises_published': 'تم نشر تمارين جديدة',
+  'student_home_exercises_updated': 'تم تحديث التمارين',
+  'student_home_lesson_completed': 'تم إكمال الدرس',
+  'student_home_exercise_submitted': 'تم إرسال التمرين',
+  'student_home_learning_update': 'تحديث تعليمي',
+  'student_home_check_latest_updates': 'راجع آخر التحديثات التعليمية.',
+
+  'student_home_just_now': 'الآن',
+  'student_home_minutes_ago': 'قبل {count} د',
+  'student_home_hours_ago': 'قبل {count} س',
+  'student_home_days_ago': 'قبل {count} يوم',
+
+  'student_home_loading_progress': 'يتم تحميل أحدث تقدم تعليمي لك...',
+  'student_home_progress_refresh_connection': 'سيتم تحديث التقدم عند توفر الاتصال.',
+  'student_home_start_lessons_build_progress': 'ابدأ دروسك لبناء تقدمك.',
+  'student_home_progress_across_subjects': 'عبر {subjects} مواد • الدروس {lessons}% • التمارين {exercises}%',
+  'student_home_no_new_updates_yet': 'لا توجد تحديثات جديدة بعد.',
+  'student_home_keep_it_up': 'استمر، أداؤك ممتاز!',
+
+  'student_home_ongoing_lesson': 'الدرس الحالي',
+  'student_home_photosynthesis_lesson': 'الفصل 3: البناء الضوئي',
+  'student_home_lesson_progress_75': 'أكملت 75% من هذا الدرس.',
+  'student_home_continue_learning': 'متابعة التعلم',
+
+  'student_home_explore_roman_empire': 'استكشف: الإمبراطورية الرومانية',
+  'student_home_expand_historical_knowledge': 'وسّع معرفتك التاريخية.',
+  'student_home_practice_advanced_algebra': 'تدرّب: الجبر المتقدم',
+  'student_home_algebra_practice_subtitle': 'هل تواجه صعوبة في الجبر؟ جرّب هذا.',
+};

@@ -3,32 +3,35 @@
 @section('content')
 <div class="row g-3">
   <div class="col-12">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
       <div>
-        <h5 class="mb-1">{{ __('Classes') }}</h5>
+        <h5 class="fw-bold text-title mb-1">{{ __('Classes') }}</h5>
         <small class="text-muted">{{ __('Manage classes and sections') }}</small>
       </div>
-      <button id="btnAddClass" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i> {{ __('Add Class') }}
-      </button>
+      <div class="d-flex flex-wrap gap-2">
+        <button id="btnImportClass" class="btn btn-outline-primary shadow-sm px-4 rounded-pill d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 justify-content-center">
+          <i class="bi bi-cloud-upload"></i> {{ __('Import') }}
+        </button>
+        <button id="btnAddClass" class="btn btn-primary shadow-sm px-4 rounded-pill d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 justify-content-center">
+          <i class="bi bi-plus-lg"></i> {{ __('Add Class') }}
+        </button>
+      </div>
+      <input type="file" id="classCsvInput" class="d-none" accept=".csv">
     </div>
 
     <div class="table-shell">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="fw-semibold">{{ __('Class List') }}</div>
-      </div>
-
       <div class="table-responsive">
         <table class="table align-middle mb-0" id="classes-table">
           <thead>
-            <tr>
+            <tr class="text-muted small text-uppercase fw-bold" style="letter-spacing: 0.05em;">
               <th>#</th>
               <th>{{ __('Grade') }}</th>
               <th>{{ __('Section') }}</th>
-              <th>{{ __('Name') }}</th>
-              <th>{{ __('Academic Stage') }}</th>
+              <th class="d-none d-lg-table-cell">{{ __('Name (English)') }}</th>
+              <th class="d-none d-md-table-cell">{{ __('Name (Arabic)') }}</th>
+              <th class="d-none d-lg-table-cell">{{ __('Academic Stage') }}</th>
               <th>{{ __('Active') }}</th>
-              <th style="width: 140px;">{{ __('Actions') }}</th>
+              <th style="width: 140px;" class="text-end pe-4">{{ __('Actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -67,9 +70,20 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label">{{ __('Name') }}</label>
-            <input type="text" class="form-control" id="name" required>
+            <label class="form-label">{{ __('Name (English)') }}</label>
+            <input type="text" class="form-control" id="name_en" required>
             <small class="text-muted">{{ __('e.g. Class 2 - A') }}</small>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">{{ __('Name (Arabic)') }}</label>
+            <input type="text" class="form-control" id="name_ar" required>
+            <small class="text-muted">{{ __('مثال: الصف الثاني - أ') }}</small>
+          </div>
+
+          <div class="mb-3 d-none">
+            <label class="form-label">{{ __('Name (Combined/Internal)') }}</label>
+            <input type="text" class="form-control" id="name">
           </div>
 
           <div class="mb-3">

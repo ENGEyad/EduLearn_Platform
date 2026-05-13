@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const gradeInput = document.getElementById('grade');
   const sectionInp = document.getElementById('section');
   const nameInput  = document.getElementById('name');
+  const nameEnInput= document.getElementById('name_en');
+  const nameArInput= document.getElementById('name_ar');
   const stageInput = document.getElementById('stage');
   const activeInput= document.getElementById('class_is_active');
   const titleEl    = document.getElementById('classModalTitle');
@@ -20,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const csrfToken  = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
   function loadClasses() {
-    fetch(ROUTES.list)
+    fetch(ROUTES.list + '?t=' + Date.now())
       .then(res => res.json())
       .then(classes => {
         tableBody.innerHTML = '';
@@ -30,8 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
           tr.innerHTML = `
             <td>${index + 1}</td>
             <td>${c.grade}</td>
-            <td>${c.section}</td>
-            <td>${c.name}</td>
+            <td>${c.section_label}</td>
+            <td>${c.name_en ?? ''}</td>
+            <td>${c.name_ar ?? ''}</td>
             <td>${c.stage ?? ''}</td>
             <td>
               ${c.is_active
@@ -60,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.btn-edit').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.dataset.id;
-        fetch(ROUTES.list)
+        fetch(ROUTES.list + '?t=' + Date.now())
           .then(res => res.json())
           .then(classes => {
             const c = classes.find(x => String(x.id) === String(id));
@@ -70,6 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
             gradeInput.value    = c.grade || '';
             sectionInp.value    = c.section || '';
             nameInput.value     = c.name || '';
+            nameEnInput.value   = c.name_en || '';
+            nameArInput.value   = c.name_ar || '';
             stageInput.value    = c.stage || '';
             activeInput.checked = !!c.is_active;
 
@@ -107,6 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
     gradeInput.value    = '';
     sectionInp.value    = '';
     nameInput.value     = '';
+    nameEnInput.value   = '';
+    nameArInput.value   = '';
     stageInput.value    = '';
     activeInput.checked = true;
 
@@ -130,6 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
       grade:     gradeInput.value,
       section:   sectionInp.value,
       name:      nameInput.value,
+      name_en:   nameEnInput.value,
+      name_ar:   nameArInput.value,
       stage:     stageInput.value,
       is_active: activeInput.checked ? 1 : 0,
     };
@@ -159,6 +168,53 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .catch(err => console.error(err));
   });
+
+  const btnImport  = document.getElementById('btnImportClass');
+  const fileInput  = document.getElementById('classCsvInput');
+
+  if (btnImport && fileInput) {
+    btnImport.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('csv_file', file);
+      formData.append('_token', csrfToken);
+
+      if (window.loadingManager) window.loadingManager.start();
+
+      fetch('/classes/import', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': csrfToken,
+          'Accept': 'application/json',
+        },
+        body: formData,
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (window.loadingManager) {
+            window.loadingManager.stop({
+                success: data.success,
+                failed: data.failed
+            });
+          } else if (data.message) {
+            alert(data.message);
+          }
+          loadClasses();
+        })
+        .catch(err => {
+          console.error('Import error:', err);
+          if (window.loadingManager) window.loadingManager.stop();
+          alert('Import failed. Please check the file format.');
+        })
+        .finally(() => {
+          fileInput.value = '';
+        });
+    });
+  }
 
   loadClasses();
 });

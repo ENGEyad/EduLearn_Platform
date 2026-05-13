@@ -13,9 +13,13 @@ class TeacherController extends Controller
     use HandlesImageUploads;
     public function index()
     {
+        $schoolId = auth()->user()->school_id;
+        $allSections = \App\Models\ClassSection::where('school_id', $schoolId)->orderBy('grade')->orderBy('section')->get();
+
         return view('teachers', [
             'pageTitle' => __('Teachers'),
             'pageSubtitle' => __('Add, edit and monitor teachers'),
+            'allSections' => $allSections,
             'TEACHERS_ROUTES' => [
                 'list'    => route('teachers.list'),
                 'store'   => route('teachers.store'),
@@ -23,22 +27,35 @@ class TeacherController extends Controller
                 'destroy' => route('teachers.destroy', ['teacher' => '__ID__']),
                 'import'  => route('teachers.import'),
             ],
+            'CLASSES_API' => route('classes.list'),
+            'CLASS_SUBJECTS_API' => route('class-subjects.list'),
         ]);
     }
 
     public function list()
     {
-        $teachers = Teacher::with(['assignments.subject', 'assignments.classSection'])
+        $teachers = Teacher::where('school_id', auth()->user()->school_id)
+            ->with([
+                'assignments.subject', 
+                'assignments.classSection' => function($q) {
+                    $q->withCount('students');
+                }
+            ])
             ->orderBy('id', 'desc')
             ->get();
 
+        $teachers->each(fn($t) => $t->append(['assigned_subjects', 'assigned_class_sections', 'total_assigned_students']));
         return response()->json($teachers);
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'photo' => 'nullable|image|max:2048',
+            'full_name' => 'required|string|max:255',
+            'gender'    => 'required|string|max:20',
+            'birthdate' => 'required|date|before_or_equal:' . now()->subYears(18)->format('Y-m-d') . '|after_or_equal:' . now()->subYears(70)->format('Y-m-d'),
+            'shift'     => 'required|string|max:50',
+            'photo'     => 'nullable|image|max:2048',
         ]);
 
         $data = $this->sanitize($request);
@@ -52,16 +69,43 @@ class TeacherController extends Controller
             $data['photo_path'] = $this->uploadAndOptimize($request->file('photo'), 'teachers');
         }
 
-        $teacher = Teacher::create($data);
-        $teacher->load(['assignments.subject', 'assignments.classSection']);
+        $data['school_id'] = auth()->user()->school_id;
 
+        $teacher = Teacher::create($data);
+
+        // Handle Assignments
+        $assignmentsJson = $request->input('assignments_json', '[]');
+        $assignments = json_decode($assignmentsJson, true);
+        if (is_array($assignments)) {
+            foreach ($assignments as $assignment) {
+                if (!empty($assignment['class_section_id']) && !empty($assignment['subject_id'])) {
+                    \App\Models\TeacherClassSubject::create([
+                        'teacher_id' => $teacher->id,
+                        'class_section_id' => $assignment['class_section_id'],
+                        'subject_id' => $assignment['subject_id'],
+                        'is_active' => true,
+                    ]);
+                }
+            }
+        }
+
+        $teacher->load(['assignments.subject', 'assignments.classSection']);
+        $teacher->append(['assigned_subjects', 'assigned_class_sections', 'total_assigned_students']);
         return response()->json($teacher, 201);
     }
 
     public function update(Request $request, Teacher $teacher)
     {
+        if ($teacher->school_id !== auth()->user()->school_id) {
+            abort(403, __('Unauthorized access to teacher record'));
+        }
+
         $request->validate([
-            'photo' => 'nullable|image|max:2048',
+            'full_name' => 'required|string|max:255',
+            'gender'    => 'required|string|max:20',
+            'birthdate' => 'required|date|before_or_equal:' . now()->subYears(18)->format('Y-m-d') . '|after_or_equal:' . now()->subYears(70)->format('Y-m-d'),
+            'shift'     => 'required|string|max:50',
+            'photo'     => 'nullable|image|max:2048',
         ]);
 
         $data = $this->sanitize($request);
@@ -72,14 +116,39 @@ class TeacherController extends Controller
         }
 
         $teacher->update($data);
+
+        // Handle Assignments
+        $assignmentsJson = $request->input('assignments_json', '[]');
+        if ($request->has('assignments_json')) {
+            $assignments = json_decode($assignmentsJson, true);
+            if (is_array($assignments)) {
+                // Remove old assignments and create new ones
+                \App\Models\TeacherClassSubject::where('teacher_id', $teacher->id)->delete();
+                foreach ($assignments as $assignment) {
+                    if (!empty($assignment['class_section_id']) && !empty($assignment['subject_id'])) {
+                        \App\Models\TeacherClassSubject::create([
+                            'teacher_id' => $teacher->id,
+                            'class_section_id' => $assignment['class_section_id'],
+                            'subject_id' => $assignment['subject_id'],
+                            'is_active' => true,
+                        ]);
+                    }
+                }
+            }
+        }
+
         $teacher->refresh();
         $teacher->load(['assignments.subject', 'assignments.classSection']);
-
+        $teacher->append(['assigned_subjects', 'assigned_class_sections', 'total_assigned_students']);
         return response()->json($teacher);
     }
 
     public function destroy(Teacher $teacher)
     {
+        if ($teacher->school_id !== auth()->user()->school_id) {
+            abort(403, __('Unauthorized access to teacher record'));
+        }
+
         $teacher->delete();
         return response()->json(['deleted' => true]);
     }
@@ -105,10 +174,10 @@ class TeacherController extends Controller
                 return $this->importFromExcel($file);
             }
 
-            return response()->json(['message' => 'Unsupported file type'], 422);
+            return response()->json(['message' => __('Unsupported file type')], 422);
         } catch (\Throwable $e) {
             return response()->json([
-                'message' => 'Import failed',
+                'message' => __('Import failed'),
                 'error'   => $e->getMessage(),
             ], 500);
         }
@@ -120,11 +189,11 @@ class TeacherController extends Controller
         $data = $request->all();
 
         if (empty($data['full_name'])) {
-            abort(422, 'full_name is required');
+            abort(422, __('Full name is required'));
         }
 
         $nullable = [
-            'email','phone','birth_governorate','birthdate','qualification','qualification_date',
+            'email','phone','gender','birth_governorate','birthdate','qualification','qualification_date',
             'current_school','join_date','current_role','shift','national_id','marital_status',
             'district','neighborhood','street','stage','experience_place','status'
         ];
@@ -151,14 +220,41 @@ class TeacherController extends Controller
         $data['subjects'] = $request->input('subjects', []);
         $data['grades']   = $request->input('grades', []);
 
+        // Remove fields that should not be mass-assigned
+        unset($data['assignments_json'], $data['_method']);
+
         return $data;
     }
 
+    /**
+     * توليد كود الأستاذ بنمط مؤسسي: [Prefix][SchoolID]-T-[Year]-[Seq]
+     */
     protected function generateTeacherCode(): string
     {
-        $year = now()->year;
-        $rand = rand(100, 999);
-        return "T-{$year}-{$rand}";
+        static $currentCount = null;
+        static $prefix = null;
+        static $year = null;
+
+        if ($currentCount === null) {
+            $school = auth()->user()->school;
+            $prefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $school->name), 0, 3));
+            $prefix = (empty($prefix) ? "EDU" : $prefix) . $school->id;
+            $year   = now()->year;
+            
+            // ضمان التفرد على مستوى المنصة
+            $lastCode = Teacher::where('teacher_code', 'like', "$prefix-T-$year-%")
+                ->orderBy('teacher_code', 'desc')
+                ->value('teacher_code');
+                
+            if ($lastCode) {
+                $parts = explode('-', $lastCode);
+                $currentCount = (int)end($parts) + 1;
+            } else {
+                $currentCount = 1;
+            }
+        }
+        
+        return sprintf("%s-T-%d-%04d", $prefix, $year, $currentCount++);
     }
 
     /**
@@ -167,18 +263,18 @@ class TeacherController extends Controller
     protected function importFromCsv(string $path)
     {
         if (!is_readable($path)) {
-            return response()->json(['message' => 'Cannot read uploaded file'], 422);
+            return response()->json(['message' => __('Cannot read uploaded file')], 422);
         }
 
         $handle = fopen($path, 'r');
         if (!$handle) {
-            return response()->json(['message' => 'Cannot open file'], 422);
+            return response()->json(['message' => __('Cannot open file')], 422);
         }
 
         $headers = fgetcsv($handle, 0, ',');
         if (!$headers) {
             fclose($handle);
-            return response()->json(['message' => 'Empty file'], 422);
+            return response()->json(['message' => __('Empty file')], 422);
         }
 
         if (isset($headers[0])) {
@@ -189,6 +285,9 @@ class TeacherController extends Controller
             return strtolower(trim($h));
         }, $headers);
 
+        $successCount = 0;
+        $failedCount = 0;
+        
         DB::beginTransaction();
         try {
             while (($row = fgetcsv($handle, 0, ',')) !== false) {
@@ -208,14 +307,21 @@ class TeacherController extends Controller
                 try {
                     $data = array_combine($headers, $row);
                 } catch (\Throwable $e) {
+                    $failedCount++;
                     continue;
                 }
 
-                if (!$data || empty($data['full_name'])) {
+                if (!$data || empty(trim($data['full_name'] ?? ''))) {
+                    $failedCount++;
                     continue;
                 }
 
-                $this->createTeacherFromImportedRow($data);
+                try {
+                    $this->createTeacherFromImportedRow($data);
+                    $successCount++;
+                } catch (\Exception $e) {
+                    $failedCount++;
+                }
             }
 
             DB::commit();
@@ -236,11 +342,12 @@ class TeacherController extends Controller
             'Teachers Import',
             'notifications.teachers_imported',
             'System',
-            'bi-file-earmark-arrow-up'
+            'bi-file-earmark-arrow-up',
+            auth()->user()->school_id
         );
 
         return response()->json([
-            'message' => 'Teachers imported successfully',
+            'message' => __("Successfully imported :success records, failed :failed.", ['success' => $successCount, 'failed' => $failedCount]),
         ]);
     }
 
@@ -251,7 +358,7 @@ class TeacherController extends Controller
     {
         $sheets = Excel::toArray([], $file);
         if (empty($sheets) || empty($sheets[0])) {
-            return response()->json(['message' => 'Empty Excel file'], 422);
+            return response()->json(['message' => __('Empty Excel file')], 422);
         }
 
         $rows = $sheets[0];
@@ -265,6 +372,9 @@ class TeacherController extends Controller
             return strtolower(trim($h));
         }, $headers);
 
+        $successCount = 0;
+        $failedCount = 0;
+        
         DB::beginTransaction();
         try {
             for ($i = 1; $i < count($rows); $i++) {
@@ -286,14 +396,21 @@ class TeacherController extends Controller
                 try {
                     $data = array_combine($headers, $row);
                 } catch (\Throwable $e) {
+                    $failedCount++;
                     continue;
                 }
 
-                if (!$data || empty($data['full_name'])) {
+                if (!$data || empty(trim($data['full_name'] ?? ''))) {
+                    $failedCount++;
                     continue;
                 }
 
-                $this->createTeacherFromImportedRow($data);
+                try {
+                    $this->createTeacherFromImportedRow($data);
+                    $successCount++;
+                } catch (\Exception $e) {
+                    $failedCount++;
+                }
             }
 
             DB::commit();
@@ -303,7 +420,9 @@ class TeacherController extends Controller
         }
 
         return response()->json([
-            'message' => 'Teachers imported successfully',
+            'message' => __("Successfully imported :success records, failed :failed.", ['success' => $successCount, 'failed' => $failedCount]),
+            'success' => $successCount,
+            'failed'  => $failedCount,
         ]);
     }
 
@@ -317,9 +436,11 @@ class TeacherController extends Controller
         }
 
         $teacher = new Teacher();
+        $teacher->school_id = auth()->user()->school_id;
 
         $teacher->full_name    = $data['full_name'] ?? '';
-        $teacher->teacher_code = $data['teacher_code'] ?? $this->generateTeacherCode();
+        // نتجاهل أي كود من الملف ونولّد كود جديد لضمان توحيد القاعدة
+        $teacher->teacher_code = $this->generateTeacherCode();
         $teacher->email        = $data['email'] ?? null;
         $teacher->phone        = $data['phone'] ?? null;
         $teacher->status       = $data['status'] ?? 'Active';
@@ -346,5 +467,50 @@ class TeacherController extends Controller
         }
 
         $teacher->save();
+
+        // التزامن التلقائي للتعيينات بناءً على المواد والصفوف المدخلة كـ Tags
+        $this->syncTeacherAssignmentsFromTags($teacher);
+    }
+
+    /**
+     * تزامن التعيينات من النصوص (Tags) إلى سجلات رسمية
+     */
+    protected function syncTeacherAssignmentsFromTags(Teacher $teacher): void
+    {
+        $tSubjs = is_array($teacher->subjects) ? $teacher->subjects : [];
+        $tGrds  = is_array($teacher->grades) ? $teacher->grades : [];
+
+        if (empty($tSubjs) || empty($tGrds)) return;
+
+        $allSubjects = \App\Models\Subject::all();
+        $schoolClasses = \App\Models\ClassSection::where('school_id', $teacher->school_id)->get();
+
+        foreach ($tSubjs as $sVal) {
+            $sMatch = $allSubjects->first(fn($s) => 
+                strcasecmp($s->name_ar, $sVal) === 0 || 
+                strcasecmp($s->name_en, $sVal) === 0 || 
+                mb_stripos($s->name_ar, $sVal) !== false
+            );
+            if (!$sMatch) continue;
+
+            foreach ($tGrds as $gVal) {
+                $gNum = preg_replace('/[^0-9]/', '', $gVal);
+                $targetClasses = $schoolClasses->filter(fn($c) => (string)$c->grade === (string)$gNum);
+                
+                foreach ($targetClasses as $cl) {
+                    \App\Models\TeacherClassSubject::updateOrCreate(
+                        [
+                            'teacher_id' => $teacher->id, 
+                            'class_section_id' => $cl->id, 
+                            'subject_id' => $sMatch->id
+                        ],
+                        [
+                            'weekly_load' => 4, 
+                            'is_active' => true
+                        ]
+                    );
+                }
+            }
+        }
     }
 }

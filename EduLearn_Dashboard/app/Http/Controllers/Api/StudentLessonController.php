@@ -7,10 +7,15 @@ use App\Models\Lesson;
 use App\Models\Student;
 use App\Models\StudentLessonProgress;
 use App\Models\LessonExercise;
+use App\Services\LearningActivityService;
 use Illuminate\Http\Request;
 
 class StudentLessonController extends Controller
 {
+    public function __construct(
+        protected LearningActivityService $activityService,
+    ) {
+    }
     /**
      * ============================================================
      * 🔹 جلب دروس مادة معيّنة لطالب معيّن (قائمة)
@@ -424,8 +429,12 @@ class StudentLessonController extends Controller
                 'notifications.lesson_completed',
                 $student->full_name,
                 'bi-check-circle-fill',
+                $student->school_id,
                 ['student' => $student->full_name, 'lesson' => $lesson->title]
             );
+
+            // Record Learning Activity
+            $this->activityService->recordStudentLessonActivity($student, $lesson);
         }
 
         return response()->json([
@@ -497,12 +506,16 @@ class StudentLessonController extends Controller
                 'notifications.lesson_completed_with_time',
                 $student->full_name,
                 'bi-check-circle-fill',
+                $student->school_id,
                 [
                     'student' => $student->full_name, 
                     'lesson' => $lessonObj->title,
                     'minutes' => floor($progress->time_spent_seconds / 60)
                 ]
             );
+
+            // Record Learning Activity
+            $this->activityService->recordStudentLessonActivity($student, $lessonObj);
         }
 
         return response()->json([
