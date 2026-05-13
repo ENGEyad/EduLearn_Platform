@@ -154,12 +154,15 @@ class Teacher extends Model
             $cs = $as->classSection;
             if (!$cs) return $carry;
 
-            if (isset($cs->students_count)) {
-                return $carry + (int) $cs->students_count;
+            // Use the eager-loaded count if available (from withCount('students'))
+            $count = $cs->getAttribute('students_count');
+
+            if ($count !== null) {
+                return $carry + (int) $count;
             }
 
             if (method_exists($cs, 'students')) {
-                return $carry + $cs->students->count();
+                return $carry + $cs->students()->count();
             }
 
             return $carry;
