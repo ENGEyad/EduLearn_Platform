@@ -22,33 +22,58 @@ class StudentPerformanceController extends Controller
         $subjectIds = ClassSectionSubject::where('class_section_id', $classSectionId)->pluck('subject_id');
         $subjects = Subject::whereIn('id', $subjectIds)->get();
 
-        $performance = [];
+        // ⚡ Bolt Optimization: Replace N+1 queries with bulk fetches
+        // This reduces query count from O(3N) to O(1) relative to number of subjects.
 
+        $allLessons = Lesson::on('app_mysql')
+            ->whereIn('subject_id', $subjectIds)
+            ->get();
+        $allLessonIds = $allLessons->pluck('id');
+
+        $allProgress = StudentLessonProgress::on('app_mysql')
+            ->where('student_id', $student->id)
+            ->whereIn('lesson_id', $allLessonIds)
+            ->get()
+            ->groupBy('lesson_id');
+
+        $allAttempts = StudentExerciseAttempt::on('app_mysql')
+            ->with(['exerciseSet', 'lesson'])
+            ->where('student_id', $student->id)
+            ->whereIn('lesson_id', $allLessonIds)
+            ->orderBy('id', 'desc') // Use DB sorting for better performance
+            ->get()
+            ->groupBy('lesson_id');
+
+        $lessonsBySubject = $allLessons->groupBy('subject_id');
+
+        $performance = [];
         foreach($subjects as $sub) {
-            // Find lessons relevant to this subject
-            $lessons = Lesson::on('app_mysql')->where('subject_id', $sub->id)->get();
+            $lessons = $lessonsBySubject->get($sub->id, collect());
             $lessonIds = $lessons->pluck('id');
             
-            $progressItems = StudentLessonProgress::on('app_mysql')
-                ->where('student_id', $student->id)
-                ->whereIn('lesson_id', $lessonIds)
-                ->get();
-            
-            $attempts = StudentExerciseAttempt::on('app_mysql')
-                ->with(['exerciseSet', 'lesson'])
-                ->where('student_id', $student->id)
-                ->whereIn('lesson_id', $lessonIds)
-                ->orderBy('id', 'desc')
-                ->get();
+            $subjectProgress = collect();
+            $subjectAttempts = collect();
 
-            $completedCount = $progressItems->where('status', 'completed')->count();
+            foreach ($lessonIds as $lId) {
+                if ($p = $allProgress->get($lId)) {
+                    $subjectProgress = $subjectProgress->merge($p);
+                }
+                if ($a = $allAttempts->get($lId)) {
+                    $subjectAttempts = $subjectAttempts->merge($a);
+                }
+            }
+            
+            // Re-sort attempts if needed, though they were already sorted by id desc
+            $subjectAttempts = $subjectAttempts->sortByDesc('id');
+
+            $completedCount = $subjectProgress->where('status', 'completed')->count();
             $totalCount = $lessons->count();
             
             $progressPercent = $totalCount > 0 ? round(($completedCount / $totalCount) * 100) : 0;
 
             $avgScore = 0;
-            if ($attempts->count() > 0) {
-                $avgScore = round($attempts->avg(function($a) {
+            if ($subjectAttempts->count() > 0) {
+                $avgScore = round($subjectAttempts->avg(function($a) {
                     return $a->total_points > 0 ? ($a->score / $a->total_points) * 100 : 0;
                 }), 1);
             }
@@ -58,8 +83,8 @@ class StudentPerformanceController extends Controller
                 'total_lessons' => $totalCount,
                 'completed_lessons' => $completedCount,
                 'progress_percent' => $progressPercent,
-                'total_study_time' => round($progressItems->sum('time_spent_seconds') / 60, 1),
-                'attempts' => $attempts,
+                'total_study_time' => round($subjectProgress->sum('time_spent_seconds') / 60, 1),
+                'attempts' => $subjectAttempts,
                 'avg_score' => $avgScore,
             ];
         }
