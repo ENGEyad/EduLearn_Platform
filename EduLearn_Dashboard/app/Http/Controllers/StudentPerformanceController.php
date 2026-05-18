@@ -22,24 +22,37 @@ class StudentPerformanceController extends Controller
         $subjectIds = ClassSectionSubject::where('class_section_id', $classSectionId)->pluck('subject_id');
         $subjects = Subject::whereIn('id', $subjectIds)->get();
 
+        // ⚡ Bolt: Bulk fetch all related records to avoid N+1 queries
+        $allLessons = Lesson::on('app_mysql')
+            ->whereIn('subject_id', $subjectIds)
+            ->get();
+        $allLessonIds = $allLessons->pluck('id');
+
+        $allProgressItems = StudentLessonProgress::on('app_mysql')
+            ->where('student_id', $student->id)
+            ->whereIn('lesson_id', $allLessonIds)
+            ->get();
+
+        $allAttempts = StudentExerciseAttempt::on('app_mysql')
+            ->with(['exerciseSet', 'lesson'])
+            ->where('student_id', $student->id)
+            ->whereIn('lesson_id', $allLessonIds)
+            ->orderBy('id', 'desc')
+            ->get();
+
+        // Grouping in-memory for efficiency
+        $lessonsBySubject = $allLessons->groupBy('subject_id');
+        $progressByLesson = $allProgressItems->groupBy('lesson_id');
+        $attemptsByLesson = $allAttempts->groupBy('lesson_id');
+
         $performance = [];
 
         foreach($subjects as $sub) {
-            // Find lessons relevant to this subject
-            $lessons = Lesson::on('app_mysql')->where('subject_id', $sub->id)->get();
+            $lessons = $lessonsBySubject->get($sub->id, collect());
             $lessonIds = $lessons->pluck('id');
             
-            $progressItems = StudentLessonProgress::on('app_mysql')
-                ->where('student_id', $student->id)
-                ->whereIn('lesson_id', $lessonIds)
-                ->get();
-            
-            $attempts = StudentExerciseAttempt::on('app_mysql')
-                ->with(['exerciseSet', 'lesson'])
-                ->where('student_id', $student->id)
-                ->whereIn('lesson_id', $lessonIds)
-                ->orderBy('id', 'desc')
-                ->get();
+            $progressItems = $allProgressItems->whereIn('lesson_id', $lessonIds);
+            $attempts = $allAttempts->whereIn('lesson_id', $lessonIds);
 
             $completedCount = $progressItems->where('status', 'completed')->count();
             $totalCount = $lessons->count();
@@ -59,7 +72,7 @@ class StudentPerformanceController extends Controller
                 'completed_lessons' => $completedCount,
                 'progress_percent' => $progressPercent,
                 'total_study_time' => round($progressItems->sum('time_spent_seconds') / 60, 1),
-                'attempts' => $attempts,
+                'attempts' => $attempts->values(), // values() to reset keys for JSON/Array consistency
                 'avg_score' => $avgScore,
             ];
         }
