@@ -29,11 +29,6 @@ class DashboardController extends Controller
             ->latest()
             ->first();
 
-        $latestReport = \App\Models\AiReport::where('school_id', $schoolId)
-            ->where('status', 'completed')
-            ->latest()
-            ->first();
-
         return view('dashboard', [
             'pageTitle' => __('Dashboard'),
             'pageSubtitle' => __('Welcome, :name', ['name' => auth()->user()->name]),
