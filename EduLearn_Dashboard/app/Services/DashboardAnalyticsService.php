@@ -28,6 +28,7 @@ class DashboardAnalyticsService
         $studentIds = Student::where('school_id', $schoolId)->pluck('id');
         $sections = ClassSection::where('school_id', $schoolId)
             ->withCount('students')
+            ->withAvg('students', 'attendance_rate')
             ->get();
 
         $performanceOverall = (float) (StudentExerciseAttempt::whereIn('student_id', $studentIds)->avg('score') ?? 0);
@@ -36,7 +37,7 @@ class DashboardAnalyticsService
         $stats = [
             'teachers' => Teacher::where('school_id', $schoolId)->count(),
             'students' => $studentIds->count(),
-            'classes' => ClassSection::where('school_id', $schoolId)->count(),
+            'classes' => $sections->count(),
             'subjects' => Subject::whereHas('classSections', function ($query) use ($schoolId) {
                 $query->where('school_id', $schoolId);
             })->count(),
@@ -75,7 +76,7 @@ class DashboardAnalyticsService
 
         $lowAttendanceClasses = $sections
             ->filter(function ($section) {
-                $avgAttendance = Student::where('class_section_id', $section->id)->avg('attendance_rate');
+                $avgAttendance = $section->students_avg_attendance_rate;
                 return $avgAttendance !== null && (float) $avgAttendance < 85;
             })
             ->count();
