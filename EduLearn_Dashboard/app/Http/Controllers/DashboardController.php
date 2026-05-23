@@ -18,16 +18,11 @@ class DashboardController extends Controller
 
         $period = $request->get('period', 'week');
         $schoolName = auth()->user()->school->name ?? 'EduLearn School';
-        $cacheKey = 'dashboard_stats_school_v3_' . $schoolId . '_' . $period;
+        $cacheKey = 'dashboard_stats_school_v3_opt_' . $schoolId . '_' . $period;
 
         $overview = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($analyticsService, $schoolId, $period, $schoolName) {
             return $analyticsService->buildOverview($schoolId, $period, $schoolName);
         });
-
-        $latestReport = \App\Models\AiReport::where('school_id', $schoolId)
-            ->where('status', 'completed')
-            ->latest()
-            ->first();
 
         $latestReport = \App\Models\AiReport::where('school_id', $schoolId)
             ->where('status', 'completed')
