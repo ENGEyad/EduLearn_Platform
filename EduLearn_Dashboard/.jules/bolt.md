@@ -1,0 +1,3 @@
+## 2025-05-15 - Optimized ReportsController::list
+**Learning:** The `ReportsController::list` was performing N+1 queries by fetching distinct classes and then querying student counts for each class in a loop. Additionally, searching for student names within those classes required further nested checks.
+**Action:** Use `groupBy('grade', 'class_section')` combined with `selectRaw('count(*) as students_count')` to fetch all class data in one query. For searching, use `whereRaw` for class name concatenation (handling SQLite vs MySQL syntax) and `orWhereExists` for searching student names/IDs within those groups, ensuring a constant and low query count regardless of the number of classes.
