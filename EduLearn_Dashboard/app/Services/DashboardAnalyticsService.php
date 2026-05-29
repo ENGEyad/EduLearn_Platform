@@ -13,8 +13,7 @@ class DashboardAnalyticsService
 {
     public function __construct(
         protected DashboardInsightPayloadBuilder $payloadBuilder
-    ) {
-    }
+    ) {}
 
     /**
      * @return array<string, mixed>
@@ -26,8 +25,11 @@ class DashboardAnalyticsService
         [$previousStart, $previousEnd] = $this->previousPeriodRange($period, $currentStart, $currentEnd);
 
         $studentIds = Student::where('school_id', $schoolId)->pluck('id');
+
+        // ⚡ Bolt: Eager load student counts and attendance averages to avoid N+1 queries in class-level analytics
         $sections = ClassSection::where('school_id', $schoolId)
             ->withCount('students')
+            ->withAvg('students', 'attendance_rate')
             ->get();
 
         $performanceOverall = (float) (StudentExerciseAttempt::whereIn('student_id', $studentIds)->avg('score') ?? 0);
@@ -36,7 +38,8 @@ class DashboardAnalyticsService
         $stats = [
             'teachers' => Teacher::where('school_id', $schoolId)->count(),
             'students' => $studentIds->count(),
-            'classes' => ClassSection::where('school_id', $schoolId)->count(),
+            // ⚡ Bolt: Use collection count instead of hitting the database again
+            'classes' => $sections->count(),
             'subjects' => Subject::whereHas('classSections', function ($query) use ($schoolId) {
                 $query->where('school_id', $schoolId);
             })->count(),
@@ -44,7 +47,7 @@ class DashboardAnalyticsService
             'performance' => round($performanceOverall, 1),
             'danglingStudents' => Student::where('school_id', $schoolId)->whereNull('class_section_id')->count(),
             'chartData' => [
-                'labels' => $sections->map(fn ($section) => $section->name ?: ($section->grade . ' / ' . $section->section))->values(),
+                'labels' => $sections->map(fn ($section) => $section->name ?: ($section->grade.' / '.$section->section))->values(),
                 'data' => $sections->pluck('students_count')->values(),
             ],
         ];
@@ -73,9 +76,11 @@ class DashboardAnalyticsService
             ->get()
             ->count();
 
+        // ⚡ Bolt: Use eager-loaded average instead of a per-row database query
         $lowAttendanceClasses = $sections
             ->filter(function ($section) {
-                $avgAttendance = Student::where('class_section_id', $section->id)->avg('attendance_rate');
+                $avgAttendance = $section->students_avg_attendance_rate;
+
                 return $avgAttendance !== null && (float) $avgAttendance < 85;
             })
             ->count();
@@ -93,16 +98,16 @@ class DashboardAnalyticsService
 
         $anomalies = [];
         if ($stats['danglingStudents'] > 0) {
-            $anomalies[] = $stats['danglingStudents'] . ' unassigned students';
+            $anomalies[] = $stats['danglingStudents'].' unassigned students';
         }
         if ($lowAttendanceStudents > 0) {
-            $anomalies[] = $lowAttendanceStudents . ' students below the attendance threshold';
+            $anomalies[] = $lowAttendanceStudents.' students below the attendance threshold';
         }
         if ($lowPerformanceStudents > 0) {
-            $anomalies[] = $lowPerformanceStudents . ' students with weak exercise performance averages';
+            $anomalies[] = $lowPerformanceStudents.' students with weak exercise performance averages';
         }
         if ($lowAttendanceClasses > 0) {
-            $anomalies[] = $lowAttendanceClasses . ' classes below the attendance threshold';
+            $anomalies[] = $lowAttendanceClasses.' classes below the attendance threshold';
         }
 
         $recommendedFocus = [];
