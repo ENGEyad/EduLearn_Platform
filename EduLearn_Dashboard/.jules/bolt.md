@@ -1,0 +1,3 @@
+## 2025-05-15 - Dashboard and Reports Performance Optimization
+**Learning:** Found N+1 query patterns in `DashboardAnalyticsService` when calculating low attendance classes and in `ReportsController::list` when counting students and searching. Also identified a redundant database query in `DashboardController`.
+**Action:** Used `withAvg` to eager-load class attendance averages, refactored `ReportsController::list` to use DB-level grouping and subqueries, and removed the duplicate controller query. Reduced dashboard queries from 42 to 20 and reports list queries from 22 (or 42 with search) down to 2 for a 20-class dataset.
