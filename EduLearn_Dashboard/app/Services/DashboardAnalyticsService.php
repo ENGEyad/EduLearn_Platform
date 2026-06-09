@@ -26,8 +26,10 @@ class DashboardAnalyticsService
         [$previousStart, $previousEnd] = $this->previousPeriodRange($period, $currentStart, $currentEnd);
 
         $studentIds = Student::where('school_id', $schoolId)->pluck('id');
+        // ⚡ Bolt: Eager-load students average attendance to prevent N+1 queries when calculating low attendance classes.
         $sections = ClassSection::where('school_id', $schoolId)
             ->withCount('students')
+            ->withAvg('students', 'attendance_rate')
             ->get();
 
         $performanceOverall = (float) (StudentExerciseAttempt::whereIn('student_id', $studentIds)->avg('score') ?? 0);
@@ -36,7 +38,8 @@ class DashboardAnalyticsService
         $stats = [
             'teachers' => Teacher::where('school_id', $schoolId)->count(),
             'students' => $studentIds->count(),
-            'classes' => ClassSection::where('school_id', $schoolId)->count(),
+            // ⚡ Bolt: Reuse the existing $sections collection count instead of re-querying the database.
+            'classes' => $sections->count(),
             'subjects' => Subject::whereHas('classSections', function ($query) use ($schoolId) {
                 $query->where('school_id', $schoolId);
             })->count(),
@@ -73,9 +76,10 @@ class DashboardAnalyticsService
             ->get()
             ->count();
 
+        // ⚡ Bolt: Calculate low attendance classes in-memory using eager-loaded data to eliminate N+1 queries.
         $lowAttendanceClasses = $sections
             ->filter(function ($section) {
-                $avgAttendance = Student::where('class_section_id', $section->id)->avg('attendance_rate');
+                $avgAttendance = $section->students_avg_attendance_rate;
                 return $avgAttendance !== null && (float) $avgAttendance < 85;
             })
             ->count();
