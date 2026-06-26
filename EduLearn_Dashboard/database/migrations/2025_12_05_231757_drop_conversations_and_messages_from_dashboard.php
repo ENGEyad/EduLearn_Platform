@@ -9,8 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         // هنا نشتغل على قاعدة الداشبورد، نفترض اسمها mysql
-        Schema::connection('mysql')->dropIfExists('messages');
-        Schema::connection('mysql')->dropIfExists('conversations');
+        $connection = config('database.default') === 'sqlite' ? 'sqlite' : 'mysql';
+        Schema::connection($connection)->dropIfExists('messages');
+        Schema::connection($connection)->dropIfExists('conversations');
     }
 
     public function down(): void
