@@ -1,0 +1,3 @@
+## 2026-06-27 - [N+1 Optimization in ReportsController::list]
+**Learning:** Found an N+1 query pattern where student counts were being fetched inside a loop for each unique grade/section combination. This was causing (N)$ queries where $ is the number of classes.
+**Action:** Used Eloquent's `groupBy` and `selectRaw('count(*) as students_count')` to aggregate student counts at the database level. Also refactored the search logic to use `orWhereExists` instead of in-memory filtering with sub-queries to keep everything in a single efficient database call. Added `getDriverName()` check to handle SQLite vs MySQL string concatenation differences (`||` vs `CONCAT`).
