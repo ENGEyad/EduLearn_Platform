@@ -1,0 +1,3 @@
+## 2026-06-28 - [Cross-Connection Testing with SQLite]
+**Learning:** In a Laravel environment with multiple database connections (e.g., 'mysql' and 'app_mysql'), standard `RefreshDatabase` may not correctly migrate or truncate the secondary connection if it's forced to SQLite.
+**Action:** For dual-connection testing, use file-based SQLite databases, set `DB_DRIVER` and `APP_DB_DRIVER` environment variables (after configuring `config/database.php` to support them), and manually run migrations in the test's `setUp()` method. Reconfiguring drivers dynamically allows the application logic to keep using the same connection names while hitting local SQLite files.
