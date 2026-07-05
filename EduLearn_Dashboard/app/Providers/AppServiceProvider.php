@@ -11,7 +11,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-    //
+        //
     }
 
     /**
@@ -19,17 +19,28 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        \Illuminate\Support\Facades\View::composer('*', function ($view) {
-            if (auth()->check()) {
-                $schoolId = auth()->user()->school_id;
-                $latestNotifications = \App\Models\DashboardNotification::where('school_id', $schoolId)->latest()->take(5)->get();
-                $unreadCount = \App\Models\DashboardNotification::where('school_id', $schoolId)->where('is_read', false)->count();
-                $view->with('headerNotifications', $latestNotifications);
-                $view->with('unreadNotificationsCount', $unreadCount);
-            } else {
-                $view->with('headerNotifications', collect([]));
-                $view->with('unreadNotificationsCount', 0);
+        // ⚡ Bolt: Optimize view composer to avoid redundant DB queries on every partial render.
+        // We target only 'layouts.app' instead of '*' as these variables are only used there.
+        \Illuminate\Support\Facades\View::composer('layouts.app', function ($view) {
+            static $cachedData = null;
+
+            if ($cachedData === null) {
+                if (auth()->check()) {
+                    $schoolId = auth()->user()->school_id;
+                    $cachedData = [
+                        'latest' => \App\Models\DashboardNotification::where('school_id', $schoolId)->latest()->take(5)->get(),
+                        'unread' => \App\Models\DashboardNotification::where('school_id', $schoolId)->where('is_read', false)->count(),
+                    ];
+                } else {
+                    $cachedData = [
+                        'latest' => collect([]),
+                        'unread' => 0,
+                    ];
+                }
             }
+
+            $view->with('headerNotifications', $cachedData['latest']);
+            $view->with('unreadNotificationsCount', $cachedData['unread']);
         });
         \Illuminate\Support\Facades\Blade::if('branchCan', function ($permission) {
             return auth()->check() && auth()->user()->hasBranchPermission($permission);
