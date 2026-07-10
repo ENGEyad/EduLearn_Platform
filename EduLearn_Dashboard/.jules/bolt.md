@@ -1,0 +1,3 @@
+## 2025-05-20 - [N+1 Count and In-memory Filtering in Reports List]
+**Learning:** The `ReportsController::list` used a pattern of fetching distinct class keys and then looping to perform individual `count()` queries and in-memory search filtering. This led to O(N) database queries and high memory usage for large schools. Additionally, when refactoring to database-level filtering with `orWhereExists`, variables like `$schoolId` must be explicitly passed through `use` at every level of nested closures.
+**Action:** Use `groupBy` with `count(*)` aggregation for grouped lists. Push complex search logic (e.g., "return class if any student matches name") to the database using `whereExists` rather than filtering collections in PHP.
