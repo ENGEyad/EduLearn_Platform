@@ -1,0 +1,3 @@
+## 2025-05-15 - Optimized ReportsController::list N+1 and search
+**Learning:** Found an N+1 bottleneck in the reports list where each class section triggered a separate student count query. Also, the search was performing in-memory filtering which is inefficient for large datasets. Using `groupBy` with `selectRaw('count(*)')` and database-level `whereExists` for searching significantly improved performance.
+**Action:** Always check for N+1 queries in grouped lists and prefer database-level filtering over in-memory collection filtering for search operations. Use `DB::getDriverName()` for cross-platform compatible raw queries (e.g., string concatenation).
