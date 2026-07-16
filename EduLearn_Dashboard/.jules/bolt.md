@@ -1,0 +1,3 @@
+## 2025-05-22 - [Dashboard N+1 and View Composer Redundancy]
+**Learning:** Found that `AppServiceProvider` was executing notification queries for EVERY view partial rendered because of the `*` wildcard in `View::composer`. On pages with multiple partials, this multiplied the number of identical queries. Additionally, `DashboardAnalyticsService` had an N+1 bottleneck when calculating class-level risks by querying attendance averages in a loop.
+**Action:** Use Laravel's `once()` helper in service providers for request-level memoization. In analytics services, prefer `withAvg()` and subqueries (`select('id')` instead of `pluck('id')`) to keep operations within the database and avoid memory bloat in PHP.
