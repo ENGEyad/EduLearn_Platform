@@ -1,0 +1,3 @@
+## 2026-05-14 - [Eager-loading and Subquery Optimization in Dashboard Analytics]
+**Learning:** Accessing nested relationships inside loops or collection filtering functions generates N+1 queries. Plucking large numbers of record IDs into memory (`pluck('id')`) is an anti-pattern in high-concurrency or high-data environments as it causes massive database memory pressure and heavy PHP arrays. Replacing pluck with Eloquent/Query Builder subqueries (using `select('id')`) keeps operations entirely on the database engine.
+**Action:** Always prefer Eloquent's `withAvg` or `withCount` to pre-calculate aggregated child values in a single query. When using parent IDs to filter related tables, use a Query Builder subquery instead of `pluck()->toArray()` or `pluck()` collection.
