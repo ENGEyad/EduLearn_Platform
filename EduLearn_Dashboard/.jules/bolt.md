@@ -1,0 +1,3 @@
+## 2026-05-13 - Reports List N+1 Performance Optimization
+**Learning:** In Laravel, performing queries or aggregations inside a loop (like counting students for each class) results in an N+1 query bottleneck. In addition, doing in-memory list searching can load huge amounts of unnecessary Eloquent models. Using database-level `groupBy` with aggregations combined with `orWhereExists` and driver-agnostic string concatenation (`getDriverName()`) converts the operation to a single optimal O(1) query.
+**Action:** Always delegate filtering, searching, and aggregation to the database level using subqueries and group-by clauses instead of executing queries in loops.
