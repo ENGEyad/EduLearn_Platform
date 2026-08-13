@@ -73,9 +73,17 @@ class DashboardAnalyticsService
             ->get()
             ->count();
 
+        // Bolt ⚡ Optimization: Pre-calculate the average attendance of all class sections in a single group-by query.
+        // This avoids executing a separate query inside a loop for each section (N+1 query problem).
+        $sectionAttendanceAverages = Student::where('school_id', $schoolId)
+            ->whereNotNull('class_section_id')
+            ->select('class_section_id', \Illuminate\Support\Facades\DB::raw('avg(attendance_rate) as avg_attendance'))
+            ->groupBy('class_section_id')
+            ->pluck('avg_attendance', 'class_section_id');
+
         $lowAttendanceClasses = $sections
-            ->filter(function ($section) {
-                $avgAttendance = Student::where('class_section_id', $section->id)->avg('attendance_rate');
+            ->filter(function ($section) use ($sectionAttendanceAverages) {
+                $avgAttendance = $sectionAttendanceAverages[$section->id] ?? null;
                 return $avgAttendance !== null && (float) $avgAttendance < 85;
             })
             ->count();

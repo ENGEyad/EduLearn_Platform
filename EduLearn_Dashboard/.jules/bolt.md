@@ -1,0 +1,5 @@
+## 2026-03-08 - Low-Attendance Classes N+1 Query Optimization
+**Learning:** In the Laravel backend of EduLearn_Dashboard, the `DashboardAnalyticsService::buildOverview` method calculated the count of low-attendance classes by querying the average attendance of students in a loop for every single class section. This generated $O(N)$ database queries (where $N$ is the number of sections).
+By utilizing an aggregate `groupBy` query on the Student model, we pre-calculate section attendance averages in a single $O(1)$ query and resolve the N+1 loop entirely.
+In testing, bypassing the dual-database environment (mysql vs app_mysql connections) on local SQLite can be cleanly handled by overriding `createApplication` dynamically in individual feature tests to map both connections to `:memory:` without global code modification.
+**Action:** Use grouped aggregate queries on related/joined models rather than inside loops. Map multiple database connections dynamically to in-memory SQLite in test cases where live MySQL servers are unavailable.
