@@ -1,0 +1,3 @@
+## 2025-05-18 - [Eliminate N+1 Query Bottleneck in Dashboard Analytics Service]
+**Learning:** In `DashboardAnalyticsService::buildOverview`, calculating section-level average attendance inside a `Collection::filter()` loop triggered N database queries (1 query per class section). Pre-calculating all section averages in a single GROUP BY query on `students` reduces queries from N+1 down to 1 while preserving exact logic.
+**Action:** Always pre-aggregate nested relationship metrics in grouped subqueries or single GROUP BY queries when working with dashboard analytics across multiple sections or cohorts.

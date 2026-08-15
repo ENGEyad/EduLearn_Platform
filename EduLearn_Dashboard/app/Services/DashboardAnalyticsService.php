@@ -36,7 +36,7 @@ class DashboardAnalyticsService
         $stats = [
             'teachers' => Teacher::where('school_id', $schoolId)->count(),
             'students' => $studentIds->count(),
-            'classes' => ClassSection::where('school_id', $schoolId)->count(),
+            'classes' => $sections->count(),
             'subjects' => Subject::whereHas('classSections', function ($query) use ($schoolId) {
                 $query->where('school_id', $schoolId);
             })->count(),
@@ -73,9 +73,15 @@ class DashboardAnalyticsService
             ->get()
             ->count();
 
+        // Pre-calculate section attendance averages in a single GROUP BY query to eliminate N+1 queries
+        $sectionAttendanceAverages = Student::where('school_id', $schoolId)
+            ->whereNotNull('class_section_id')
+            ->groupBy('class_section_id')
+            ->pluck(\Illuminate\Support\Facades\DB::raw('AVG(attendance_rate)'), 'class_section_id');
+
         $lowAttendanceClasses = $sections
-            ->filter(function ($section) {
-                $avgAttendance = Student::where('class_section_id', $section->id)->avg('attendance_rate');
+            ->filter(function ($section) use ($sectionAttendanceAverages) {
+                $avgAttendance = $sectionAttendanceAverages->get($section->id);
                 return $avgAttendance !== null && (float) $avgAttendance < 85;
             })
             ->count();
