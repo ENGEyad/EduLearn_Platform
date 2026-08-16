@@ -25,18 +25,21 @@ class DashboardAnalyticsService
         [$currentStart, $currentEnd] = $this->periodRange($period);
         [$previousStart, $previousEnd] = $this->previousPeriodRange($period, $currentStart, $currentEnd);
 
-        $studentIds = Student::where('school_id', $schoolId)->pluck('id');
+        // Optimization: Use subqueries instead of pulling all student IDs into PHP memory
+        $studentSubQuery = Student::where('school_id', $schoolId)->select('id');
+        $studentCount = Student::where('school_id', $schoolId)->count();
+
         $sections = ClassSection::where('school_id', $schoolId)
             ->withCount('students')
             ->get();
 
-        $performanceOverall = (float) (StudentExerciseAttempt::whereIn('student_id', $studentIds)->avg('score') ?? 0);
+        $performanceOverall = (float) (StudentExerciseAttempt::whereIn('student_id', $studentSubQuery)->avg('score') ?? 0);
         $attendanceOverall = (float) (Student::where('school_id', $schoolId)->avg('attendance_rate') ?? 0);
 
         $stats = [
             'teachers' => Teacher::where('school_id', $schoolId)->count(),
-            'students' => $studentIds->count(),
-            'classes' => ClassSection::where('school_id', $schoolId)->count(),
+            'students' => $studentCount,
+            'classes' => $sections->count(), // Optimization: reuse loaded sections collection count
             'subjects' => Subject::whereHas('classSections', function ($query) use ($schoolId) {
                 $query->where('school_id', $schoolId);
             })->count(),
@@ -49,11 +52,11 @@ class DashboardAnalyticsService
             ],
         ];
 
-        $currentPerformance = (float) (StudentExerciseAttempt::whereIn('student_id', $studentIds)
+        $currentPerformance = (float) (StudentExerciseAttempt::whereIn('student_id', $studentSubQuery)
             ->whereBetween('created_at', [$currentStart, $currentEnd])
             ->avg('score') ?? 0);
 
-        $previousPerformance = (float) (StudentExerciseAttempt::whereIn('student_id', $studentIds)
+        $previousPerformance = (float) (StudentExerciseAttempt::whereIn('student_id', $studentSubQuery)
             ->whereBetween('created_at', [$previousStart, $previousEnd])
             ->avg('score') ?? 0);
 
@@ -66,16 +69,23 @@ class DashboardAnalyticsService
             ->where('attendance_rate', '<', 85)
             ->count();
 
-        $lowPerformanceStudents = StudentExerciseAttempt::whereIn('student_id', $studentIds)
+        $lowPerformanceStudents = StudentExerciseAttempt::whereIn('student_id', $studentSubQuery)
             ->select('student_id')
             ->groupBy('student_id')
             ->havingRaw('AVG(score) < ?', [70])
             ->get()
             ->count();
 
+        // Optimization: Pre-calculate section average attendance in a single group-by query to eliminate N+1 queries loop
+        $sectionAttendanceAverages = Student::where('school_id', $schoolId)
+            ->whereNotNull('class_section_id')
+            ->groupBy('class_section_id')
+            ->selectRaw('class_section_id, AVG(attendance_rate) as avg_attendance')
+            ->pluck('avg_attendance', 'class_section_id');
+
         $lowAttendanceClasses = $sections
-            ->filter(function ($section) {
-                $avgAttendance = Student::where('class_section_id', $section->id)->avg('attendance_rate');
+            ->filter(function ($section) use ($sectionAttendanceAverages) {
+                $avgAttendance = $sectionAttendanceAverages->get($section->id);
                 return $avgAttendance !== null && (float) $avgAttendance < 85;
             })
             ->count();
