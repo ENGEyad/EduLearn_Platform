@@ -1,0 +1,3 @@
+## 2026-08-18 - Grouped aggregation for attendance rate calculation in DashboardAnalyticsService
+**Learning:** In `DashboardAnalyticsService::buildOverview`, querying average attendance per class section inside a loop (`Student::where('class_section_id', $section->id)->avg('attendance_rate')`) causes an N+1 database query loop proportional to the number of class sections.
+**Action:** Use a single grouped query (`Student::whereNotNull('class_section_id')->groupBy('class_section_id')->pluck(DB::raw('AVG(attendance_rate)'), 'class_section_id')`) to pre-calculate section attendance averages in O(1) database queries, then look up the section averages in memory.
