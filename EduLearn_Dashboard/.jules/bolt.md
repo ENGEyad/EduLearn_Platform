@@ -1,0 +1,3 @@
+## 2025-05-20 - Memoizing View Composers and Pre-aggregating Model Relationships
+**Learning:** In Laravel Blade rendering, `View::composer('*', ...)` executes on every single rendered view and partial component. Wrapping database queries inside Laravel's `once()` helper inside view composers prevents redundant queries across partial renders. Additionally, using `withAvg()` on Eloquent relationship queries avoids N+1 database queries when calculating group or section averages in loops.
+**Action:** Always use `once()` for request-scoped view composer queries and `withAvg()`/`withCount()` when aggregating relationship fields across collections.
