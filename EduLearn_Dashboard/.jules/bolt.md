@@ -1,0 +1,3 @@
+## 2026-08-23 - Single Group-by Pre-calculation for Class Section Averages
+**Learning:** In `DashboardAnalyticsService::buildOverview`, evaluating section-level aggregates (such as `Student::where('class_section_id', $section->id)->avg('attendance_rate')`) inside collection filters causes an N+1 query bottleneck (executing 1 query per section). Pre-calculating section averages in a single grouped query (`groupBy('class_section_id')->pluck(DB::raw('AVG(...)'), 'class_section_id')`) reduces database queries from N down to 1 while preserving exact calculation behavior.
+**Action:** When calculating cohort or group-based aggregate thresholds across active collections, perform a single `groupBy()` query and match in memory with `$collection->get($id)`.
