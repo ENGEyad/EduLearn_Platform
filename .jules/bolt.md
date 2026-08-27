@@ -1,0 +1,3 @@
+## 2025-05-15 - Dashboard Analytics Low-Attendance N+1 Query Bottleneck
+**Learning:** `DashboardAnalyticsService::buildOverview` evaluated section attendance averages by executing individual `Student::where('class_section_id', $section->id)->avg('attendance_rate')` queries inside a filter loop over `$sections`, resulting in O(N) queries for N class sections.
+**Action:** Use `ClassSection::withAvg('students', 'attendance_rate')` during initial fetch to eager-load class section attendance averages into `$section->students_avg_attendance_rate`, allowing in-memory filtering and reducing overview query count.
