@@ -13,8 +13,7 @@ class DashboardAnalyticsService
 {
     public function __construct(
         protected DashboardInsightPayloadBuilder $payloadBuilder
-    ) {
-    }
+    ) {}
 
     /**
      * @return array<string, mixed>
@@ -44,7 +43,7 @@ class DashboardAnalyticsService
             'performance' => round($performanceOverall, 1),
             'danglingStudents' => Student::where('school_id', $schoolId)->whereNull('class_section_id')->count(),
             'chartData' => [
-                'labels' => $sections->map(fn ($section) => $section->name ?: ($section->grade . ' / ' . $section->section))->values(),
+                'labels' => $sections->map(fn ($section) => $section->name ?: ($section->grade.' / '.$section->section))->values(),
                 'data' => $sections->pluck('students_count')->values(),
             ],
         ];
@@ -73,9 +72,17 @@ class DashboardAnalyticsService
             ->get()
             ->count();
 
+        // Optimization: Pre-calculate average attendance per class_section in a single grouped query to prevent N+1 queries for each section
+        $sectionAttendance = Student::where('school_id', $schoolId)
+            ->whereNotNull('class_section_id')
+            ->groupBy('class_section_id')
+            ->selectRaw('class_section_id, AVG(attendance_rate) as avg_attendance')
+            ->pluck('avg_attendance', 'class_section_id');
+
         $lowAttendanceClasses = $sections
-            ->filter(function ($section) {
-                $avgAttendance = Student::where('class_section_id', $section->id)->avg('attendance_rate');
+            ->filter(function ($section) use ($sectionAttendance) {
+                $avgAttendance = $sectionAttendance->get($section->id);
+
                 return $avgAttendance !== null && (float) $avgAttendance < 85;
             })
             ->count();
@@ -93,16 +100,16 @@ class DashboardAnalyticsService
 
         $anomalies = [];
         if ($stats['danglingStudents'] > 0) {
-            $anomalies[] = $stats['danglingStudents'] . ' unassigned students';
+            $anomalies[] = $stats['danglingStudents'].' unassigned students';
         }
         if ($lowAttendanceStudents > 0) {
-            $anomalies[] = $lowAttendanceStudents . ' students below the attendance threshold';
+            $anomalies[] = $lowAttendanceStudents.' students below the attendance threshold';
         }
         if ($lowPerformanceStudents > 0) {
-            $anomalies[] = $lowPerformanceStudents . ' students with weak exercise performance averages';
+            $anomalies[] = $lowPerformanceStudents.' students with weak exercise performance averages';
         }
         if ($lowAttendanceClasses > 0) {
-            $anomalies[] = $lowAttendanceClasses . ' classes below the attendance threshold';
+            $anomalies[] = $lowAttendanceClasses.' classes below the attendance threshold';
         }
 
         $recommendedFocus = [];

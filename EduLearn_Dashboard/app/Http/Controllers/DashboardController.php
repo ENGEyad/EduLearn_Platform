@@ -18,17 +18,13 @@ class DashboardController extends Controller
 
         $period = $request->get('period', 'week');
         $schoolName = auth()->user()->school->name ?? 'EduLearn School';
-        $cacheKey = 'dashboard_stats_school_v3_' . $schoolId . '_' . $period;
+        $cacheKey = 'dashboard_stats_school_v3_'.$schoolId.'_'.$period;
 
         $overview = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($analyticsService, $schoolId, $period, $schoolName) {
             return $analyticsService->buildOverview($schoolId, $period, $schoolName);
         });
 
-        $latestReport = \App\Models\AiReport::where('school_id', $schoolId)
-            ->where('status', 'completed')
-            ->latest()
-            ->first();
-
+        // Optimization: Fetch latest completed AI report once to avoid duplicate query execution
         $latestReport = \App\Models\AiReport::where('school_id', $schoolId)
             ->where('status', 'completed')
             ->latest()
@@ -68,10 +64,11 @@ class DashboardController extends Controller
                 ]);
             }
         } catch (\Throwable $exception) {
-            \Illuminate\Support\Facades\Log::error('AI Insight Error: ' . $exception->getMessage(), [
+            \Illuminate\Support\Facades\Log::error('AI Insight Error: '.$exception->getMessage(), [
                 'exception' => $exception,
                 'school_id' => $schoolId,
             ]);
+
             return response()->json([
                 'success' => false,
                 'error' => __('Connection error'),
@@ -92,15 +89,15 @@ class DashboardController extends Controller
     protected function resolveSchoolId(): ?int
     {
         $user = auth()->user();
-        if (!$user) {
+        if (! $user) {
             return null;
         }
 
-        if (!empty($user->school_id)) {
+        if (! empty($user->school_id)) {
             return (int) $user->school_id;
         }
 
-        if (isset($user->school) && !empty($user->school?->id)) {
+        if (isset($user->school) && ! empty($user->school?->id)) {
             return (int) $user->school->id;
         }
 
