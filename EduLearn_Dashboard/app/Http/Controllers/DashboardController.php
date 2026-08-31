@@ -24,11 +24,7 @@ class DashboardController extends Controller
             return $analyticsService->buildOverview($schoolId, $period, $schoolName);
         });
 
-        $latestReport = \App\Models\AiReport::where('school_id', $schoolId)
-            ->where('status', 'completed')
-            ->latest()
-            ->first();
-
+        // Optimization: Execute query once to fetch the latest completed AI report
         $latestReport = \App\Models\AiReport::where('school_id', $schoolId)
             ->where('status', 'completed')
             ->latest()
