@@ -13,8 +13,7 @@ class DashboardAnalyticsService
 {
     public function __construct(
         protected DashboardInsightPayloadBuilder $payloadBuilder
-    ) {
-    }
+    ) {}
 
     /**
      * @return array<string, mixed>
@@ -36,7 +35,7 @@ class DashboardAnalyticsService
         $stats = [
             'teachers' => Teacher::where('school_id', $schoolId)->count(),
             'students' => $studentIds->count(),
-            'classes' => ClassSection::where('school_id', $schoolId)->count(),
+            'classes' => $sections->count(),
             'subjects' => Subject::whereHas('classSections', function ($query) use ($schoolId) {
                 $query->where('school_id', $schoolId);
             })->count(),
@@ -44,7 +43,7 @@ class DashboardAnalyticsService
             'performance' => round($performanceOverall, 1),
             'danglingStudents' => Student::where('school_id', $schoolId)->whereNull('class_section_id')->count(),
             'chartData' => [
-                'labels' => $sections->map(fn ($section) => $section->name ?: ($section->grade . ' / ' . $section->section))->values(),
+                'labels' => $sections->map(fn ($section) => $section->name ?: ($section->grade.' / '.$section->section))->values(),
                 'data' => $sections->pluck('students_count')->values(),
             ],
         ];
@@ -67,15 +66,22 @@ class DashboardAnalyticsService
             ->count();
 
         $lowPerformanceStudents = StudentExerciseAttempt::whereIn('student_id', $studentIds)
-            ->select('student_id')
             ->groupBy('student_id')
             ->havingRaw('AVG(score) < ?', [70])
-            ->get()
+            ->pluck('student_id')
             ->count();
 
+        // Single query to pre-calculate section average attendance rates to avoid N+1 queries
+        $sectionAttendanceRates = Student::where('school_id', $schoolId)
+            ->whereNotNull('class_section_id')
+            ->groupBy('class_section_id')
+            ->selectRaw('class_section_id, AVG(attendance_rate) as avg_attendance')
+            ->pluck('avg_attendance', 'class_section_id');
+
         $lowAttendanceClasses = $sections
-            ->filter(function ($section) {
-                $avgAttendance = Student::where('class_section_id', $section->id)->avg('attendance_rate');
+            ->filter(function ($section) use ($sectionAttendanceRates) {
+                $avgAttendance = $sectionAttendanceRates->get($section->id);
+
                 return $avgAttendance !== null && (float) $avgAttendance < 85;
             })
             ->count();
@@ -93,16 +99,16 @@ class DashboardAnalyticsService
 
         $anomalies = [];
         if ($stats['danglingStudents'] > 0) {
-            $anomalies[] = $stats['danglingStudents'] . ' unassigned students';
+            $anomalies[] = $stats['danglingStudents'].' unassigned students';
         }
         if ($lowAttendanceStudents > 0) {
-            $anomalies[] = $lowAttendanceStudents . ' students below the attendance threshold';
+            $anomalies[] = $lowAttendanceStudents.' students below the attendance threshold';
         }
         if ($lowPerformanceStudents > 0) {
-            $anomalies[] = $lowPerformanceStudents . ' students with weak exercise performance averages';
+            $anomalies[] = $lowPerformanceStudents.' students with weak exercise performance averages';
         }
         if ($lowAttendanceClasses > 0) {
-            $anomalies[] = $lowAttendanceClasses . ' classes below the attendance threshold';
+            $anomalies[] = $lowAttendanceClasses.' classes below the attendance threshold';
         }
 
         $recommendedFocus = [];
