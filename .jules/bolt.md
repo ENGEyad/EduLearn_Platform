@@ -1,0 +1,3 @@
+## 2026-09-08 - Batching Student Performance Metrics Queries
+**Learning:** In `StudentPerformanceController::show`, iterating through a student's subjects to individually fetch lessons, `StudentLessonProgress`, and `StudentExerciseAttempt` models results in $O(N)$ database queries (where $N$ is the number of subjects, e.g., 8 subjects = 51 total queries). By batching the fetches for all subject IDs into three grouped queries before the loop (`whereIn('subject_id', $subjectIds)` and `groupBy('lesson_id')`), query execution drops from 51 queries down to 16 queries without affecting the returned structure or calculations.
+**Action:** Always inspect loop constructs in student/teacher analytics controllers to batch queries using `whereIn` and `groupBy` before iteration.
