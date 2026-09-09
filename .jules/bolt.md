@@ -1,0 +1,3 @@
+## 2025-03-09 - Eager-load student attendance averages on ClassSection model in DashboardAnalyticsService
+**Learning:** In `DashboardAnalyticsService::buildOverview`, calculating low-attendance classes involved iterating over all `ClassSection` models and executing an individual SQL `Student::where('class_section_id', $section->id)->avg('attendance_rate')` query for each section, resulting in an O(N) database query bottleneck.
+**Action:** Use Eloquent's `withAvg('students', 'attendance_rate')` to aggregate student attendance per section in a single subquery when fetching sections, and calculate low-attendance classes in memory using `$section->students_avg_attendance_rate`. Reusing `$sections->count()` also eliminates a duplicate `ClassSection::count()` query.
