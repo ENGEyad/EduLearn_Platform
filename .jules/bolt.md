@@ -1,0 +1,3 @@
+## 2025-05-18 - Eager loading `withAvg` and request memoization with `once()` for Dashboard Analytics
+**Learning:** In Laravel 12, `View::composer('*', ...)` callbacks fire for every rendered view partial. Using `once()` inside the composer memoizes header query results per request, preventing redundant DB queries across partials. Chaining `withAvg('students', 'attendance_rate')` on `ClassSection` queries pre-aggregates student attendance in a single subquery, eliminating O(N) queries during class attendance threshold filtering.
+**Action:** Always check `View::composer('*')` for un-memoized DB queries, and use `withAvg` or `withCount` on Eloquent models when filtering collections by calculated aggregates.
