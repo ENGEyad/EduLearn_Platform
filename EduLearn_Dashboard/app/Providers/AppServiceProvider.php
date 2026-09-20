@@ -11,7 +11,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-    //
+        //
     }
 
     /**
@@ -22,8 +22,13 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
             if (auth()->check()) {
                 $schoolId = auth()->user()->school_id;
-                $latestNotifications = \App\Models\DashboardNotification::where('school_id', $schoolId)->latest()->take(5)->get();
-                $unreadCount = \App\Models\DashboardNotification::where('school_id', $schoolId)->where('is_read', false)->count();
+                // Memoize notification queries per request using once() to prevent duplicate database queries across view partials
+                [$latestNotifications, $unreadCount] = once(function () use ($schoolId) {
+                    return [
+                        \App\Models\DashboardNotification::where('school_id', $schoolId)->latest()->take(5)->get(),
+                        \App\Models\DashboardNotification::where('school_id', $schoolId)->where('is_read', false)->count(),
+                    ];
+                });
                 $view->with('headerNotifications', $latestNotifications);
                 $view->with('unreadNotificationsCount', $unreadCount);
             } else {
