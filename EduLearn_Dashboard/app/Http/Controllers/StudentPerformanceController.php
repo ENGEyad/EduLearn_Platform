@@ -22,33 +22,49 @@ class StudentPerformanceController extends Controller
         $subjectIds = ClassSectionSubject::where('class_section_id', $classSectionId)->pluck('subject_id');
         $subjects = Subject::whereIn('id', $subjectIds)->get();
 
+        // ⚡ Bolt Optimization: Batch load lessons, progress items, and attempts across all subjects
+        // to avoid N+1 query loop when rendering student performance per subject.
+        $allLessons = Lesson::on('app_mysql')
+            ->whereIn('subject_id', $subjectIds)
+            ->get()
+            ->groupBy('subject_id');
+
+        $allLessonIds = $allLessons->flatten()->pluck('id');
+
+        $allProgress = StudentLessonProgress::on('app_mysql')
+            ->where('student_id', $student->id)
+            ->whereIn('lesson_id', $allLessonIds)
+            ->get()
+            ->groupBy('lesson_id');
+
+        $allAttempts = StudentExerciseAttempt::on('app_mysql')
+            ->with(['exerciseSet', 'lesson'])
+            ->where('student_id', $student->id)
+            ->whereIn('lesson_id', $allLessonIds)
+            ->orderBy('id', 'desc')
+            ->get()
+            ->groupBy('lesson_id');
+
         $performance = [];
 
-        foreach($subjects as $sub) {
-            // Find lessons relevant to this subject
-            $lessons = Lesson::on('app_mysql')->where('subject_id', $sub->id)->get();
+        foreach ($subjects as $sub) {
+            // Find lessons relevant to this subject from pre-fetched collection
+            $lessons = $allLessons->get($sub->id, collect());
             $lessonIds = $lessons->pluck('id');
-            
-            $progressItems = StudentLessonProgress::on('app_mysql')
-                ->where('student_id', $student->id)
-                ->whereIn('lesson_id', $lessonIds)
-                ->get();
-            
-            $attempts = StudentExerciseAttempt::on('app_mysql')
-                ->with(['exerciseSet', 'lesson'])
-                ->where('student_id', $student->id)
-                ->whereIn('lesson_id', $lessonIds)
-                ->orderBy('id', 'desc')
-                ->get();
+
+            $progressItems = $lessonIds->flatMap(fn($lId) => $allProgress->get($lId, collect()));
+            $attempts = $lessonIds->flatMap(fn($lId) => $allAttempts->get($lId, collect()))
+                ->sortByDesc('id')
+                ->values();
 
             $completedCount = $progressItems->where('status', 'completed')->count();
             $totalCount = $lessons->count();
-            
+
             $progressPercent = $totalCount > 0 ? round(($completedCount / $totalCount) * 100) : 0;
 
             $avgScore = 0;
             if ($attempts->count() > 0) {
-                $avgScore = round($attempts->avg(function($a) {
+                $avgScore = round($attempts->avg(function ($a) {
                     return $a->total_points > 0 ? ($a->score / $a->total_points) * 100 : 0;
                 }), 1);
             }
