@@ -136,16 +136,22 @@ class Teacher extends Model
     public function getTotalAssignedStudentsAttribute()
     {
         $this->loadMissing('assignments.classSection');
-        return $this->assignments->reduce(function ($carry, $as) {
-            $cs = $as->classSection;
-            if (!$cs) return $carry;
-            if (isset($cs->students_count)) {
-                return $carry + (int) $cs->students_count;
-            }
-            if (method_exists($cs, 'students')) {
-                return $carry + $cs->students->count();
-            }
-            return $carry;
-        }, 0);
+
+        // Deduplicate assignments by class_section_id to prevent double-counting students
+        // when a teacher teaches multiple subjects to the same class section.
+        return $this->assignments
+            ->filter(fn($as) => !is_null($as->classSection))
+            ->unique('class_section_id')
+            ->sum(function ($as) {
+                $cs = $as->classSection;
+                if (isset($cs->students_count)) {
+                    return (int) $cs->students_count;
+                }
+                // Fallback to loaded students relationship count if students_count is not preloaded
+                if ($cs->relationLoaded('students')) {
+                    return $cs->students->count();
+                }
+                return $cs->students()->count();
+            });
     }
 }
