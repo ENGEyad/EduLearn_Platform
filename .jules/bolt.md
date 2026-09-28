@@ -1,0 +1,3 @@
+## 2025-09-28 - Deduplicating Teacher Class Section Accessor Aggregation
+**Learning:** `Teacher::getTotalAssignedStudentsAttribute` was summing `students_count` across all assigned `TeacherClassSubject` records without deduplicating class section IDs. When a teacher is assigned to multiple subjects in the same class section, student counts were duplicated (e.g. 20 students counted as 40). Additionally, accessing `$as->subject->name` returned `null` because `Subject` uses `display_name` (or `name_en` / `name_ar`).
+**Action:** Deduplicate `classSection` collection by `id` using `$this->assignments->pluck('classSection')->filter()->unique('id')` before summing student counts, and use `$as->subject->display_name` for subject accessors.
