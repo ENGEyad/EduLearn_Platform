@@ -1,0 +1,3 @@
+## 2025-05-18 - Memoize View Composer Queries per Request
+**Learning:** Attaching a `View::composer('*', ...)` callback to wildcard view paths causes the closure to execute every time any Blade template or partial component is rendered during a request lifecycle. Using Laravel 12's `once()` helper inside the composer closure memoizes the query result per request, eliminating redundant database calls across view partials while remaining safe for Octane/Swoole environments.
+**Action:** Wrap database queries inside `View::composer` closures with `once()` to ensure single query execution per request.
