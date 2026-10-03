@@ -1,0 +1,5 @@
+## 2025-05-20 - Dashboard Analytics & Teacher Model N+1 Query Optimization
+
+**Learning:** `DashboardAnalyticsService::buildOverview` executed an N+1 query loop when filtering low attendance classes by querying average attendance per class section inside a `filter()` callback (`Student::where('class_section_id', $section->id)->avg('attendance_rate')`). Eager-loading student attendance average using `withAvg('students', 'attendance_rate')` when loading `$sections` reduces query count from 32 down to 11 for 20 sections. Furthermore, `Teacher::getTotalAssignedStudentsAttribute()` double-counted students when a teacher had multiple subject assignments in the same section; deduplicating sections by `id` ensures accurate student counts and avoids O(N) relation calls.
+
+**Action:** Always use `withAvg()` / `withCount()` aggregate eager-loading on Eloquent parent queries rather than running aggregate queries inside collection loops, and ensure collection operations on pivot relationships deduplicate models by `id` before calculating aggregates.
