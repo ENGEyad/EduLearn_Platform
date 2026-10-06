@@ -136,9 +136,15 @@ class Teacher extends Model
     public function getTotalAssignedStudentsAttribute()
     {
         $this->loadMissing('assignments.classSection');
-        return $this->assignments->reduce(function ($carry, $as) {
-            $cs = $as->classSection;
-            if (!$cs) return $carry;
+
+        // Deduplicate assigned class sections by ID to ensure each section is only counted once,
+        // preventing duplicated student count aggregation and O(N) redundant calculations.
+        $uniqueClassSections = $this->assignments
+            ->pluck('classSection')
+            ->filter()
+            ->unique('id');
+
+        return $uniqueClassSections->reduce(function ($carry, $cs) {
             if (isset($cs->students_count)) {
                 return $carry + (int) $cs->students_count;
             }
