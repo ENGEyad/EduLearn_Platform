@@ -1,0 +1,4 @@
+## 2026-04-29 - Batching Query Execution in Student Performance Analytics & Deduplicating Teacher Class Sections
+
+**Learning:** In `StudentPerformanceController::show`, querying `Lesson`, `StudentLessonProgress`, and `StudentExerciseAttempt` models inside a loop over `$subjects` caused an O(N) query bottleneck (up to 51 queries for 8 subjects). Furthermore, calculating `Teacher::$total_assigned_students` without deduplicating `$teacher->assignments->pluck('classSection')` double-counted students when a teacher taught multiple subjects in the same section.
+**Action:** Pre-fetch lessons, progress items, and exercise attempts in single batch queries using `whereIn('subject_id', $subjectIds)` and `whereIn('lesson_id', $allLessonIds)` grouped by ID in memory before rendering analytics. In model accessor aggregations, unique relations by primary key before summing to ensure correctness and preserve O(1) query count.

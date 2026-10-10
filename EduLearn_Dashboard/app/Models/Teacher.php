@@ -8,7 +8,7 @@ use Laravel\Sanctum\HasApiTokens; // <-- تمت الإضافة
 
 class Teacher extends Model
 {
-    use HasFactory, HasApiTokens; // <-- تمت الإضافة
+    use HasApiTokens, HasFactory; // <-- تمت الإضافة
 
     protected $fillable = [
         'school_id',
@@ -47,13 +47,13 @@ class Teacher extends Model
     ];
 
     protected $casts = [
-        'subjects'           => 'array',
-        'grades'             => 'array',
-        'birthdate'          => 'date',
+        'subjects' => 'array',
+        'grades' => 'array',
+        'birthdate' => 'date',
         'qualification_date' => 'date',
-        'join_date'          => 'date',
-        'avg_student_score'  => 'decimal:2',
-        'attendance_rate'    => 'decimal:2',
+        'join_date' => 'date',
+        'avg_student_score' => 'decimal:2',
+        'attendance_rate' => 'decimal:2',
     ];
 
     protected $hidden = [
@@ -87,28 +87,29 @@ class Teacher extends Model
         )->withPivot('class_section_id');
     }
 
-
     public function getPhotoUrlAttribute(): ?string
     {
-        return $this->photo_path ? asset('storage/' . $this->photo_path) : null;
+        return $this->photo_path ? asset('storage/'.$this->photo_path) : null;
     }
 
     public function getThumbUrlAttribute(): ?string
     {
-        if (!$this->photo_path) {
+        if (! $this->photo_path) {
             return null;
         }
         $dir = dirname($this->photo_path);
         $file = basename($this->photo_path);
-        $thumbPath = $dir . '/thumbs/' . $file;
-        return asset('storage/' . $thumbPath);
+        $thumbPath = $dir.'/thumbs/'.$file;
+
+        return asset('storage/'.$thumbPath);
     }
 
     public function getAssignedSubjectsAttribute()
     {
         $this->loadMissing('assignments.subject');
+
         return $this->assignments
-            ->map(fn($as) => optional($as->subject)->name)
+            ->map(fn ($as) => optional($as->subject)->display_name ?? optional($as->subject)->name)
             ->filter()
             ->unique()
             ->values()
@@ -118,13 +119,19 @@ class Teacher extends Model
     public function getAssignedClassSectionsAttribute()
     {
         $this->loadMissing('assignments.classSection');
+
         return $this->assignments
             ->map(function ($as) {
                 $cs = $as->classSection;
-                if (!$cs) return null;
-                $grade   = $cs->grade_name ?? $cs->grade ?? null;
+                if (! $cs) {
+                    return null;
+                }
+                $grade = $cs->grade_name ?? $cs->grade ?? null;
                 $section = $cs->section_name ?? $cs->section ?? null;
-                if ($grade && $section) return "{$grade} - {$section}";
+                if ($grade && $section) {
+                    return "{$grade} - {$section}";
+                }
+
                 return $cs->name ?? null;
             })
             ->filter()
@@ -136,16 +143,21 @@ class Teacher extends Model
     public function getTotalAssignedStudentsAttribute()
     {
         $this->loadMissing('assignments.classSection');
-        return $this->assignments->reduce(function ($carry, $as) {
-            $cs = $as->classSection;
-            if (!$cs) return $carry;
-            if (isset($cs->students_count)) {
-                return $carry + (int) $cs->students_count;
-            }
-            if (method_exists($cs, 'students')) {
-                return $carry + $cs->students->count();
-            }
-            return $carry;
-        }, 0);
+
+        // Deduplicate class sections by ID so students in a section assigned to multiple subjects are counted only once
+        return $this->assignments
+            ->pluck('classSection')
+            ->filter()
+            ->unique('id')
+            ->sum(function ($cs) {
+                if (isset($cs->students_count)) {
+                    return (int) $cs->students_count;
+                }
+                if ($cs->relationLoaded('students')) {
+                    return $cs->students->count();
+                }
+
+                return $cs->students()->count();
+            });
     }
 }
