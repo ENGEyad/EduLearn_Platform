@@ -1,0 +1,3 @@
+## 2025-05-18 - Teacher Model Student Count Aggregation Optimization
+**Learning:** In `Teacher::getTotalAssignedStudentsAttribute`, accessing `$cs->students->count()` on un-eagerloaded `ClassSection` models hydrates all `Student` Eloquent instances into memory rather than running a SQL count query. Furthermore, looping over teacher assignments without deduplicating class sections by ID leads to duplicate student counts when a teacher is assigned to multiple subjects in the same class section.
+**Action:** Always deduplicate parent section models by ID before calculating aggregate totals, and use `$cs->students()->count()` or `students_count` attribute to execute SQL aggregate queries instead of hydrating Eloquent model collections into memory.
