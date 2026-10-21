@@ -1,0 +1,3 @@
+## 2026-05-13 - Deduplicating Related Models in Aggregate Accessors
+**Learning:** When calculating aggregates across multi-level relationships (such as `Teacher -> TeacherClassSubject -> ClassSection`), an entity assigned to multiple subjects within the same class section will have duplicate relationship records. Performing aggregate calculations without deduplicating by primary key results in duplicated metric counts (e.g. double counting students) and redundant nested queries.
+**Action:** Always filter unique related models by primary key (`->unique('id')`) before computing aggregate totals or iterating over child relations in Eloquent accessors.
