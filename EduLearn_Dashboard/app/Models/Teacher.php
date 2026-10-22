@@ -136,14 +136,22 @@ class Teacher extends Model
     public function getTotalAssignedStudentsAttribute()
     {
         $this->loadMissing('assignments.classSection');
-        return $this->assignments->reduce(function ($carry, $as) {
-            $cs = $as->classSection;
-            if (!$cs) return $carry;
+
+        // Extract unique class sections assigned to the teacher to avoid duplicate counting
+        // when a teacher is assigned multiple subjects in the same class section
+        $uniqueClassSections = $this->assignments
+            ->map(fn($as) => $as->classSection)
+            ->filter()
+            ->unique('id');
+
+        return $uniqueClassSections->reduce(function ($carry, $cs) {
             if (isset($cs->students_count)) {
                 return $carry + (int) $cs->students_count;
             }
             if (method_exists($cs, 'students')) {
-                return $carry + $cs->students->count();
+                // Use relationship query count() to execute aggregate SQL COUNT(*)
+                // instead of $cs->students->count() which hydrates all Student models into memory
+                return $carry + $cs->students()->count();
             }
             return $carry;
         }, 0);
