@@ -64,20 +64,21 @@ class ReportsController extends Controller
         $classFilter = trim($request->get('class', ''));
         $subjectFilter = trim($request->get('subject', ''));
 
-        // Start with a base query of distinct classes
-        $query = Student::select('grade', 'class_section')->distinct()
+        // Bolt Performance Optimization:
+        // Use single group-by query with aggregate student count to eliminate N+1 loop queries per class.
+        $query = Student::select('grade', 'class_section')
+            ->selectRaw('count(*) as students_count')
             ->where('school_id', $schoolId)
             ->whereNotNull('grade')
-            ->whereNotNull('class_section');
+            ->whereNotNull('class_section')
+            ->groupBy('grade', 'class_section');
 
-        // If filtering by subject, finding the class matching the subject Filter in memory or DB
         if ($subjectFilter !== '') {
             $query->whereHas('classSection', function ($q) use ($subjectFilter) {
                 $q->whereHas('subjects', function ($q2) use ($subjectFilter) {
-                        $q2->where('subject_id', $subjectFilter);
-                    }
-                    );
+                    $q2->where('subject_id', $subjectFilter);
                 });
+            });
         }
 
         if ($classFilter !== '') {
@@ -88,48 +89,45 @@ class ReportsController extends Controller
             }
         }
 
-        // To handle the search string safely without breaking `group by`, we will fetch the grouped classes
-        // then filter in memory if the search string is present.
-        $baseClasses = $query->orderBy('grade')->orderBy('class_section')->get();
+        if ($search !== '') {
+            $driver = DB::getDriverName();
+            $concatExpr = ($driver === 'sqlite' || $driver === 'pgsql')
+                ? "LOWER(grade || ' - ' || class_section)"
+                : "LOWER(CONCAT(grade, ' - ', class_section))";
 
-        $items = collect();
-        foreach ($baseClasses as $row) {
-            // Check student count
-            $studentQuery = Student::where('school_id', $schoolId)->where('grade', $row->grade)->where('class_section', $row->class_section);
+            $searchLower = strtolower($search);
 
-            // if we have a search term, we can check if it matches the class name or any student in the class
-            $matchesSearch = true;
-            if ($search !== '') {
-                $s = strtolower($search);
-                $className = strtolower($row->grade . ' - ' . $row->class_section);
-
-                // If it doesn't match class name, check if any student matches
-                if (strpos($className, $s) === false) {
-                    $hasMatchingStudent = (clone $studentQuery)->where(function ($q) use ($search) {
-                        $q->where('full_name', 'like', "%{$search}%")
-                            ->orWhere('academic_id', 'like', "%{$search}%");
-                    })->exists();
-                    if (!$hasMatchingStudent) {
-                        $matchesSearch = false; // Does not match class name or student name
-                    }
-                }
-            }
-
-            if ($matchesSearch) {
-                $items->push([
-                    'grade' => $row->grade,
-                    'class_section' => $row->class_section,
-                    'students_count' => $studentQuery->count(),
-                ]);
-            }
+            $query->where(function ($q) use ($concatExpr, $searchLower, $schoolId) {
+                $q->whereRaw("{$concatExpr} LIKE ?", ["%{$searchLower}%"])
+                  ->orWhereExists(function ($sub) use ($searchLower, $schoolId) {
+                      $sub->select(DB::raw(1))
+                          ->from('students as s_inner')
+                          ->whereColumn('s_inner.grade', 'students.grade')
+                          ->whereColumn('s_inner.class_section', 'students.class_section')
+                          ->where('s_inner.school_id', $schoolId)
+                          ->where(function ($sQuery) use ($searchLower) {
+                              $sQuery->whereRaw("LOWER(s_inner.full_name) LIKE ?", ["%{$searchLower}%"])
+                                     ->orWhereRaw("LOWER(s_inner.academic_id) LIKE ?", ["%{$searchLower}%"]);
+                          });
+                  });
+            });
         }
+
+        $items = $query->orderBy('grade')->orderBy('class_section')->get()->map(function ($row) {
+            return [
+                'grade' => $row->grade,
+                'class_section' => $row->class_section,
+                'students_count' => (int) $row->students_count,
+            ];
+        });
 
         // If search matches students, grab them directly
         $matchingStudents = collect();
         if ($search !== '') {
             $matchingStudents = Student::where('school_id', $schoolId)->where(function ($q) use ($search) {
-                $q->where('full_name', 'like', "%{$search}%")
-                    ->orWhere('academic_id', 'like', "%{$search}%");
+                $searchLower = strtolower($search);
+                $q->whereRaw("LOWER(full_name) LIKE ?", ["%{$searchLower}%"])
+                  ->orWhereRaw("LOWER(academic_id) LIKE ?", ["%{$searchLower}%"]);
             });
 
             if ($classFilter !== '') {
