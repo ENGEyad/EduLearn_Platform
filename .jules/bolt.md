@@ -1,0 +1,3 @@
+## 2025-05-18 - Grouped Aggregate and Subquery Search in ReportsController::list
+**Learning:** In `ReportsController::list`, counting student records and filtering class sections in memory caused N+1 database queries per class section row. Combining `selectRaw('count(*) as students_count')`, `groupBy('grade', 'class_section')`, and driver-aware raw SQL concatenation / `orWhereExists` pushes search and count calculations down to the database engine.
+**Action:** When querying grouped entities with calculated aggregates or child search filters, use aggregate `selectRaw` and subquery `orWhereExists` instead of fetching base models and executing individual queries in a PHP loop.
