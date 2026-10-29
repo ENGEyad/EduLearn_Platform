@@ -108,7 +108,7 @@ class Teacher extends Model
     {
         $this->loadMissing('assignments.subject');
         return $this->assignments
-            ->map(fn($as) => optional($as->subject)->name)
+            ->map(fn($as) => optional($as->subject)->display_name)
             ->filter()
             ->unique()
             ->values()
@@ -136,16 +136,17 @@ class Teacher extends Model
     public function getTotalAssignedStudentsAttribute()
     {
         $this->loadMissing('assignments.classSection');
-        return $this->assignments->reduce(function ($carry, $as) {
-            $cs = $as->classSection;
-            if (!$cs) return $carry;
-            if (isset($cs->students_count)) {
-                return $carry + (int) $cs->students_count;
-            }
-            if (method_exists($cs, 'students')) {
-                return $carry + $cs->students->count();
-            }
-            return $carry;
-        }, 0);
+        // Performance optimization: Deduplicate class sections by ID to avoid duplicate student aggregation
+        // when a teacher is assigned multiple subjects in the same section, and use aggregate query for student counts.
+        return $this->assignments
+            ->pluck('classSection')
+            ->filter()
+            ->unique('id')
+            ->sum(function ($cs) {
+                if (isset($cs->students_count)) {
+                    return (int) $cs->students_count;
+                }
+                return $cs->students()->count();
+            });
     }
 }
