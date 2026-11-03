@@ -8,7 +8,7 @@ use Laravel\Sanctum\HasApiTokens; // <-- تمت الإضافة
 
 class Teacher extends Model
 {
-    use HasFactory, HasApiTokens; // <-- تمت الإضافة
+    use HasApiTokens, HasFactory; // <-- تمت الإضافة
 
     protected $fillable = [
         'school_id',
@@ -47,13 +47,13 @@ class Teacher extends Model
     ];
 
     protected $casts = [
-        'subjects'           => 'array',
-        'grades'             => 'array',
-        'birthdate'          => 'date',
+        'subjects' => 'array',
+        'grades' => 'array',
+        'birthdate' => 'date',
         'qualification_date' => 'date',
-        'join_date'          => 'date',
-        'avg_student_score'  => 'decimal:2',
-        'attendance_rate'    => 'decimal:2',
+        'join_date' => 'date',
+        'avg_student_score' => 'decimal:2',
+        'attendance_rate' => 'decimal:2',
     ];
 
     protected $hidden = [
@@ -87,28 +87,36 @@ class Teacher extends Model
         )->withPivot('class_section_id');
     }
 
-
     public function getPhotoUrlAttribute(): ?string
     {
-        return $this->photo_path ? asset('storage/' . $this->photo_path) : null;
+        return $this->photo_path ? asset('storage/'.$this->photo_path) : null;
     }
 
     public function getThumbUrlAttribute(): ?string
     {
-        if (!$this->photo_path) {
+        if (! $this->photo_path) {
             return null;
         }
         $dir = dirname($this->photo_path);
         $file = basename($this->photo_path);
-        $thumbPath = $dir . '/thumbs/' . $file;
-        return asset('storage/' . $thumbPath);
+        $thumbPath = $dir.'/thumbs/'.$file;
+
+        return asset('storage/'.$thumbPath);
     }
 
     public function getAssignedSubjectsAttribute()
     {
         $this->loadMissing('assignments.subject');
+
         return $this->assignments
-            ->map(fn($as) => optional($as->subject)->name)
+            ->map(function ($as) {
+                $subject = $as->subject;
+                if (! $subject) {
+                    return null;
+                }
+
+                return $subject->display_name ?? $subject->name_en ?? $subject->name_ar ?? null;
+            })
             ->filter()
             ->unique()
             ->values()
@@ -118,13 +126,19 @@ class Teacher extends Model
     public function getAssignedClassSectionsAttribute()
     {
         $this->loadMissing('assignments.classSection');
+
         return $this->assignments
             ->map(function ($as) {
                 $cs = $as->classSection;
-                if (!$cs) return null;
-                $grade   = $cs->grade_name ?? $cs->grade ?? null;
+                if (! $cs) {
+                    return null;
+                }
+                $grade = $cs->grade_name ?? $cs->grade ?? null;
                 $section = $cs->section_name ?? $cs->section ?? null;
-                if ($grade && $section) return "{$grade} - {$section}";
+                if ($grade && $section) {
+                    return "{$grade} - {$section}";
+                }
+
                 return $cs->name ?? null;
             })
             ->filter()
@@ -133,18 +147,31 @@ class Teacher extends Model
             ->all();
     }
 
+    /**
+     * Bolt Optimization: Deduplicate class sections to prevent multiple counting of students
+     * when a teacher teaches multiple subjects to the same class section, and avoid hydrating
+     * all student Eloquent models into memory if students_count is not preloaded.
+     */
     public function getTotalAssignedStudentsAttribute()
     {
         $this->loadMissing('assignments.classSection');
-        return $this->assignments->reduce(function ($carry, $as) {
-            $cs = $as->classSection;
-            if (!$cs) return $carry;
+
+        $uniqueSections = $this->assignments
+            ->pluck('classSection')
+            ->filter()
+            ->unique(fn ($cs) => $cs->id ?? spl_object_hash($cs));
+
+        return $uniqueSections->reduce(function ($carry, $cs) {
             if (isset($cs->students_count)) {
                 return $carry + (int) $cs->students_count;
             }
-            if (method_exists($cs, 'students')) {
+            if ($cs->relationLoaded('students')) {
                 return $carry + $cs->students->count();
             }
+            if (method_exists($cs, 'students')) {
+                return $carry + (int) $cs->students()->count();
+            }
+
             return $carry;
         }, 0);
     }
