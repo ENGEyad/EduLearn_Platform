@@ -11,7 +11,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-    //
+        //
     }
 
     /**
@@ -22,8 +22,18 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
             if (auth()->check()) {
                 $schoolId = auth()->user()->school_id;
-                $latestNotifications = \App\Models\DashboardNotification::where('school_id', $schoolId)->latest()->take(5)->get();
-                $unreadCount = \App\Models\DashboardNotification::where('school_id', $schoolId)->where('is_read', false)->count();
+
+                // Bolt Optimization: Memoize notification queries per request using Laravel's once() helper.
+                // Because View::composer('*') triggers for every rendered view and partial, wrapping
+                // these queries in once() prevents duplicate queries (N+1) across partials/layouts.
+                $latestNotifications = once(function () use ($schoolId) {
+                    return \App\Models\DashboardNotification::where('school_id', $schoolId)->latest()->take(5)->get();
+                });
+
+                $unreadCount = once(function () use ($schoolId) {
+                    return \App\Models\DashboardNotification::where('school_id', $schoolId)->where('is_read', false)->count();
+                });
+
                 $view->with('headerNotifications', $latestNotifications);
                 $view->with('unreadNotificationsCount', $unreadCount);
             } else {
