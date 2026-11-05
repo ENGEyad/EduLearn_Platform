@@ -1,0 +1,5 @@
+# Bolt's Performance Journal
+
+## 2026-05-13 - Teacher Model Total Assigned Students and Subject Resolution Optimization
+**Learning:** In `Teacher::getTotalAssignedStudentsAttribute()`, iterating directly over `assignments` double-counts students whenever a teacher is assigned to multiple subjects for the same class section. Furthermore, when `students_count` was not preloaded, invoking `$cs->students->count()` forced Eloquent to load and hydrate all student model instances into PHP memory just to obtain a count. In `Teacher::getAssignedSubjectsAttribute()`, accessing `$subject->name` returned null because `Subject` uses `display_name`, `name_en`, and `name_ar`.
+**Action:** Deduplicate class sections by `id` from assignments before summing student counts. Check `isset($cs->students_count)` first, then `$cs->relationLoaded('students')`, and fallback to `$cs->students()->count()` for a lightweight SQL aggregate query without hydrating Eloquent models. Resolve subject names using `$subject->display_name ?? $subject->name_en ?? $subject->name_ar`.
